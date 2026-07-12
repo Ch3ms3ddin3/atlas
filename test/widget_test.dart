@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/app/atlas_app.dart';
+import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
+import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
 void main() {
@@ -26,7 +28,12 @@ void main() {
     expect(find.text('Accueil'), findsWidgets);
     expect(find.text('Bonjour Chemseddine'), findsOneWidget);
     expect(find.text('Marrakech'), findsOneWidget);
-    expect(find.text('Dimanche 12 juillet 2026'), findsOneWidget);
+    expect(
+      find.text(
+        CasablancaDateFormatter.formatLongDate(PrayerMapper.casablancaNow()),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.text('Asr'), findsWidgets);
     expect(find.text('1 EUR'), findsOneWidget);
@@ -53,10 +60,9 @@ void main() {
     await tester.tap(find.text('Démarches'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining('Guides pas à pas pour vos démarches'),
-      findsOneWidget,
-    );
+    expect(find.text('Guides pas à pas pour vos démarches au Maroc.'), findsOneWidget);
+    expect(find.text('Renouveler la CIN'), findsOneWidget);
+    expect(find.text('Carte de séjour'), findsOneWidget);
 
     await tester.tap(find.text('Prix'));
     await tester.pumpAndSettle();
@@ -78,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bonjour Chemseddine'), findsOneWidget);
-    expect(find.text('Forte chaleur prévue'), findsOneWidget);
+    expect(find.text('Forte chaleur prévue'), findsWidgets);
   });
 
   testWidgets('Le tableau de bord affiche les sections principales', (
@@ -98,8 +104,27 @@ void main() {
     expect(find.text('Padel'), findsOneWidget);
     expect(
       find.textContaining('Toutes les données mises à jour'),
-      findsOneWidget,
+      findsWidgets,
     );
+  });
+
+  testWidgets('Le rappel administratif ouvre le guide CIN', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const AtlasApp());
+    await tester.pumpAndSettle();
+
+    final reminder = find.text('Renouveler la CIN').first;
+    await tester.ensureVisible(reminder);
+    await tester.tap(reminder);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Documents requis'), findsOneWidget);
+    expect(find.text('Étapes'), findsOneWidget);
+    expect(find.textContaining('cnie.ma'), findsOneWidget);
   });
 
   testWidgets('Les actions rapides sont tappables', (
