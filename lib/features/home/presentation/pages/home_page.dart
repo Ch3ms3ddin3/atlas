@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../data/weather/weather_repository.dart';
@@ -27,10 +28,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final WeatherRepository _weatherRepository = WeatherRepository();
   final PrayerRepository _prayerRepository = PrayerRepository();
+  final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
 
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
   PrayerTimeData _prayerTime = HomeMockData.prayerTime;
+  ExchangeRateData _exchangeRate = HomeMockData.exchangeRate;
   Timer? _prayerCountdownTimer;
 
   @override
@@ -39,6 +42,7 @@ class _HomePageState extends State<HomePage> {
     _prayerTime = _prayerRepository.buildForNow();
     _loadWeather();
     _loadPrayerTimes();
+    _loadExchangeRate();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _refreshPrayerCountdown(),
@@ -64,6 +68,12 @@ class _HomePageState extends State<HomePage> {
     final prayerTime = await _prayerRepository.getPrayerTimes();
     if (!mounted) return;
     setState(() => _prayerTime = prayerTime);
+  }
+
+  Future<void> _loadExchangeRate() async {
+    final exchangeRate = await _exchangeRateRepository.getExchangeRate();
+    if (!mounted) return;
+    setState(() => _exchangeRate = exchangeRate);
   }
 
   void _refreshPrayerCountdown() {
@@ -111,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                       weather: _weather,
                       isWeatherLoading: _isWeatherLoading,
                       prayerTime: _prayerTime,
-                      exchangeRate: HomeMockData.exchangeRate,
+                      exchangeRate: _exchangeRate,
                       holidayStatus: HomeMockData.holidayStatus,
                     ),
                   ),

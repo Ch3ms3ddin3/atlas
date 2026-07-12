@@ -21,7 +21,8 @@ void main() {
     expect(find.text('Dimanche 12 juillet 2026'), findsOneWidget);
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.text('Asr'), findsWidgets);
-    expect(find.text('10.78 MAD'), findsOneWidget);
+    expect(find.text('1 EUR'), findsOneWidget);
+    expect(find.textContaining('MAD'), findsOneWidget);
     expect(find.text('Jour ouvré'), findsOneWidget);
 
     expect(AtlasBottomNav.destinations, hasLength(5));
