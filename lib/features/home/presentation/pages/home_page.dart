@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../data/mock/home_mock_data.dart';
+import '../../data/prayer/prayer_repository.dart';
 import '../../data/weather/weather_repository.dart';
 import '../widgets/admission_temporaire_card.dart';
 import '../widgets/daily_briefing_section.dart';
@@ -23,14 +26,29 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final WeatherRepository _weatherRepository = WeatherRepository();
+  final PrayerRepository _prayerRepository = PrayerRepository();
 
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
+  PrayerTimeData _prayerTime = HomeMockData.prayerTime;
+  Timer? _prayerCountdownTimer;
 
   @override
   void initState() {
     super.initState();
+    _prayerTime = _prayerRepository.buildForNow();
     _loadWeather();
+    _loadPrayerTimes();
+    _prayerCountdownTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _refreshPrayerCountdown(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _prayerCountdownTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadWeather() async {
@@ -40,6 +58,17 @@ class _HomePageState extends State<HomePage> {
       _weather = weather;
       _isWeatherLoading = false;
     });
+  }
+
+  Future<void> _loadPrayerTimes() async {
+    final prayerTime = await _prayerRepository.getPrayerTimes();
+    if (!mounted) return;
+    setState(() => _prayerTime = prayerTime);
+  }
+
+  void _refreshPrayerCountdown() {
+    if (!mounted) return;
+    setState(() => _prayerTime = _prayerRepository.buildForNow());
   }
 
   void _onQuickActionTap(QuickActionData action) {
@@ -81,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                     child: DailyBriefingSection(
                       weather: _weather,
                       isWeatherLoading: _isWeatherLoading,
-                      prayerTime: HomeMockData.prayerTime,
+                      prayerTime: _prayerTime,
                       exchangeRate: HomeMockData.exchangeRate,
                       holidayStatus: HomeMockData.holidayStatus,
                     ),
