@@ -32,7 +32,10 @@ void main() {
         client: _FailingOpenMeteoClient(),
       );
 
-      final weather = await repository.getWeather();
+      final weather = await repository.getWeather(
+        latitude: 31.6295,
+        longitude: -7.9811,
+      );
 
       expect(weather.temperature, 38);
       expect(weather.condition, 'Très ensoleillé');
@@ -44,7 +47,10 @@ void main() {
 
 class _FailingOpenMeteoClient extends OpenMeteoClient {
   @override
-  Future<WeatherData> fetchCurrentWeather() async {
+  Future<WeatherData> fetchCurrentWeather({
+    required double latitude,
+    required double longitude,
+  }) async {
     throw Exception('network error');
   }
 }

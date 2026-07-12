@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/location/location_constants.dart';
+import '../../../../core/location/location_repository.dart';
+import '../../../../core/location/user_location.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/holiday/holiday_repository.dart';
 import '../../data/mock/home_mock_data.dart';
@@ -27,11 +30,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final LocationRepository _locationRepository = LocationRepository();
   final WeatherRepository _weatherRepository = WeatherRepository();
   final PrayerRepository _prayerRepository = PrayerRepository();
   final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
   final HolidayRepository _holidayRepository = HolidayRepository();
 
+  UserLocation _location = const UserLocation(
+    latitude: LocationConstants.fallbackLatitude,
+    longitude: LocationConstants.fallbackLongitude,
+    cityName: LocationConstants.fallbackCity,
+    isFromGps: false,
+  );
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
   PrayerTimeData _prayerTime = HomeMockData.prayerTime;
@@ -47,6 +57,7 @@ class _HomePageState extends State<HomePage> {
     _loadPrayerTimes();
     _loadExchangeRate();
     _loadHolidayStatus();
+    _resolveLocation();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _refreshPrayerCountdown(),
@@ -59,9 +70,36 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  Future<void> _loadWeather() async {
-    final weather = await _weatherRepository.getWeather();
+  Future<void> _resolveLocation() async {
+    final location = await _locationRepository.resolveLocation();
     if (!mounted) return;
+
+    final locationChanged = location.latitude != _location.latitude ||
+        location.longitude != _location.longitude ||
+        location.cityName != _location.cityName;
+
+    setState(() => _location = location);
+
+    if (locationChanged && location.isFromGps) {
+      setState(() => _isWeatherLoading = true);
+      await Future.wait([
+        _loadWeather(),
+        _loadPrayerTimes(),
+      ]);
+    }
+  }
+
+  Future<void> _loadWeather() async {
+    final latitude = _location.latitude;
+    final longitude = _location.longitude;
+    final weather = await _weatherRepository.getWeather(
+      latitude: latitude,
+      longitude: longitude,
+    );
+    if (!mounted) return;
+    if (latitude != _location.latitude || longitude != _location.longitude) {
+      return;
+    }
     setState(() {
       _weather = weather;
       _isWeatherLoading = false;
@@ -69,8 +107,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadPrayerTimes() async {
-    final prayerTime = await _prayerRepository.getPrayerTimes();
+    final latitude = _location.latitude;
+    final longitude = _location.longitude;
+    final prayerTime = await _prayerRepository.getPrayerTimes(
+      latitude: latitude,
+      longitude: longitude,
+    );
     if (!mounted) return;
+    if (latitude != _location.latitude || longitude != _location.longitude) {
+      return;
+    }
     setState(() => _prayerTime = prayerTime);
   }
 
@@ -117,7 +163,13 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    child: GreetingHeader(data: HomeMockData.greeting),
+                    child: GreetingHeader(
+                      data: GreetingData(
+                        userName: HomeMockData.greeting.userName,
+                        city: _location.cityName,
+                        dateLabel: HomeMockData.greeting.dateLabel,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: AtlasSpacing.sectionLarge),
                   AtlasReveal(

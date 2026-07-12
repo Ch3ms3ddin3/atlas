@@ -10,9 +10,15 @@ class WeatherRepository {
   final OpenMeteoClient _client;
 
   /// Tente l'API ; en cas d'échec, renvoie le mock avec un libellé explicite.
-  Future<WeatherData> getWeather() async {
+  Future<WeatherData> getWeather({
+    required double latitude,
+    required double longitude,
+  }) async {
     try {
-      return await _client.fetchCurrentWeather();
+      return await _client.fetchCurrentWeather(
+        latitude: latitude,
+        longitude: longitude,
+      );
     } catch (_) {
       return _fallbackWeather();
     }

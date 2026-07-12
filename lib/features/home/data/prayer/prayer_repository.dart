@@ -15,9 +15,15 @@ class PrayerRepository {
   bool _usingFallback = false;
 
   /// Tente l'API ; en cas d'échec, conserve les horaires fictifs.
-  Future<PrayerTimeData> getPrayerTimes() async {
+  Future<PrayerTimeData> getPrayerTimes({
+    required double latitude,
+    required double longitude,
+  }) async {
     try {
-      final timings = await _client.fetchTodayTimings();
+      final timings = await _client.fetchTodayTimings(
+        latitude: latitude,
+        longitude: longitude,
+      );
       _cachedTimings = timings;
       _calculationMethod = PrayerMapper.liveCalculationMethod;
       _usingFallback = false;

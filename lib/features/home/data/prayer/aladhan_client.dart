@@ -3,16 +3,17 @@ import 'dart:convert';
 import '../../../../core/network/atlas_http_client.dart';
 import 'prayer_mapper.dart';
 
-/// Client réseau pour l'API AlAdhan (Marrakech, méthode Maroc).
+/// Client réseau pour l'API AlAdhan (méthode Maroc).
 class AladhanClient {
   const AladhanClient();
 
-  static const _marrakechLatitude = 31.6295;
-  static const _marrakechLongitude = -7.9811;
   static const _moroccoMethod = 21;
 
-  /// Récupère les horaires du jour pour Marrakech (Africa/Casablanca).
-  Future<Map<String, String>> fetchTodayTimings() async {
+  /// Récupère les horaires du jour pour les coordonnées données (Africa/Casablanca).
+  Future<Map<String, String>> fetchTodayTimings({
+    required double latitude,
+    required double longitude,
+  }) async {
     final now = PrayerMapper.casablancaNow();
     final date = '${now.day.toString().padLeft(2, '0')}-'
         '${now.month.toString().padLeft(2, '0')}-'
@@ -22,8 +23,8 @@ class AladhanClient {
       'api.aladhan.com',
       '/v1/timings/$date',
       {
-        'latitude': '$_marrakechLatitude',
-        'longitude': '$_marrakechLongitude',
+        'latitude': '$latitude',
+        'longitude': '$longitude',
         'method': '$_moroccoMethod',
         'timezonestring': 'Africa/Casablanca',
       },
