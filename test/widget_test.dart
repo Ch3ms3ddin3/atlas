@@ -69,9 +69,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('Coût de la vie et repères utiles'),
+      find.textContaining('Repères de prix à Marrakech'),
       findsOneWidget,
     );
+    expect(find.text('Repas au restaurant'), findsOneWidget);
 
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
@@ -149,6 +150,21 @@ void main() {
 
     expect(find.text('Conseils pratiques'), findsOneWidget);
     expect(find.textContaining('maps.google.com'), findsOneWidget);
+  });
+
+  testWidgets('Un repère de prix ouvre le détail', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const AtlasApp());
+
+    await tester.tap(find.text('Prix'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Repas au restaurant').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conseils pratiques'), findsOneWidget);
+    expect(find.textContaining('Fourchette observée'), findsOneWidget);
   });
 
   testWidgets('Les actions rapides sont tappables', (
