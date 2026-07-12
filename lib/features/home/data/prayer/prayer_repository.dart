@@ -44,13 +44,34 @@ class PrayerRepository {
     return _fallbackPrayerTimes();
   }
 
-  PrayerTimeData _fallbackPrayerTimes() {
-    _usingFallback = true;
-    _calculationMethod = PrayerMapper.fallbackCalculationMethod;
-    _cachedTimings = {
+  /// Horaires bruts pour une date — API live ou mock en repli.
+  Future<Map<String, String>> getTimingsForDate({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+  }) async {
+    try {
+      return await _client.fetchTimingsForDate(
+        latitude: latitude,
+        longitude: longitude,
+        date: date,
+      );
+    } catch (_) {
+      return _fallbackTimingsMap();
+    }
+  }
+
+  Map<String, String> _fallbackTimingsMap() {
+    return {
       for (final item in HomeMockData.prayerTime.schedule)
         item.name: item.time,
     };
+  }
+
+  PrayerTimeData _fallbackPrayerTimes() {
+    _usingFallback = true;
+    _calculationMethod = PrayerMapper.fallbackCalculationMethod;
+    _cachedTimings = _fallbackTimingsMap();
     return PrayerMapper.fromTimings(
       _cachedTimings!,
       calculationMethod: _calculationMethod,

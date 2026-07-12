@@ -16,6 +16,7 @@ class DailyBriefingSection extends StatelessWidget {
     required this.prayerTime,
     required this.exchangeRate,
     required this.holidayStatus,
+    this.onPrayerTap,
   });
 
   final WeatherData weather;
@@ -23,6 +24,7 @@ class DailyBriefingSection extends StatelessWidget {
   final PrayerTimeData prayerTime;
   final ExchangeRateData exchangeRate;
   final HolidayStatusData holidayStatus;
+  final VoidCallback? onPrayerTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,10 @@ class DailyBriefingSection extends StatelessWidget {
                   const SizedBox(width: AtlasSpacing.lg),
                   Expanded(
                     flex: 2,
-                    child: PrayerTimeCard(data: prayerTime),
+                    child: PrayerTimeCard(
+                      data: prayerTime,
+                      onTap: onPrayerTap,
+                    ),
                   ),
                 ],
               ),
@@ -72,7 +77,10 @@ class DailyBriefingSection extends StatelessWidget {
               isLoading: isWeatherLoading,
             ),
             const SizedBox(height: AtlasSpacing.lg),
-            PrayerTimeCard(data: prayerTime),
+            PrayerTimeCard(
+              data: prayerTime,
+              onTap: onPrayerTap,
+            ),
             const SizedBox(height: AtlasSpacing.lg),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,18 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/holiday/holiday_repository.dart';
 import '../../data/mock/home_mock_data.dart';
+import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../data/weather/weather_repository.dart';
 import '../widgets/admission_temporaire_card.dart';
 import '../widgets/daily_briefing_section.dart';
 import '../widgets/greeting_header.dart';
 import '../widgets/home_section_header.dart';
+import '../widgets/prayer_notification_settings_sheet.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/recommended_places_card.dart';
 import '../widgets/today_essentials_section.dart';
@@ -48,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   ExchangeRateData _exchangeRate = HomeMockData.exchangeRate;
   HolidayStatusData _holidayStatus = HomeMockData.holidayStatus;
   Timer? _prayerCountdownTimer;
+  Timer? _dateRollTimer;
 
   @override
   void initState() {
@@ -58,6 +62,7 @@ class _HomePageState extends State<HomePage> {
     _loadExchangeRate();
     _loadHolidayStatus();
     _resolveLocation();
+    _scheduleDateRollTimer();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _refreshPrayerCountdown(),
@@ -67,7 +72,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _prayerCountdownTimer?.cancel();
+    _dateRollTimer?.cancel();
     super.dispose();
+  }
+
+  void _scheduleDateRollTimer() {
+    final now = PrayerMapper.casablancaNow();
+    final midnight = DateTime(now.year, now.month, now.day).add(
+      const Duration(days: 1),
+    );
+    var delay = midnight.difference(now);
+    if (delay <= Duration.zero) {
+      delay = const Duration(seconds: 1);
+    }
+    _dateRollTimer?.cancel();
+    _dateRollTimer = Timer(delay, () {
+      unawaited(prayerNotificationCoordinator.sync(force: true));
+      _scheduleDateRollTimer();
+    });
   }
 
   Future<void> _resolveLocation() async {
@@ -86,6 +108,7 @@ class _HomePageState extends State<HomePage> {
         _loadWeather(),
         _loadPrayerTimes(),
       ]);
+      unawaited(prayerNotificationCoordinator.sync(location: location));
     }
   }
 
@@ -118,6 +141,7 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     setState(() => _prayerTime = prayerTime);
+    unawaited(prayerNotificationCoordinator.sync(location: _location));
   }
 
   Future<void> _loadExchangeRate() async {
@@ -135,6 +159,30 @@ class _HomePageState extends State<HomePage> {
   void _refreshPrayerCountdown() {
     if (!mounted) return;
     setState(() => _prayerTime = _prayerRepository.buildForNow());
+  }
+
+  void _onPrayerCardTap() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => PrayerNotificationSettingsSheet(
+        coordinator: prayerNotificationCoordinator,
+        onPermissionDenied: () {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Autorisez les notifications dans les réglages de votre '
+                  'téléphone pour activer les rappels de prière.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 4),
+              ),
+            );
+        },
+      ),
+    );
   }
 
   void _onQuickActionTap(QuickActionData action) {
@@ -185,6 +233,7 @@ class _HomePageState extends State<HomePage> {
                       prayerTime: _prayerTime,
                       exchangeRate: _exchangeRate,
                       holidayStatus: _holidayStatus,
+                      onPrayerTap: _onPrayerCardTap,
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.sectionLarge),

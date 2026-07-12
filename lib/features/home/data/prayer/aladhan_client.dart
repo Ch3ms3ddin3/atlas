@@ -13,15 +13,27 @@ class AladhanClient {
   Future<Map<String, String>> fetchTodayTimings({
     required double latitude,
     required double longitude,
+  }) {
+    return fetchTimingsForDate(
+      latitude: latitude,
+      longitude: longitude,
+      date: PrayerMapper.casablancaNow(),
+    );
+  }
+
+  /// Récupère les horaires pour une date donnée (Africa/Casablanca).
+  Future<Map<String, String>> fetchTimingsForDate({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
   }) async {
-    final now = PrayerMapper.casablancaNow();
-    final date = '${now.day.toString().padLeft(2, '0')}-'
-        '${now.month.toString().padLeft(2, '0')}-'
-        '${now.year}';
+    final formattedDate = '${date.day.toString().padLeft(2, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.year}';
 
     final uri = Uri.https(
       'api.aladhan.com',
-      '/v1/timings/$date',
+      '/v1/timings/$formattedDate',
       {
         'latitude': '$latitude',
         'longitude': '$longitude',

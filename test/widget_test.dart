@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/app/atlas_app.dart';
+import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
 void main() {
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    ensurePrayerNotificationCoordinatorForTests();
+  });
+
   testWidgets('Atlas démarre sur Accueil avec 5 onglets', (
     WidgetTester tester,
   ) async {
