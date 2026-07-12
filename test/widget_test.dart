@@ -10,12 +10,16 @@ void main() {
   ) async {
     await tester.pumpWidget(const AtlasApp());
 
+    expect(find.text('—°'), findsOneWidget);
+    expect(find.text('Chargement…'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+
     expect(find.text('Accueil'), findsWidgets);
     expect(find.text('Bonjour Chemseddine'), findsOneWidget);
     expect(find.text('Marrakech'), findsOneWidget);
     expect(find.text('Dimanche 12 juillet 2026'), findsOneWidget);
     expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.text('38°'), findsOneWidget);
     expect(find.text('Asr'), findsWidgets);
     expect(find.text('10.78 MAD'), findsOneWidget);
     expect(find.text('Jour ouvré'), findsOneWidget);

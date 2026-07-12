@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/mock/home_mock_data.dart';
+import '../../data/weather/weather_repository.dart';
 import '../widgets/admission_temporaire_card.dart';
 import '../widgets/daily_briefing_section.dart';
 import '../widgets/greeting_header.dart';
@@ -21,6 +22,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final WeatherRepository _weatherRepository = WeatherRepository();
+
+  WeatherData _weather = HomeMockData.weather;
+  bool _isWeatherLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeather();
+  }
+
+  Future<void> _loadWeather() async {
+    final weather = await _weatherRepository.getWeather();
+    if (!mounted) return;
+    setState(() {
+      _weather = weather;
+      _isWeatherLoading = false;
+    });
+  }
+
   void _onQuickActionTap(QuickActionData action) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -58,7 +79,8 @@ class _HomePageState extends State<HomePage> {
                   AtlasReveal(
                     delay: const Duration(milliseconds: 100),
                     child: DailyBriefingSection(
-                      weather: HomeMockData.weather,
+                      weather: _weather,
+                      isWeatherLoading: _isWeatherLoading,
                       prayerTime: HomeMockData.prayerTime,
                       exchangeRate: HomeMockData.exchangeRate,
                       holidayStatus: HomeMockData.holidayStatus,

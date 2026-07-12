@@ -12,12 +12,14 @@ class DailyBriefingSection extends StatelessWidget {
   const DailyBriefingSection({
     super.key,
     required this.weather,
+    this.isWeatherLoading = false,
     required this.prayerTime,
     required this.exchangeRate,
     required this.holidayStatus,
   });
 
   final WeatherData weather;
+  final bool isWeatherLoading;
   final PrayerTimeData prayerTime;
   final ExchangeRateData exchangeRate;
   final HolidayStatusData holidayStatus;
@@ -34,7 +36,10 @@ class DailyBriefingSection extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: WeatherCard(data: weather),
+                    child: WeatherCard(
+                      data: weather,
+                      isLoading: isWeatherLoading,
+                    ),
                   ),
                   const SizedBox(width: AtlasSpacing.lg),
                   Expanded(
@@ -62,7 +67,10 @@ class DailyBriefingSection extends StatelessWidget {
 
         return Column(
           children: [
-            WeatherCard(data: weather),
+            WeatherCard(
+              data: weather,
+              isLoading: isWeatherLoading,
+            ),
             const SizedBox(height: AtlasSpacing.lg),
             PrayerTimeCard(data: prayerTime),
             const SizedBox(height: AtlasSpacing.lg),
