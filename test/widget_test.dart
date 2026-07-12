@@ -53,9 +53,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('Lieux, quartiers et expériences'),
+      find.textContaining('Lieux utiles à Marrakech'),
       findsOneWidget,
     );
+    expect(find.text('Jardin Majorelle'), findsWidgets);
 
     await tester.tap(find.text('Démarches'));
     await tester.pumpAndSettle();
@@ -99,7 +100,7 @@ void main() {
     expect(find.text('Admission temporaire'), findsOneWidget);
     expect(find.text('42'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(find.text('Palais de la Bahia'), findsOneWidget);
+    expect(find.text('Place Jemaa el-Fna'), findsOneWidget);
     expect(find.text('Urgences'), findsOneWidget);
     expect(find.text('Padel'), findsOneWidget);
     expect(
@@ -125,6 +126,29 @@ void main() {
     expect(find.text('Documents requis'), findsOneWidget);
     expect(find.text('Étapes'), findsOneWidget);
     expect(find.textContaining('cnie.ma'), findsOneWidget);
+  });
+
+  testWidgets('Une recommandation ouvre le détail du lieu', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const AtlasApp());
+    await tester.pumpAndSettle();
+
+    final place = find.text('Jardin Majorelle').first;
+    await tester.scrollUntilVisible(
+      place,
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(place);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conseils pratiques'), findsOneWidget);
+    expect(find.textContaining('maps.google.com'), findsOneWidget);
   });
 
   testWidgets('Les actions rapides sont tappables', (

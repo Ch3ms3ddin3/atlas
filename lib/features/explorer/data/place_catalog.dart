@@ -1,0 +1,324 @@
+import 'package:flutter/material.dart';
+
+import '../domain/models/place_models.dart';
+
+/// Catalogue statique de lieux utiles — sans backend ni API cartographique.
+abstract final class PlaceCatalog {
+  static const guides = <PlaceGuide>[
+    PlaceGuide(
+      id: 'place-majorelle',
+      name: 'Jardin Majorelle',
+      cityName: 'Marrakech',
+      category: PlaceCategory.jardin,
+      categoryLabel: 'Jardin',
+      neighborhood: 'Gueliz',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF2D6A4F),
+      summary:
+          'Jardin botanique emblématique créé par Jacques Majorelle, '
+          'célèbre pour son bleu Majorelle et ses collections de cactus.',
+      bestTimeToVisit: 'Tôt le matin, avant 10h',
+      mapsUrl: 'https://maps.google.com/?q=Jardin+Majorelle+Marrakech',
+      practicalTips: [
+        'Réservez vos billets en ligne pour éviter la file d\'attente.',
+        'Portez des chaussures confortables — le jardin se parcourt à pied.',
+        'Le musée Berbère sur place mérite une visite de 30 minutes.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-bahia',
+      name: 'Palais de la Bahia',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFC4654A),
+      summary:
+          'Palais du XIXe siècle aux décors somptueux — '
+          'un des plus beaux exemples d\'architecture andalouse à Marrakech.',
+      bestTimeToVisit: 'En matinée, hors week-end si possible',
+      mapsUrl: 'https://maps.google.com/?q=Palais+de+la+Bahia+Marrakech',
+      practicalTips: [
+        'Arrivez à l\'ouverture pour profiter de la lumière dans les patios.',
+        'Prévoyez 1h à 1h30 pour la visite complète.',
+        'Les cours intérieures sont ombragées — idéal en été.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-jemaa-el-fna',
+      name: 'Place Jemaa el-Fna',
+      cityName: 'Marrakech',
+      category: PlaceCategory.souk,
+      categoryLabel: 'Souk',
+      neighborhood: 'Médina',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF8B4513),
+      summary:
+          'Cœur battant de la Médina — spectacles de rue, étals de nourriture '
+          'et artisanat dès la tombée du jour.',
+      bestTimeToVisit: 'Fin d\'après-midi et soirée',
+      mapsUrl: 'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech',
+      practicalTips: [
+        'Négociez les prix dans les souks — c\'est la coutume.',
+        'Goûtez les jus d\'orange frais des étals de la place.',
+        'Restez vigilant sur vos affaires dans la foule du soir.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-ysl-museum',
+      name: 'Musée Yves Saint Laurent',
+      cityName: 'Marrakech',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Gueliz',
+      priceLevel: '€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF1A1A2E),
+      summary:
+          'Musée dédié à Yves Saint Laurent, voisin du Jardin Majorelle — '
+          'mode, design et héritage culturel.',
+      bestTimeToVisit: 'En semaine, milieu de matinée',
+      mapsUrl: 'https://maps.google.com/?q=Musée+Yves+Saint+Laurent+Marrakech',
+      practicalTips: [
+        'Le billet combiné Jardin Majorelle + musée est souvent avantageux.',
+        'La photographie est interdite dans certaines salles.',
+        'Comptez 1h pour la visite du musée seul.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-hammam-marrakech',
+      name: 'Hammam traditionnel',
+      cityName: 'Marrakech',
+      category: PlaceCategory.hammam,
+      categoryLabel: 'Hammam',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF5C7A8A),
+      summary:
+          'Expérience authentique de bain maure — gommage, vapeur '
+          'et détente après une journée dans la Médina.',
+      bestTimeToVisit: 'Fin d\'après-midi',
+      mapsUrl: 'https://maps.google.com/?q=Hammam+Médina+Marrakech',
+      practicalTips: [
+        'Apportez votre propre savon noir et gant de kessa si possible.',
+        'Les hammams locaux sont mixtes par créneaux horaires — renseignez-vous.',
+        'Prévoyez 1h30 à 2h pour l\'expérience complète.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-hassan-ii',
+      name: 'Mosquée Hassan II',
+      cityName: 'Casablanca',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Corniche',
+      priceLevel: '€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF1B4965),
+      summary:
+          'Deuxième plus grande mosquée au monde — architecture spectaculaire '
+          'dominant l\'Atlantique.',
+      bestTimeToVisit: 'Visite guidée le matin',
+      mapsUrl: 'https://maps.google.com/?q=Mosquée+Hassan+II+Casablanca',
+      practicalTips: [
+        'Les visites guidées sont obligatoires pour les non-musulmans.',
+        'Retirez vos chaussures et habillez-vous modestement.',
+        'La visite dure environ 1h — réservez à l\'avance en haute saison.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-corniche',
+      name: 'Corniche Ain Diab',
+      cityName: 'Casablanca',
+      category: PlaceCategory.plage,
+      categoryLabel: 'Plage',
+      neighborhood: 'Ain Diab',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF48CAE4),
+      summary:
+          'Promenade en bord de mer avec plages, cafés et restaurants — '
+          'incontournable de Casablanca.',
+      bestTimeToVisit: 'Fin d\'après-midi en semaine',
+      mapsUrl: 'https://maps.google.com/?q=Corniche+Ain+Diab+Casablanca',
+      practicalTips: [
+        'Le stationnement est difficile le week-end — privilégiez un taxi.',
+        'Les plages publiques sont gratuites, les clubs de plage sont payants.',
+        'Idéal pour un coucher de soleil suivi d\'un dîner en bord de mer.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-marche-central',
+      name: 'Marché Central',
+      cityName: 'Casablanca',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Centre-ville',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFFE07A5F),
+      summary:
+          'Marché couvert historique transformé en food court — '
+          'fruits de mer, cuisine marocaine et ambiance locale.',
+      bestTimeToVisit: 'Déjeuner entre 12h et 14h',
+      mapsUrl: 'https://maps.google.com/?q=Marché+Central+Casablanca',
+      practicalTips: [
+        'Les étals de poisson grillé sont les plus populaires.',
+        'Arrivez tôt pour avoir une table aux heures de pointe.',
+        'Les prix sont affichés — peu de négociation ici.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-musee-judaisme',
+      name: 'Musée du Judaïsme Marocain',
+      cityName: 'Casablanca',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Centre-ville',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF6B4226),
+      summary:
+          'Musée unique retraçant l\'histoire millénaire du judaïsme marocain '
+          'dans un ancien temple.',
+      bestTimeToVisit: 'Matinée en semaine',
+      mapsUrl: 'https://maps.google.com/?q=Musée+du+Judaïsme+Casablanca',
+      practicalTips: [
+        'Fermé le samedi — vérifiez les horaires avant de vous déplacer.',
+        'La visite guidée enrichit beaucoup l\'expérience.',
+        'Comptez 1h pour une visite complète.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-habous',
+      name: 'Quartier Habous',
+      cityName: 'Casablanca',
+      category: PlaceCategory.souk,
+      categoryLabel: 'Souk',
+      neighborhood: 'Habous',
+      priceLevel: '€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFD4A373),
+      summary:
+          'Quartier néo-traditionnel avec souks, pâtisseries et artisanat — '
+          'alternative plus calme à la Médina de Marrakech.',
+      bestTimeToVisit: 'Matinée',
+      mapsUrl: 'https://maps.google.com/?q=Quartier+Habous+Casablanca',
+      practicalTips: [
+        'Les pâtisseries orientales du quartier sont réputées.',
+        'Moins touristique que la Médina — les prix sont plus doux.',
+        'Idéal pour acheter des souvenirs artisanaux.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-tour-hassan',
+      name: 'Tour Hassan',
+      cityName: 'Rabat',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Centre-ville',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFFB5835A),
+      summary:
+          'Minaret inachevé du XIIe siècle et esplanade monumentale — '
+          'symbole emblématique de Rabat.',
+      bestTimeToVisit: 'Fin d\'après-midi pour la lumière',
+      mapsUrl: 'https://maps.google.com/?q=Tour+Hassan+Rabat',
+      practicalTips: [
+        'L\'esplanade est gratuite et ouverte en continu.',
+        'Combinez avec la visite du Mausolée Mohammed V juste en face.',
+        'Très photogénique au coucher du soleil.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-oudayas',
+      name: 'Kasbah des Oudayas',
+      cityName: 'Rabat',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Oudayas',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF3D5A80),
+      summary:
+          'Citadelle aux ruelles bleues et blanches surplombant l\'embouchure '
+          'du Bouregreg — le quartier le plus pittoresque de Rabat.',
+      bestTimeToVisit: 'Matinée en semaine',
+      mapsUrl: 'https://maps.google.com/?q=Kasbah+des+Oudayas+Rabat',
+      practicalTips: [
+        'Les ruelles sont étroites — chaussures confortables recommandées.',
+        'Le café Maure offre une vue magnifique sur le fleuve.',
+        'Moins de monde tôt le matin.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-chellah',
+      name: 'Chellah',
+      cityName: 'Rabat',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Chellah',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF588157),
+      summary:
+          'Site archéologique romain et médiéval aux jardins luxuriants — '
+          'havre de paix en ville.',
+      bestTimeToVisit: 'Matinée, surtout au printemps',
+      mapsUrl: 'https://maps.google.com/?q=Chellah+Rabat',
+      practicalTips: [
+        'Les nids de storks sur les ruines sont spectaculaires au printemps.',
+        'Prévoyez 1h30 pour explorer le site en entier.',
+        'Ombragé et frais — idéal par temps chaud.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-musee-rabat',
+      name: 'Musée Mohammed VI',
+      cityName: 'Rabat',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Centre-ville',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF7B2D26),
+      summary:
+          'Musée d\'art moderne et contemporain africain — '
+          'collection remarquable dans une architecture épurée.',
+      bestTimeToVisit: 'Après-midi en semaine',
+      mapsUrl: 'https://maps.google.com/?q=Musée+Mohammed+VI+Rabat',
+      practicalTips: [
+        'Fermé le mardi — vérifiez les horaires.',
+        'La collection permanente est accessible avec un seul billet.',
+        'Comptez 1h30 pour une visite confortable.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-plage-rabat',
+      name: 'Plage de Rabat',
+      cityName: 'Rabat',
+      category: PlaceCategory.plage,
+      categoryLabel: 'Plage',
+      neighborhood: 'Plage des Oudayas',
+      priceLevel: '€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF90E0EF),
+      summary:
+          'Plage urbaine accessible depuis la Kasbah — '
+          'idéale pour une pause fraîcheur en été.',
+      bestTimeToVisit: 'Fin d\'après-midi',
+      mapsUrl: 'https://maps.google.com/?q=Plage+Rabat',
+      practicalTips: [
+        'La plage est surveillée en été.',
+        'Accessible à pied depuis la Kasbah des Oudayas.',
+        'Évitez les week-ends d\'été si vous cherchez le calme.',
+      ],
+    ),
+  ];
+}

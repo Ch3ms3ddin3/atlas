@@ -7,6 +7,9 @@ import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
+import '../../../explorer/data/place_mapper.dart';
+import '../../../explorer/data/place_repository.dart';
+import '../../../explorer/presentation/pages/explorer_page.dart';
 import '../../../procedures/data/procedure_reminder_links.dart';
 import '../../../procedures/data/procedure_repository.dart';
 import '../../../procedures/presentation/pages/procedures_page.dart';
@@ -48,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   final TodayEssentialsRepository _todayEssentialsRepository =
       const TodayEssentialsRepository();
   final ProcedureRepository _procedureRepository = const ProcedureRepository();
+  final PlaceRepository _placeRepository = const PlaceRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -63,6 +67,7 @@ class _HomePageState extends State<HomePage> {
   GreetingData _greeting = HomeMockData.greeting;
   TodayEssentialsData _todayEssentials = HomeMockData.todayEssentials;
   String _lastUpdatedLabel = HomeMockData.lastUpdated;
+  List<RecommendedPlaceData> _recommendedPlaces = HomeMockData.recommendedPlaces;
   DateTime? _weatherFetchedAt;
   DateTime? _prayerFetchedAt;
   DateTime? _exchangeFetchedAt;
@@ -75,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _prayerTime = _prayerRepository.buildForNow();
     _refreshDerivedDashboardData();
+    _loadFeaturedPlaces();
     _loadWeather();
     _loadPrayerTimes();
     _loadExchangeRate();
@@ -128,6 +134,13 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
+  void _loadFeaturedPlaces() {
+    final featured = _placeRepository.getFeatured(cityName: _location.cityName);
+    _recommendedPlaces = featured
+        .map(PlaceMapper.toRecommendedPlaceData)
+        .toList();
+  }
+
   Future<void> _resolveLocation() async {
     final location = await _locationRepository.resolveLocation();
     if (!mounted) return;
@@ -139,6 +152,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _location = location;
       _refreshDerivedDashboardData();
+      _loadFeaturedPlaces();
     });
 
     if (locationChanged && location.isFromGps) {
@@ -236,6 +250,10 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     );
+  }
+
+  void _onPlaceTap(RecommendedPlaceData place) {
+    openPlaceGuideById(context, _placeRepository, place.id);
   }
 
   void _onAdminReminderTap() {
@@ -347,7 +365,8 @@ class _HomePageState extends State<HomePage> {
                   AtlasReveal(
                     delay: const Duration(milliseconds: 420),
                     child: RecommendedPlacesSection(
-                      places: HomeMockData.recommendedPlaces,
+                      places: _recommendedPlaces,
+                      onPlaceTap: _onPlaceTap,
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.section),
