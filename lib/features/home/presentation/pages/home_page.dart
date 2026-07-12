@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../data/exchange_rate/exchange_rate_repository.dart';
+import '../../data/holiday/holiday_repository.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../data/weather/weather_repository.dart';
@@ -29,11 +30,13 @@ class _HomePageState extends State<HomePage> {
   final WeatherRepository _weatherRepository = WeatherRepository();
   final PrayerRepository _prayerRepository = PrayerRepository();
   final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
+  final HolidayRepository _holidayRepository = HolidayRepository();
 
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
   PrayerTimeData _prayerTime = HomeMockData.prayerTime;
   ExchangeRateData _exchangeRate = HomeMockData.exchangeRate;
+  HolidayStatusData _holidayStatus = HomeMockData.holidayStatus;
   Timer? _prayerCountdownTimer;
 
   @override
@@ -43,6 +46,7 @@ class _HomePageState extends State<HomePage> {
     _loadWeather();
     _loadPrayerTimes();
     _loadExchangeRate();
+    _loadHolidayStatus();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _refreshPrayerCountdown(),
@@ -74,6 +78,12 @@ class _HomePageState extends State<HomePage> {
     final exchangeRate = await _exchangeRateRepository.getExchangeRate();
     if (!mounted) return;
     setState(() => _exchangeRate = exchangeRate);
+  }
+
+  Future<void> _loadHolidayStatus() async {
+    final holidayStatus = await _holidayRepository.getHolidayStatus();
+    if (!mounted) return;
+    setState(() => _holidayStatus = holidayStatus);
   }
 
   void _refreshPrayerCountdown() {
@@ -122,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                       isWeatherLoading: _isWeatherLoading,
                       prayerTime: _prayerTime,
                       exchangeRate: _exchangeRate,
-                      holidayStatus: HomeMockData.holidayStatus,
+                      holidayStatus: _holidayStatus,
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.sectionLarge),
