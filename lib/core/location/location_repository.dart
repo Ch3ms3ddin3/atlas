@@ -1,9 +1,10 @@
 import 'location_constants.dart';
 import 'geolocator_service.dart';
+import 'morocco_cities.dart';
 import 'reverse_geocoding_client.dart';
 import 'user_location.dart';
 
-/// Orchestre la résolution de la position utilisateur avec repli Marrakech.
+/// Orchestre la résolution de la position : GPS → ville préférée → Marrakech.
 class LocationRepository {
   LocationRepository({
     GeolocatorService? geolocatorService,
@@ -15,11 +16,11 @@ class LocationRepository {
   final GeolocatorService _geolocatorService;
   final ReverseGeocodingClient _reverseGeocodingClient;
 
-  /// Tente GPS + reverse geocoding ; renvoie Marrakech en cas d'échec.
-  Future<UserLocation> resolveLocation() async {
+  /// Tente GPS + reverse geocoding ; repli sur [preferredCityName] puis Marrakech.
+  Future<UserLocation> resolveLocation({String? preferredCityName}) async {
     final position = await _geolocatorService.getCurrentPosition();
     if (position == null) {
-      return _fallbackLocation();
+      return _preferredOrFallbackLocation(preferredCityName);
     }
 
     try {
@@ -43,11 +44,12 @@ class LocationRepository {
     }
   }
 
-  UserLocation _fallbackLocation() {
-    return const UserLocation(
-      latitude: LocationConstants.fallbackLatitude,
-      longitude: LocationConstants.fallbackLongitude,
-      cityName: LocationConstants.fallbackCity,
+  UserLocation _preferredOrFallbackLocation(String? preferredCityName) {
+    final city = MoroccoCities.resolve(preferredCityName) ?? MoroccoCities.fallback;
+    return UserLocation(
+      latitude: city.latitude,
+      longitude: city.longitude,
+      cityName: city.name,
       isFromGps: false,
     );
   }

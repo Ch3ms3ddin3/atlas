@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
+import '../../../profile/data/profile_repository.dart';
+import '../../../profile/domain/models/user_profile.dart';
+import '../../../profile/presentation/profile_scope.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/price_repository.dart';
 import '../../domain/models/price_models.dart';
@@ -28,6 +31,7 @@ class _PricesPageState extends State<PricesPage> {
   bool _isCityCovered = true;
   PriceCategory? _selectedCategory;
   List<PriceGuide> _guides = const [];
+  ProfileRepository? _profileRepository;
 
   @override
   void initState() {
@@ -39,13 +43,34 @@ class _PricesPageState extends State<PricesPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final repository = ProfileScope.of(context);
+    if (!identical(repository, _profileRepository)) {
+      _profileRepository?.removeListener(_onProfileChanged);
+      _profileRepository = repository;
+      _profileRepository!.addListener(_onProfileChanged);
+    }
+  }
+
+  @override
   void dispose() {
+    _profileRepository?.removeListener(_onProfileChanged);
     _searchController.dispose();
     super.dispose();
   }
 
+  void _onProfileChanged() {
+    if (!mounted) return;
+    _resolveLocation();
+  }
+
   Future<void> _resolveLocation() async {
-    final location = await _locationRepository.resolveLocation();
+    final preferredCity =
+        _profileRepository?.profile.preferredCity ?? UserProfile.defaultPreferredCity;
+    final location = await _locationRepository.resolveLocation(
+      preferredCityName: preferredCity,
+    );
     if (!mounted) return;
 
     setState(() {

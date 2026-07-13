@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:atlas/core/location/location_constants.dart';
 import 'package:atlas/core/location/location_repository.dart';
+import 'package:atlas/core/location/morocco_cities.dart';
 import 'package:atlas/core/location/reverse_geocoding_client.dart';
 import 'package:atlas/core/location/geolocator_service.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,6 +19,21 @@ void main() {
       expect(location.cityName, LocationConstants.fallbackCity);
       expect(location.latitude, LocationConstants.fallbackLatitude);
       expect(location.longitude, LocationConstants.fallbackLongitude);
+      expect(location.isFromGps, isFalse);
+    });
+
+    test('utilise la ville préférée si le GPS est indisponible', () async {
+      final repository = LocationRepository(
+        geolocatorService: _NullGeolocatorService(),
+      );
+
+      final location = await repository.resolveLocation(
+        preferredCityName: 'Casablanca',
+      );
+
+      expect(location.cityName, 'Casablanca');
+      expect(location.latitude, MoroccoCities.casablanca.latitude);
+      expect(location.longitude, MoroccoCities.casablanca.longitude);
       expect(location.isFromGps, isFalse);
     });
 

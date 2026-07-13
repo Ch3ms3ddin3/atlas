@@ -6,6 +6,7 @@ import '../../../../core/location/user_location.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../../../../core/notifications/notification_preferences_store.dart';
 import '../../../../core/notifications/prayer_notification_lead_time.dart';
+import '../../../profile/data/profile_preferences_store.dart';
 import 'prayer_mapper.dart';
 import 'prayer_notification_scheduler.dart';
 import 'prayer_repository.dart';
@@ -18,19 +19,23 @@ class PrayerNotificationCoordinator {
     PrayerRepository? prayerRepository,
     LocationRepository? locationRepository,
     PrayerNotificationScheduler? scheduler,
+    ProfilePreferencesStore? profilePreferencesStore,
   })  : _preferencesStore =
             preferencesStore ?? const NotificationPreferencesStore(),
         _notificationService =
             notificationService ?? LocalNotificationService(),
         _prayerRepository = prayerRepository ?? PrayerRepository(),
         _locationRepository = locationRepository ?? LocationRepository(),
-        _scheduler = scheduler ?? const PrayerNotificationScheduler();
+        _scheduler = scheduler ?? const PrayerNotificationScheduler(),
+        _profilePreferencesStore =
+            profilePreferencesStore ?? const ProfilePreferencesStore();
 
   final NotificationPreferencesStore _preferencesStore;
   final LocalNotificationService _notificationService;
   final PrayerRepository _prayerRepository;
   final LocationRepository _locationRepository;
   final PrayerNotificationScheduler _scheduler;
+  final ProfilePreferencesStore _profilePreferencesStore;
 
   String? _lastSyncKey;
 
@@ -109,7 +114,10 @@ class PrayerNotificationCoordinator {
 
   Future<UserLocation> _resolveLocationForSync() async {
     try {
-      return await _locationRepository.resolveLocation();
+      final profile = await _profilePreferencesStore.load();
+      return await _locationRepository.resolveLocation(
+        preferredCityName: profile.preferredCity,
+      );
     } catch (_) {
       return const UserLocation(
         latitude: LocationConstants.fallbackLatitude,

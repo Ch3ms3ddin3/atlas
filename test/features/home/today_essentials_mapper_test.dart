@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:atlas/features/home/data/mock/home_mock_data.dart';
 import 'package:atlas/features/home/data/today_essentials/today_essentials_mapper.dart';
 import 'package:atlas/features/home/domain/models/home_models.dart';
+import 'package:atlas/features/profile/domain/models/user_profile.dart';
 
 void main() {
   group('TodayEssentialsMapper', () {
@@ -26,6 +27,7 @@ void main() {
         weather: HomeMockData.weather,
         holidayStatus: workingDay,
         cityName: 'Marrakech',
+        userType: AtlasUserType.resident,
       );
 
       expect(essentials.alert.title, 'Forte chaleur prévue');
@@ -44,6 +46,7 @@ void main() {
         ),
         holidayStatus: workingDay,
         cityName: 'Casablanca',
+        userType: AtlasUserType.resident,
       );
 
       expect(essentials.alert.title, 'Pluie prévue');
@@ -61,6 +64,7 @@ void main() {
         ),
         holidayStatus: holiday,
         cityName: 'Rabat',
+        userType: AtlasUserType.resident,
       );
 
       expect(essentials.tip.category, 'Jour férié');
@@ -72,6 +76,7 @@ void main() {
         weather: HomeMockData.weather,
         holidayStatus: workingDay,
         cityName: 'Marrakech',
+        userType: AtlasUserType.resident,
       );
 
       expect(
@@ -91,9 +96,28 @@ void main() {
         ),
         holidayStatus: workingDay,
         cityName: 'Marrakech',
+        userType: AtlasUserType.resident,
       );
 
       expect(essentials.tip.content, HomeMockData.todayEssentials.tip.content);
+    });
+
+    test('adapte le conseil pour un visiteur', () {
+      final essentials = TodayEssentialsMapper.fromContext(
+        weather: const WeatherData(
+          temperature: 24,
+          condition: 'Peu nuageux',
+          feelsLike: 24,
+          icon: Icons.wb_sunny_outlined,
+          updatedAt: 'à l\'instant',
+        ),
+        holidayStatus: workingDay,
+        cityName: 'Marrakech',
+        userType: AtlasUserType.visitor,
+      );
+
+      expect(essentials.tip.category, 'Conseil voyage');
+      expect(essentials.tip.content, contains('Prix'));
     });
   });
 }

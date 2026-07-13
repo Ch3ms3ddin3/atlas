@@ -10,6 +10,9 @@ import '../../../../core/location/user_location.dart';
 import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/data/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
+import '../../../profile/data/profile_repository.dart';
+import '../../../profile/domain/models/user_profile.dart';
+import '../../../profile/presentation/profile_scope.dart';
 import '../../../procedures/data/procedure_reminder_links.dart';
 import '../../../procedures/data/procedure_repository.dart';
 import '../../../procedures/presentation/pages/procedures_page.dart';
@@ -74,6 +77,7 @@ class _HomePageState extends State<HomePage> {
   DateTime? _holidayFetchedAt;
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
+  ProfileRepository? _profileRepository;
 
   @override
   void initState() {
@@ -94,10 +98,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final repository = ProfileScope.of(context);
+    if (!identical(repository, _profileRepository)) {
+      _profileRepository?.removeListener(_onProfileChanged);
+      _profileRepository = repository;
+      _profileRepository!.addListener(_onProfileChanged);
+      if (repository.isLoaded) {
+        _refreshDerivedDashboardData();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    _profileRepository?.removeListener(_onProfileChanged);
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
     super.dispose();
+  }
+
+  void _onProfileChanged() {
+    if (!mounted) return;
+    _refreshDerivedDashboardData();
+    unawaited(_resolveLocation());
   }
 
   void _scheduleDateRollTimer() {
@@ -120,11 +145,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _refreshDerivedDashboardData() {
-    _greeting = _greetingRepository.build(city: _location.cityName);
+    final profile = _profileRepository?.profile ?? UserProfile.defaults;
+    _greeting = _greetingRepository.build(
+      firstName: profile.firstName,
+      city: _location.cityName,
+    );
     _todayEssentials = _todayEssentialsRepository.build(
       weather: _weather,
       holidayStatus: _holidayStatus,
       cityName: _location.cityName,
+      userType: profile.userType,
     );
     _lastUpdatedLabel = LastUpdatedFormatter.format([
       _weatherFetchedAt,
@@ -142,7 +172,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _resolveLocation() async {
-    final location = await _locationRepository.resolveLocation();
+    final preferredCity =
+        _profileRepository?.profile.preferredCity ?? UserProfile.defaultPreferredCity;
+    final location = await _locationRepository.resolveLocation(
+      preferredCityName: preferredCity,
+    );
     if (!mounted) return;
 
     final locationChanged = location.latitude != _location.latitude ||

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/home_models.dart';
+import '../../../profile/domain/models/user_profile.dart';
 import '../mock/home_mock_data.dart';
 
 /// Dérive la section « À savoir aujourd'hui » depuis le contexte live.
@@ -11,6 +12,7 @@ abstract final class TodayEssentialsMapper {
     required WeatherData weather,
     required HolidayStatusData holidayStatus,
     required String cityName,
+    required AtlasUserType userType,
   }) {
     return TodayEssentialsData(
       alert: _buildAlert(
@@ -21,6 +23,7 @@ abstract final class TodayEssentialsMapper {
         weather: weather,
         holidayStatus: holidayStatus,
         cityName: cityName,
+        userType: userType,
       ),
       adminReminder: HomeMockData.todayEssentials.adminReminder,
     );
@@ -77,6 +80,7 @@ abstract final class TodayEssentialsMapper {
     required WeatherData weather,
     required HolidayStatusData holidayStatus,
     required String cityName,
+    required AtlasUserType userType,
   }) {
     if (holidayStatus.isHoliday) {
       return DailyInfoData(
@@ -98,7 +102,30 @@ abstract final class TodayEssentialsMapper {
       );
     }
 
-    return HomeMockData.todayEssentials.tip;
+    return _defaultTip(userType: userType, cityName: cityName);
+  }
+
+  static DailyInfoData _defaultTip({
+    required AtlasUserType userType,
+    required String cityName,
+  }) {
+    return switch (userType) {
+      AtlasUserType.resident => HomeMockData.todayEssentials.tip,
+      AtlasUserType.mre => DailyInfoData(
+          category: 'Conseil MRE',
+          content:
+              'Anticipez vos démarches avant votre prochain séjour à $cityName '
+              '— CIN, assurance et forfait mobile.',
+          icon: Icons.flight_land_outlined,
+        ),
+      AtlasUserType.visitor => DailyInfoData(
+          category: 'Conseil voyage',
+          content:
+              'Consultez l\'onglet Prix avant de payer — repères utiles pour '
+              'éviter les arnaques courantes à $cityName.',
+          icon: Icons.payments_outlined,
+        ),
+    };
   }
 
   static bool _isRainy(WeatherData weather) {

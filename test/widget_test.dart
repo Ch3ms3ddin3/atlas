@@ -80,9 +80,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('Vos préférences et votre contexte'),
+      find.textContaining('Personnalisez Atlas'),
       findsOneWidget,
     );
+    expect(find.text('Enregistrer'), findsOneWidget);
 
     await tester.tap(find.text('Accueil'));
     await tester.pumpAndSettle();
@@ -208,5 +209,37 @@ void main() {
       find.text('Urgences — bientôt disponible'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Le profil enregistre le prénom et met à jour l\'accueil', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const AtlasApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'Salma');
+
+    final saveButton = find.text('Enregistrer');
+    await tester.scrollUntilVisible(
+      saveButton,
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Profil enregistré'), findsOneWidget);
+
+    await tester.tap(find.text('Accueil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bonjour Salma'), findsOneWidget);
   });
 }
