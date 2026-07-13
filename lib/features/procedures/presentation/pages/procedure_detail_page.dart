@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../domain/models/procedure_models.dart';
 
 /// Détail d'une démarche — étapes, documents et lien officiel.
@@ -21,14 +22,13 @@ class ProcedureDetailPage extends StatelessWidget {
         title: Text(guide.title),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.section,
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.sectionLarge,
-          ),
-          children: [
+        child: AtlasContentContainer(
+          child: ListView(
+            padding: const EdgeInsets.only(
+              top: AtlasSpacing.section,
+              bottom: AtlasSpacing.sectionLarge,
+            ),
+            children: [
             Row(
               children: [
                 Icon(
@@ -105,7 +105,8 @@ class ProcedureDetailPage extends StatelessWidget {
                 ),
               ),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../data/price_mapper.dart';
 import '../../domain/models/price_models.dart';
 import '../widgets/price_detail_section.dart';
@@ -25,14 +26,13 @@ class PriceDetailPage extends StatelessWidget {
         title: Text(guide.name),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.section,
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.sectionLarge,
-          ),
-          children: [
+        child: AtlasContentContainer(
+          child: ListView(
+            padding: const EdgeInsets.only(
+              top: AtlasSpacing.section,
+              bottom: AtlasSpacing.sectionLarge,
+            ),
+            children: [
             if (guide.isTouristTrap) ...[
               const PriceTouristTrapBanner(),
               const SizedBox(height: AtlasSpacing.lg),
@@ -135,7 +135,8 @@ class PriceDetailPage extends StatelessWidget {
                 height: 1.4,
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

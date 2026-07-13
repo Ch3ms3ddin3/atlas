@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
+import '../../../../design_system/widgets/atlas_empty_state.dart';
+import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../data/procedure_repository.dart';
 import '../../domain/models/procedure_models.dart';
 import '../pages/procedure_detail_page.dart';
@@ -62,10 +65,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
-      child: HomeContentContainer(
+      child: AtlasContentContainer(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
@@ -73,31 +74,16 @@ class _ProceduresPageState extends State<ProceduresPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AtlasSpacing.section),
-                  Text(
-                    'Démarches',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.sm),
-                  Text(
-                    'Guides pas à pas pour vos démarches au Maroc.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.45,
-                    ),
+                  const AtlasPageHeader(
+                    title: 'Démarches',
+                    subtitle: 'Guides pas à pas pour vos démarches au Maroc.',
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   TextField(
                     controller: _searchController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Rechercher une démarche…',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      isDense: true,
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.lg),
@@ -112,12 +98,9 @@ class _ProceduresPageState extends State<ProceduresPage> {
               ),
             ),
             if (_guides.isEmpty)
-              SliverToBoxAdapter(
-                child: Text(
-                  'Aucune démarche ne correspond à votre recherche.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              const SliverToBoxAdapter(
+                child: AtlasEmptyState(
+                  message: 'Aucune démarche ne correspond à votre recherche.',
                 ),
               )
             else

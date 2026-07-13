@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../domain/models/place_models.dart';
 
 /// Détail d'un lieu — description, conseils et lien cartographique.
@@ -21,14 +22,13 @@ class PlaceDetailPage extends StatelessWidget {
         title: Text(place.name),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.section,
-            AtlasSpacing.pageHorizontal,
-            AtlasSpacing.sectionLarge,
-          ),
-          children: [
+        child: AtlasContentContainer(
+          child: ListView(
+            padding: const EdgeInsets.only(
+              top: AtlasSpacing.section,
+              bottom: AtlasSpacing.sectionLarge,
+            ),
+            children: [
             Container(
               height: 160,
               width: double.infinity,
@@ -124,7 +124,8 @@ class PlaceDetailPage extends StatelessWidget {
                 ),
               ),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );

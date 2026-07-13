@@ -4,7 +4,9 @@ import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
-import '../../../home/presentation/widgets/home_section_header.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
+import '../../../../design_system/widgets/atlas_filter_chip.dart';
+import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../data/profile_validator.dart';
 import '../../data/profile_repository.dart';
 import '../../domain/models/user_profile.dart';
@@ -127,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final theme = Theme.of(context);
 
     return SafeArea(
-      child: HomeContentContainer(
+      child: AtlasContentContainer(
         child: Form(
           key: _formKey,
           child: CustomScrollView(
@@ -137,21 +139,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AtlasSpacing.section),
-                    Text(
-                      'Profil',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: AtlasSpacing.sm),
-                    Text(
-                      'Personnalisez Atlas — sans compte, vos données restent '
-                      'sur cet appareil.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.45,
-                      ),
+                    const AtlasPageHeader(
+                      title: 'Profil',
+                      subtitle:
+                          'Personnalisez Atlas — sans compte, vos données restent '
+                          'sur cet appareil.',
                     ),
                     const SizedBox(height: AtlasSpacing.xl),
                     AtlasCard(
@@ -178,10 +170,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             decoration: InputDecoration(
                               hintText: 'Votre prénom',
                               errorText: _firstNameError,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              isDense: true,
                             ),
                             onChanged: (_) => _validateFirstName(),
                           ),
@@ -194,12 +182,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(height: AtlasSpacing.sm),
                           InputDecorator(
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
                                 horizontal: AtlasSpacing.md,
                                 vertical: AtlasSpacing.sm,
                               ),
@@ -244,12 +228,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             runSpacing: AtlasSpacing.sm,
                             children: [
                               for (final type in AtlasUserType.values)
-                                FilterChip(
-                                  label: Text(type.label),
-                                  selected: _userType == type,
-                                  onSelected: (_) =>
-                                      setState(() => _userType = type),
-                                  showCheckmark: false,
+                                AtlasFilterChip(
+                                  label: type.label,
+                                  isSelected: _userType == type,
+                                  onTap: () => setState(() => _userType = type),
                                 ),
                             ],
                           ),
@@ -273,12 +255,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             runSpacing: AtlasSpacing.sm,
                             children: [
                               for (final language in AtlasLanguage.values)
-                                FilterChip(
-                                  label: Text(language.label),
-                                  selected: _language == language,
-                                  onSelected: (_) =>
+                                AtlasFilterChip(
+                                  label: language.label,
+                                  isSelected: _language == language,
+                                  onTap: () =>
                                       setState(() => _language = language),
-                                  showCheckmark: false,
                                 ),
                             ],
                           ),
@@ -305,21 +286,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: AtlasSpacing.xl),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed:
-                            _isSaving || !_isFormValid ? null : _saveProfile,
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Enregistrer'),
-                      ),
+                    FilledButton(
+                      onPressed:
+                          _isSaving || !_isFormValid ? null : _saveProfile,
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Enregistrer'),
                     ),
                     const SizedBox(height: AtlasSpacing.lg),
                     Row(

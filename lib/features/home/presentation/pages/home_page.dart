@@ -33,6 +33,7 @@ import '../widgets/quick_actions_grid.dart';
 import '../widgets/recommended_places_card.dart';
 import '../widgets/today_essentials_section.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../domain/models/home_models.dart';
 
@@ -326,7 +327,7 @@ class _HomePageState extends State<HomePage> {
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: HomeContentContainer(
+            child: AtlasContentContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

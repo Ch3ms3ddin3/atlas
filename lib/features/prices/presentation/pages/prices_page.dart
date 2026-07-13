@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
+import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_content_container.dart';
+import '../../../../design_system/widgets/atlas_empty_state.dart';
+import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/data/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
-import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/price_repository.dart';
 import '../../domain/models/price_models.dart';
 import '../pages/price_detail_page.dart';
@@ -107,10 +110,8 @@ class _PricesPageState extends State<PricesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
-      child: HomeContentContainer(
+      child: AtlasContentContainer(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
@@ -118,42 +119,21 @@ class _PricesPageState extends State<PricesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AtlasSpacing.section),
-                  Text(
-                    'Prix',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.5,
-                    ),
+                  AtlasPageHeader(
+                    title: 'Prix',
+                    subtitle:
+                        'Repères de prix à $_cityName — pour savoir si un prix '
+                        'est normal.',
+                    footnote: _isCityCovered
+                        ? null
+                        : 'Prix à Marrakech — votre ville n\'est pas encore couverte.',
                   ),
-                  const SizedBox(height: AtlasSpacing.sm),
-                  Text(
-                    'Repères de prix à $_cityName — pour savoir si un prix '
-                    'est normal.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.45,
-                    ),
-                  ),
-                  if (!_isCityCovered) ...[
-                    const SizedBox(height: AtlasSpacing.sm),
-                    Text(
-                      'Prix à Marrakech — votre ville n\'est pas encore couverte.',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.75),
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: AtlasSpacing.xl),
                   TextField(
                     controller: _searchController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Rechercher un poste de dépense…',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      isDense: true,
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.lg),
@@ -170,12 +150,9 @@ class _PricesPageState extends State<PricesPage> {
               ),
             ),
             if (_guides.isEmpty)
-              SliverToBoxAdapter(
-                child: Text(
-                  'Aucun prix ne correspond à votre recherche.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              const SliverToBoxAdapter(
+                child: AtlasEmptyState(
+                  message: 'Aucun prix ne correspond à votre recherche.',
                 ),
               )
             else

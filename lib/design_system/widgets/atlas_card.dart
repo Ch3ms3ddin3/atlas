@@ -45,32 +45,23 @@ class AtlasCard extends StatelessWidget {
         ? AtlasColors.sand
         : AtlasColors.sandMuted;
 
-    final card = Card(
+    final content = Padding(
+      padding: padding ?? _defaultPadding,
+      child: child,
+    );
+
+    return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
-        side: BorderSide(
-          color: borderColor,
-          width: emphasis == AtlasCardEmphasis.primary ? 1 : 1,
-        ),
+        side: BorderSide(color: borderColor),
       ),
-      child: Padding(
-        padding: padding ?? _defaultPadding,
-        child: child,
-      ),
-    );
-
-    if (onTap == null) {
-      return card;
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
-        child: card,
-      ),
+      child: onTap == null
+          ? content
+          : InkWell(
+              onTap: onTap,
+              child: content,
+            ),
     );
   }
 }

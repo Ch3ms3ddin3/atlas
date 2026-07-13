@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'atlas_colors.dart';
+import 'atlas_spacing.dart';
 
 /// Thème Material 3 centralisé pour toute l'application Atlas.
 abstract final class AtlasTheme {
@@ -39,6 +40,16 @@ abstract final class AtlasTheme {
     final textTheme = Typography.material2021().black.apply(
       bodyColor: AtlasColors.midnightBlue,
       displayColor: AtlasColors.midnightBlue,
+    );
+
+    const fieldBorderRadius = BorderRadius.all(Radius.circular(12));
+    final inputBorder = OutlineInputBorder(
+      borderRadius: fieldBorderRadius,
+      borderSide: const BorderSide(color: AtlasColors.sandMuted),
+    );
+    final focusedInputBorder = OutlineInputBorder(
+      borderRadius: fieldBorderRadius,
+      borderSide: const BorderSide(color: AtlasColors.terracotta, width: 1.5),
     );
 
     return ThemeData(
@@ -91,6 +102,69 @@ abstract final class AtlasTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AtlasColors.sandMuted),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AtlasSpacing.md,
+          vertical: AtlasSpacing.md,
+        ),
+        border: inputBorder,
+        enabledBorder: inputBorder,
+        focusedBorder: focusedInputBorder,
+        errorBorder: inputBorder.copyWith(
+          borderSide: const BorderSide(color: Color(0xFFB3261E)),
+        ),
+        focusedErrorBorder: focusedInputBorder.copyWith(
+          borderSide: const BorderSide(color: Color(0xFFB3261E), width: 1.5),
+        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: AtlasColors.midnightBlueMuted.withValues(alpha: 0.55),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        showCheckmark: false,
+        backgroundColor: AtlasColors.warmOffWhite,
+        selectedColor: AtlasColors.terracottaMuted,
+        side: const BorderSide(color: AtlasColors.sandMuted),
+        labelStyle: textTheme.labelMedium?.copyWith(
+          color: AtlasColors.midnightBlueMuted,
+          fontWeight: FontWeight.w400,
+        ),
+        secondaryLabelStyle: textTheme.labelMedium?.copyWith(
+          color: AtlasColors.midnightBlue,
+          fontWeight: FontWeight.w600,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AtlasSpacing.sm,
+          vertical: AtlasSpacing.xs,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AtlasColors.terracotta,
+          foregroundColor: AtlasColors.warmOffWhite,
+          disabledBackgroundColor:
+              AtlasColors.terracotta.withValues(alpha: 0.35),
+          disabledForegroundColor:
+              AtlasColors.warmOffWhite.withValues(alpha: 0.7),
+          minimumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AtlasSpacing.xl,
+            vertical: AtlasSpacing.md,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
