@@ -4,6 +4,7 @@ import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../data/price_mapper.dart';
 import '../../domain/models/price_models.dart';
+import 'price_tourist_trap_banner.dart';
 
 /// Carte résumé d'un prix moyen dans la liste.
 class PriceGuideCard extends StatelessWidget {
@@ -40,9 +41,13 @@ class PriceGuideCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (guide.isTouristTrap) ...[
+                  const SizedBox(height: AtlasSpacing.xs),
+                  const PriceTouristTrapBanner(),
+                ],
                 const SizedBox(height: AtlasSpacing.xs),
                 Text(
-                  guide.categoryLabel,
+                  _locationLabel(guide),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -60,10 +65,18 @@ class PriceGuideCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AtlasSpacing.sm),
                 Text(
-                  '${guide.rangeLabel} · ${guide.unitLabel}',
+                  '${PriceMapper.formatRange(guide)} · ${guide.unitLabel}',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant
                         .withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  PriceMapper.formatLastUpdated(guide.lastUpdatedAt),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -90,5 +103,12 @@ class PriceGuideCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _locationLabel(PriceGuide guide) {
+    if (guide.isNational) {
+      return '${guide.categoryLabel} · National';
+    }
+    return '${guide.categoryLabel} · ${guide.cityName}';
   }
 }

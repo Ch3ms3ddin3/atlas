@@ -1,3 +1,4 @@
+import '../../../core/datetime/casablanca_date_formatter.dart';
 import '../../../core/location/location_constants.dart';
 import '../domain/models/price_models.dart';
 import 'price_catalog.dart';
@@ -5,12 +6,12 @@ import 'price_catalog.dart';
 /// Filtre le catalogue et formate les montants.
 abstract final class PriceMapper {
   static const categoryLabels = {
-    PriceCategory.alimentation: 'Alimentation',
     PriceCategory.transport: 'Transport',
-    PriceCategory.logement: 'Logement',
-    PriceCategory.sante: 'Santé',
-    PriceCategory.loisirs: 'Loisirs',
+    PriceCategory.foodAndCafes: 'Restauration & cafés',
+    PriceCategory.groceries: 'Courses & épicerie',
     PriceCategory.services: 'Services',
+    PriceCategory.tourism: 'Tourisme',
+    PriceCategory.housing: 'Logement',
   };
 
   static String resolveCityName(String? cityName) {
@@ -20,6 +21,7 @@ abstract final class PriceMapper {
 
     final normalized = cityName.trim().toLowerCase();
     final knownCities = PriceCatalog.guides
+        .where((guide) => !guide.isNational)
         .map((guide) => guide.cityName.toLowerCase())
         .toSet();
 
@@ -35,7 +37,7 @@ abstract final class PriceMapper {
     final normalizedQuery = query.text.trim().toLowerCase();
 
     return PriceCatalog.guides.where((guide) {
-      if (guide.cityName.toLowerCase() != cityName.toLowerCase()) {
+      if (!_matchesCity(guide, cityName)) {
         return false;
       }
       if (query.category != null && guide.category != query.category) {
@@ -48,6 +50,9 @@ abstract final class PriceMapper {
         guide.summary,
         guide.categoryLabel,
         guide.unitLabel,
+        ...guide.priceFactors,
+        ...guide.warningSigns,
+        ...guide.negotiationTips,
       ].join(' ').toLowerCase();
 
       return haystack.contains(normalizedQuery);
@@ -66,6 +71,20 @@ abstract final class PriceMapper {
     return '$formatted MAD';
   }
 
+  static String formatRange(PriceGuide guide) {
+    return '${_formatWithSpaces(guide.minAmountMad)} – '
+        '${_formatWithSpaces(guide.maxAmountMad)} MAD';
+  }
+
+  static String formatLastUpdated(DateTime date) {
+    return 'Mis à jour le ${CasablancaDateFormatter.formatShortDate(date)}';
+  }
+
+  static bool _matchesCity(PriceGuide guide, String cityName) {
+    if (guide.isNational) return true;
+    return guide.cityName.toLowerCase() == cityName.toLowerCase();
+  }
+
   static String _formatWithSpaces(int value) {
     final text = value.toString();
     final buffer = StringBuffer();
@@ -81,6 +100,7 @@ abstract final class PriceMapper {
 
   static String _canonicalCityName(String normalizedCity) {
     for (final guide in PriceCatalog.guides) {
+      if (guide.isNational) continue;
       if (guide.cityName.toLowerCase() == normalizedCity) {
         return guide.cityName;
       }

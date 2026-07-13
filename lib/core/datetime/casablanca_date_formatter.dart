@@ -25,6 +25,27 @@ abstract final class CasablancaDateFormatter {
     'décembre',
   ];
 
+  static const _monthsShort = [
+    'janv.',
+    'févr.',
+    'mars',
+    'avr.',
+    'mai',
+    'juin',
+    'juil.',
+    'août',
+    'sept.',
+    'oct.',
+    'nov.',
+    'déc.',
+  ];
+
+  /// Ex. « 12 juil. 2026 ».
+  static String formatShortDate(DateTime date) {
+    final month = _monthsShort[date.month - 1];
+    return '${date.day} $month ${date.year}';
+  }
+
   /// Ex. « Dimanche 12 juillet 2026 ».
   static String formatLongDate(DateTime date) {
     final weekday = _weekdays[date.weekday - 1];

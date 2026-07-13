@@ -8,9 +8,10 @@ import '../../data/price_repository.dart';
 import '../../domain/models/price_models.dart';
 import '../pages/price_detail_page.dart';
 import '../widgets/price_category_filter.dart';
+import '../widgets/price_disclaimer_banner.dart';
 import '../widgets/price_guide_card.dart';
 
-/// Répond à : « Combien coûte la vie ici ? »
+/// Répond à : « Ce prix est-il normal ? »
 class PricesPage extends StatefulWidget {
   const PricesPage({super.key});
 
@@ -101,7 +102,8 @@ class _PricesPageState extends State<PricesPage> {
                   ),
                   const SizedBox(height: AtlasSpacing.sm),
                   Text(
-                    'Repères de prix à $_cityName — pour planifier votre quotidien.',
+                    'Repères de prix à $_cityName — pour savoir si un prix '
+                    'est normal.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       height: 1.45,
@@ -134,6 +136,8 @@ class _PricesPageState extends State<PricesPage> {
                     selectedCategory: _selectedCategory,
                     onCategorySelected: _onCategorySelected,
                   ),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  const PriceDisclaimerBanner(),
                   const SizedBox(height: AtlasSpacing.xl),
                   const HomeSectionHeader(title: 'Prix moyens'),
                   const SizedBox(height: AtlasSpacing.lg),

@@ -6,6 +6,7 @@ import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
+import 'package:atlas/features/prices/presentation/widgets/price_disclaimer_banner.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
 void main() {
@@ -72,7 +73,8 @@ void main() {
       find.textContaining('Repères de prix à Marrakech'),
       findsOneWidget,
     );
-    expect(find.text('Repas au restaurant'), findsOneWidget);
+    expect(find.text('Course de taxi'), findsOneWidget);
+    expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
 
     await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
@@ -160,11 +162,33 @@ void main() {
     await tester.tap(find.text('Prix'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Repas au restaurant').first);
+    final priceItem = find.text('Course de taxi').first;
+    await tester.ensureVisible(priceItem);
+    await tester.pumpAndSettle();
+    await tester.tap(priceItem);
     await tester.pumpAndSettle();
 
-    expect(find.text('Conseils pratiques'), findsOneWidget);
-    expect(find.textContaining('Fourchette observée'), findsOneWidget);
+    expect(find.text('Fourchette normale'), findsOneWidget);
+    expect(find.text('Ce qui fait varier le prix'), findsOneWidget);
+
+    final alertSection = find.text('Signaux d\'alerte');
+    await tester.scrollUntilVisible(
+      alertSection,
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(alertSection, findsOneWidget);
+
+    final negotiationSection = find.text('Conseils de négociation');
+    await tester.scrollUntilVisible(
+      negotiationSection,
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(negotiationSection, findsOneWidget);
+    expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
   });
 
   testWidgets('Les actions rapides sont tappables', (

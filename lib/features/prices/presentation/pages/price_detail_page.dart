@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/price_mapper.dart';
 import '../../domain/models/price_models.dart';
+import '../widgets/price_detail_section.dart';
+import '../widgets/price_disclaimer_banner.dart';
+import '../widgets/price_tourist_trap_banner.dart';
 
 /// Détail d'un prix moyen — fourchette, contexte et conseils.
 class PriceDetailPage extends StatelessWidget {
@@ -30,6 +33,10 @@ class PriceDetailPage extends StatelessWidget {
             AtlasSpacing.sectionLarge,
           ),
           children: [
+            if (guide.isTouristTrap) ...[
+              const PriceTouristTrapBanner(),
+              const SizedBox(height: AtlasSpacing.lg),
+            ],
             Row(
               children: [
                 Icon(
@@ -40,7 +47,7 @@ class PriceDetailPage extends StatelessWidget {
                 const SizedBox(width: AtlasSpacing.md),
                 Expanded(
                   child: Text(
-                    '${guide.categoryLabel} · ${guide.cityName}',
+                    _locationLabel(guide),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -51,7 +58,7 @@ class PriceDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: AtlasSpacing.xl),
             Text(
-              PriceMapper.formatAmount(guide.averageAmountMad),
+              PriceMapper.formatRange(guide),
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w500,
                 letterSpacing: -0.5,
@@ -64,13 +71,21 @@ class PriceDetailPage extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: AtlasSpacing.lg),
-            _InfoRow(
-              icon: Icons.payments_outlined,
-              label: 'Fourchette observée',
-              value: guide.rangeLabel,
+            const SizedBox(height: AtlasSpacing.sm),
+            Text(
+              'Repère : ${PriceMapper.formatAmount(guide.averageAmountMad)}',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AtlasSpacing.xl),
+            Text(
+              'Fourchette normale',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AtlasSpacing.md),
             Text(
               guide.summary,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -79,21 +94,41 @@ class PriceDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AtlasSpacing.sectionLarge),
+            PriceDetailSection(
+              title: 'Ce qui fait varier le prix',
+              items: guide.priceFactors,
+            ),
+            const SizedBox(height: AtlasSpacing.section),
+            PriceDetailSection(
+              title: 'Signaux d\'alerte',
+              items: guide.warningSigns,
+            ),
+            const SizedBox(height: AtlasSpacing.section),
+            PriceDetailSection(
+              title: 'Conseils de négociation',
+              items: guide.negotiationTips,
+            ),
+            const SizedBox(height: AtlasSpacing.sectionLarge),
             Text(
-              'Conseils pratiques',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+              PriceMapper.formatLastUpdated(guide.lastUpdatedAt),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: AtlasSpacing.md),
-            for (final tip in guide.practicalTips) ...[
-              _BulletItem(text: tip),
-              const SizedBox(height: AtlasSpacing.sm),
+            if (guide.sourceNote != null) ...[
+              const SizedBox(height: AtlasSpacing.xs),
+              Text(
+                'Source : ${guide.sourceNote}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.75),
+                  height: 1.4,
+                ),
+              ),
             ],
             const SizedBox(height: AtlasSpacing.section),
             Text(
-              'Estimation indicative Atlas — les prix varient selon le quartier '
-              'et la saison.',
+              PriceDisclaimerBanner.text,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant
                     .withValues(alpha: 0.75),
@@ -105,85 +140,11 @@ class PriceDetailPage extends StatelessWidget {
       ),
     );
   }
-}
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(width: AtlasSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AtlasSpacing.xs),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BulletItem extends StatelessWidget {
-  const _BulletItem({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '•',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.primary,
-          ),
-        ),
-        const SizedBox(width: AtlasSpacing.sm),
-        Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.45,
-            ),
-          ),
-        ),
-      ],
-    );
+  String _locationLabel(PriceGuide guide) {
+    if (guide.isNational) {
+      return '${guide.categoryLabel} · National';
+    }
+    return '${guide.categoryLabel} · ${guide.cityName}';
   }
 }

@@ -26,9 +26,13 @@ class PriceRepository {
     if (cityName == null || cityName.trim().isEmpty) return true;
     final normalized = cityName.trim().toLowerCase();
     return PriceCatalog.guides.any(
-      (guide) => guide.cityName.toLowerCase() == normalized,
+      (guide) =>
+          !guide.isNational && guide.cityName.toLowerCase() == normalized,
     );
   }
+
+  /// Date de la dernière révision éditoriale du catalogue.
+  DateTime get catalogLastReviewedAt => PriceCatalog.lastReviewedAt;
 
   List<PriceCategory> get categories => PriceCategory.values;
 }
