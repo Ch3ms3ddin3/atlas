@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../theme/atlas_motion.dart';
+
 /// Entrée discrète — fondu + léger glissement vers le haut, sans impact perf.
 class AtlasReveal extends StatefulWidget {
   const AtlasReveal({
     super.key,
     required this.child,
     this.delay = Duration.zero,
-    this.duration = const Duration(milliseconds: 420),
-    this.offset = 12,
+    this.duration = AtlasMotion.revealDuration,
+    this.offset = AtlasMotion.revealOffset,
   });
 
   final Widget child;
@@ -32,11 +34,16 @@ class _AtlasRevealState extends State<AtlasReveal>
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
-    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _opacity = CurvedAnimation(
+      parent: _controller,
+      curve: AtlasMotion.curveDefault,
+    );
     _slide = Tween<Offset>(
       begin: Offset(0, widget.offset / 100),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: AtlasMotion.curveDefault),
+    );
 
     if (widget.delay == Duration.zero) {
       _controller.forward();

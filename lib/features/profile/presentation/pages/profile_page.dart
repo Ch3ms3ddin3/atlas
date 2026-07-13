@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
@@ -138,7 +139,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AtlasSpacing.section),
+                    const SizedBox(height: AtlasSpacing.xxl),
                     const AtlasPageHeader(
                       title: 'Profil',
                       subtitle:
@@ -210,8 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Text(
                             'Utilisée si la position GPS n\'est pas disponible.',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.75),
+                              color: AtlasTextStyles.metadata(theme.colorScheme),
                               height: 1.4,
                             ),
                           ),
@@ -269,8 +269,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               'Traduction complète bientôt disponible pour '
                               'English et العربية.',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.75),
+                                color: AtlasTextStyles.metadata(theme.colorScheme),
                                 height: 1.4,
                               ),
                             ),
@@ -305,16 +304,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         Icon(
                           Icons.lock_outline,
                           size: 16,
-                          color: theme.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.6),
+                          color: AtlasTextStyles.metadata(theme.colorScheme),
                         ),
                         const SizedBox(width: AtlasSpacing.sm),
                         Expanded(
                           child: Text(
                             'Aucun compte · données stockées localement',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.6),
+                              color: AtlasTextStyles.metadata(theme.colorScheme),
                             ),
                           ),
                         ),

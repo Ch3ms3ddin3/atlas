@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_colors.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../domain/models/home_models.dart';
 
@@ -11,10 +13,14 @@ class PrayerTimeCard extends StatelessWidget {
     super.key,
     required this.data,
     this.onTap,
+    this.animateEntrance = false,
+    this.entranceDelay = Duration.zero,
   });
 
   final PrayerTimeData data;
   final VoidCallback? onTap;
+  final bool animateEntrance;
+  final Duration entranceDelay;
 
   @override
   Widget build(BuildContext context) {
@@ -23,48 +29,60 @@ class PrayerTimeCard extends StatelessWidget {
     return AtlasCard(
       onTap: onTap,
       emphasis: AtlasCardEmphasis.standard,
+      animateEntrance: animateEntrance,
+      entranceDelay: entranceDelay,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Prière',
             style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              color: AtlasTextStyles.cardLabel(theme.colorScheme),
               letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: AtlasSpacing.xl),
+          const SizedBox(height: AtlasSpacing.lg),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 data.nextPrayerName,
                 style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.4,
                   height: 1,
                 ),
               ),
               const SizedBox(width: AtlasSpacing.md),
               Padding(
                 padding: const EdgeInsets.only(bottom: AtlasSpacing.xs),
-                child: Text(
-                  data.nextPrayerCountdown,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w500,
+                child: AnimatedSwitcher(
+                  duration: AtlasMotion.durationStandard,
+                  switchInCurve: AtlasMotion.curveDefault,
+                  switchOutCurve: AtlasMotion.curveExit,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                  child: Text(
+                    data.nextPrayerCountdown,
+                    key: ValueKey<String>(data.nextPrayerCountdown),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AtlasSpacing.xl),
+          const SizedBox(height: AtlasSpacing.lg),
           _PrayerScheduleRow(schedule: data.schedule),
           const SizedBox(height: AtlasSpacing.md),
           Text(
             data.calculationMethod,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+              color: AtlasTextStyles.metadata(theme.colorScheme),
             ),
           ),
         ],
@@ -85,7 +103,7 @@ class _PrayerScheduleRow extends StatelessWidget {
     return Row(
       children: [
         for (var i = 0; i < schedule.length; i++) ...[
-          if (i > 0) const SizedBox(width: AtlasSpacing.sm),
+          if (i > 0) const SizedBox(width: AtlasSpacing.xs),
           Expanded(
             child: _PrayerScheduleCell(
               item: schedule[i],
@@ -109,43 +127,74 @@ class _PrayerScheduleCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHighlighted = item.isNext || item.isCurrent;
+    final isCurrent = item.isCurrent;
+    final isNext = item.isNext;
+    final isHighlighted = isCurrent || isNext;
 
-    return Column(
-      children: [
-        Text(
-          item.name,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: isHighlighted
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
-            fontWeight: item.isNext ? FontWeight.w600 : FontWeight.w400,
+    return AnimatedContainer(
+      duration: AtlasMotion.navAnimationDuration,
+      curve: AtlasMotion.curveDefault,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AtlasSpacing.xs,
+        vertical: AtlasSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: isCurrent
+            ? AtlasColors.terracottaGhost
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        border: isCurrent
+            ? Border.all(
+                color: AtlasColors.terracottaMuted.withValues(alpha: 0.65),
+              )
+            : null,
+      ),
+      child: Column(
+        children: [
+          Text(
+            item.name,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isHighlighted
+                  ? theme.colorScheme.primary
+                  : AtlasTextStyles.helper(theme.colorScheme),
+              fontWeight: isCurrent
+                  ? FontWeight.w600
+                  : isNext
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+            ),
           ),
-        ),
-        const SizedBox(height: AtlasSpacing.xs),
-        Text(
-          item.time,
-          style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: item.isNext ? FontWeight.w600 : FontWeight.w400,
-            color: item.isNext
-                ? AtlasColors.midnightBlue
-                : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+          const SizedBox(height: AtlasSpacing.xs),
+          Text(
+            item.time,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: isCurrent
+                  ? FontWeight.w700
+                  : isNext
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+              color: isCurrent
+                  ? AtlasColors.midnightBlue
+                  : isNext
+                      ? AtlasColors.midnightBlue
+                      : AtlasTextStyles.helper(theme.colorScheme),
+            ),
           ),
-        ),
-        SizedBox(
-          height: AtlasSpacing.sm,
-          child: item.isNext
-              ? Container(
-                  width: 20,
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                )
-              : null,
-        ),
-      ],
+          SizedBox(
+            height: AtlasSpacing.sm,
+            child: isNext
+                ? Container(
+                    width: 20,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  )
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
@@ -57,8 +58,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
 
   void _openGuide(ProcedureGuide guide) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ProcedureDetailPage(guide: guide),
+      AtlasPageRoute<void>(
+        page: ProcedureDetailPage(guide: guide),
       ),
     );
   }
@@ -73,7 +74,7 @@ class _ProceduresPageState extends State<ProceduresPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AtlasSpacing.section),
+                  const SizedBox(height: AtlasSpacing.xxl),
                   const AtlasPageHeader(
                     title: 'Démarches',
                     subtitle: 'Guides pas à pas pour vos démarches au Maroc.',
@@ -129,8 +130,8 @@ class _ProceduresPageState extends State<ProceduresPage> {
 /// Ouvre un guide depuis n'importe quel écran de l'application.
 void openProcedureGuide(BuildContext context, ProcedureGuide guide) {
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => ProcedureDetailPage(guide: guide),
+    AtlasPageRoute<void>(
+      page: ProcedureDetailPage(guide: guide),
     ),
   );
 }

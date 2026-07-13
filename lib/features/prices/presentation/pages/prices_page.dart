@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
+import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
@@ -102,8 +103,8 @@ class _PricesPageState extends State<PricesPage> {
 
   void _openGuide(PriceGuide guide) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PriceDetailPage(guide: guide),
+      AtlasPageRoute<void>(
+        page: PriceDetailPage(guide: guide),
       ),
     );
   }
@@ -118,7 +119,7 @@ class _PricesPageState extends State<PricesPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AtlasSpacing.section),
+                  const SizedBox(height: AtlasSpacing.xxl),
                   AtlasPageHeader(
                     title: 'Prix',
                     subtitle:
@@ -181,8 +182,8 @@ class _PricesPageState extends State<PricesPage> {
 /// Ouvre un repère de prix depuis n'importe quel écran.
 void openPriceGuide(BuildContext context, PriceGuide guide) {
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => PriceDetailPage(guide: guide),
+    AtlasPageRoute<void>(
+      page: PriceDetailPage(guide: guide),
     ),
   );
 }

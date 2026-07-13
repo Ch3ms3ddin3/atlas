@@ -1,17 +1,34 @@
-# atlas
+# Atlas
 
-A new Flutter project.
+Compagnon numérique pour vivre, voyager et s'installer au Maroc.
 
-## Getting Started
+## Getting started
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+Sans configuration Supabase, l'application fonctionne entièrement avec les catalogues locaux et les APIs publiques existantes.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Backend (Supabase)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Voir [docs/BACKEND.md](docs/BACKEND.md) pour l'architecture, le schéma prévu et la feuille de route.
+
+### Développement local avec Supabase
+
+```bash
+cp .env.development.example .env.development
+# Renseigner SUPABASE_URL et SUPABASE_ANON_KEY (clé anon uniquement)
+
+flutter run --dart-define-from-file=.env.development
+```
+
+Environnements supportés : `development`, `staging`, `production` (via `ATLAS_ENV`).
+
+## Tests
+
+```bash
+flutter analyze
+flutter test
+```

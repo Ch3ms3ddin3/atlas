@@ -33,6 +33,8 @@ import '../widgets/quick_actions_grid.dart';
 import '../widgets/recommended_places_card.dart';
 import '../widgets/today_essentials_section.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../domain/models/home_models.dart';
@@ -331,18 +333,18 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AtlasSpacing.section),
+                  const SizedBox(height: AtlasSpacing.xxl),
                   AtlasReveal(
                     child: GreetingHeader(data: _greeting),
                   ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
+                  const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 60),
+                    delay: AtlasMotion.staggerDelay,
                     child: const HomeSectionHeader(title: 'Briefing du jour'),
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 100),
+                    delay: AtlasMotion.staggerDelay * 2,
                     child: DailyBriefingSection(
                       weather: _weather,
                       isWeatherLoading: _isWeatherLoading,
@@ -352,53 +354,53 @@ class _HomePageState extends State<HomePage> {
                       onPrayerTap: _onPrayerCardTap,
                     ),
                   ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
+                  const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 140),
+                    delay: AtlasMotion.staggerDelay * 3,
                     child: const HomeSectionHeader(title: 'À savoir aujourd\'hui'),
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 180),
+                    delay: AtlasMotion.staggerDelay * 4,
                     child: TodayEssentialsSection(
                       data: _todayEssentials,
                       onReminderTap: _onAdminReminderTap,
                     ),
                   ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
+                  const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 220),
+                    delay: AtlasMotion.staggerDelay * 5,
                     child: const HomeSectionHeader(title: 'Actions rapides'),
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 260),
+                    delay: AtlasMotion.staggerDelay * 6,
                     child: QuickActionsGrid(
                       actions: HomeMockData.quickActions,
                       onActionTap: _onQuickActionTap,
                     ),
                   ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
+                  const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 300),
+                    delay: AtlasMotion.staggerDelay * 7,
                     child: const HomeSectionHeader(title: 'Administratif'),
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 340),
+                    delay: AtlasMotion.staggerDelay * 8,
                     child: AdmissionTemporaireCard(
                       data: HomeMockData.admissionTemporaire,
                       onTap: _onAdmissionTemporaireTap,
                     ),
                   ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
+                  const SizedBox(height: AtlasSpacing.section),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 380),
+                    delay: AtlasMotion.staggerDelay * 9,
                     child: const HomeSectionHeader(title: 'Recommandations'),
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   AtlasReveal(
-                    delay: const Duration(milliseconds: 420),
+                    delay: AtlasMotion.staggerDelay * 10,
                     child: RecommendedPlacesSection(
                       places: _recommendedPlaces,
                       onPlaceTap: _onPlaceTap,
@@ -409,8 +411,7 @@ class _HomePageState extends State<HomePage> {
                     child: Text(
                       _lastUpdatedLabel,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.45),
+                        color: AtlasTextStyles.metadata(theme.colorScheme),
                       ),
                     ),
                   ),

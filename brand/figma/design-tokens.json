@@ -1,0 +1,204 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tokens-studio/figma-tokens/main/schemas/tokens.schema.json",
+  "atlas": {
+    "color": {
+      "warmOffWhite": { "value": "#FAF7F2", "type": "color" },
+      "surfaceWhite": { "value": "#FFFFFF", "type": "color" },
+      "midnightBlue": { "value": "#1A2332", "type": "color" },
+      "terracotta": { "value": "#C4654A", "type": "color" },
+      "sand": { "value": "#D9CDB8", "type": "color" },
+      "subtleGold": { "value": "#C4A35A", "type": "color" },
+      "sandMuted": { "value": "#E8E0D4", "type": "color" },
+      "terracottaMuted": { "value": "#E8B5A5", "type": "color" },
+      "midnightBlueMuted": { "value": "#5A6472", "type": "color" },
+      "midnightBlueFaint": { "value": "#8A939F", "type": "color" },
+      "terracottaDeep": { "value": "#A8503A", "type": "color" },
+      "terracottaGhost": { "value": "#F5E8E4", "type": "color" },
+      "success": { "value": "#3D6B5E", "type": "color" },
+      "successMuted": { "value": "#E8F0ED", "type": "color" },
+      "warning": { "value": "#9A7B2F", "type": "color" },
+      "warningMuted": { "value": "#F5F0E4", "type": "color" },
+      "error": { "value": "#B3261E", "type": "color" },
+      "errorMuted": { "value": "#F9DEDC", "type": "color" },
+      "info": { "value": "#4A6FA5", "type": "color" },
+      "infoMuted": { "value": "#E8EEF5", "type": "color" }
+    },
+    "spacing": {
+      "xs": { "value": "4", "type": "spacing" },
+      "sm": { "value": "8", "type": "spacing" },
+      "md": { "value": "12", "type": "spacing" },
+      "lg": { "value": "16", "type": "spacing" },
+      "xl": { "value": "20", "type": "spacing" },
+      "xxl": { "value": "24", "type": "spacing" },
+      "xxxl": { "value": "28", "type": "spacing" },
+      "section": { "value": "40", "type": "spacing" },
+      "sectionLarge": { "value": "48", "type": "spacing" },
+      "pageHorizontal": { "value": "24", "type": "spacing" },
+      "pageHorizontalWide": { "value": "48", "type": "spacing" },
+      "maxContentWidth": { "value": "840", "type": "spacing" },
+      "touchTarget": { "value": "48", "type": "spacing" }
+    },
+    "radius": {
+      "sm": { "value": "8", "type": "borderRadius" },
+      "md": { "value": "12", "type": "borderRadius" },
+      "lg": { "value": "16", "type": "borderRadius" },
+      "xl": { "value": "20", "type": "borderRadius" },
+      "full": { "value": "999", "type": "borderRadius" }
+    },
+    "typography": {
+      "fontFamily": {
+        "ui": { "value": "Inter", "type": "fontFamilies" },
+        "display": { "value": "Fraunces", "type": "fontFamilies" },
+        "wordmark": { "value": "Inter", "type": "fontFamilies" }
+      },
+      "displayMedium": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "300",
+          "fontSize": "32",
+          "lineHeight": "36",
+          "letterSpacing": "-1.2"
+        },
+        "type": "typography"
+      },
+      "headlineLarge": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "600",
+          "fontSize": "24",
+          "lineHeight": "30",
+          "letterSpacing": "-0.3"
+        },
+        "type": "typography"
+      },
+      "headlineMedium": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "600",
+          "fontSize": "20",
+          "lineHeight": "26",
+          "letterSpacing": "-0.2"
+        },
+        "type": "typography"
+      },
+      "titleLarge": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "600",
+          "fontSize": "18",
+          "lineHeight": "24",
+          "letterSpacing": "0"
+        },
+        "type": "typography"
+      },
+      "titleSmall": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "500",
+          "fontSize": "14",
+          "lineHeight": "20",
+          "letterSpacing": "0.1"
+        },
+        "type": "typography"
+      },
+      "bodyLarge": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "400",
+          "fontSize": "16",
+          "lineHeight": "24",
+          "letterSpacing": "0"
+        },
+        "type": "typography"
+      },
+      "bodyMedium": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "400",
+          "fontSize": "14",
+          "lineHeight": "20",
+          "letterSpacing": "0"
+        },
+        "type": "typography"
+      },
+      "labelLarge": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "600",
+          "fontSize": "14",
+          "lineHeight": "20",
+          "letterSpacing": "0.1"
+        },
+        "type": "typography"
+      },
+      "labelMedium": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "500",
+          "fontSize": "12",
+          "lineHeight": "16",
+          "letterSpacing": "0.3"
+        },
+        "type": "typography"
+      },
+      "labelSmall": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.ui}",
+          "fontWeight": "400",
+          "fontSize": "11",
+          "lineHeight": "14",
+          "letterSpacing": "0.2"
+        },
+        "type": "typography"
+      },
+      "wordmark": {
+        "value": {
+          "fontFamily": "{atlas.typography.fontFamily.wordmark}",
+          "fontWeight": "600",
+          "fontSize": "18",
+          "lineHeight": "22",
+          "letterSpacing": "2.16"
+        },
+        "type": "typography"
+      }
+    },
+    "shadow": {
+      "floating": {
+        "value": {
+          "x": "0",
+          "y": "1",
+          "blur": "3",
+          "spread": "0",
+          "color": "rgba(26, 35, 50, 0.06)",
+          "type": "dropShadow"
+        },
+        "type": "boxShadow"
+      },
+      "modal": {
+        "value": {
+          "x": "0",
+          "y": "4",
+          "blur": "16",
+          "spread": "0",
+          "color": "rgba(26, 35, 50, 0.08)",
+          "type": "dropShadow"
+        },
+        "type": "boxShadow"
+      }
+    },
+    "motion": {
+      "durationMicro": { "value": "150", "type": "other" },
+      "durationStandard": { "value": "250", "type": "other" },
+      "durationEmphasis": { "value": "400", "type": "other" },
+      "staggerDelay": { "value": "60", "type": "other" },
+      "curveDefault": { "value": "cubic-bezier(0, 0, 0.2, 1)", "type": "other" }
+    },
+    "logo": {
+      "strokeWidth": { "value": "4", "type": "other" },
+      "apexDotSize": { "value": "4", "type": "other" },
+      "clearSpace": { "value": "markHeight", "type": "other" },
+      "minWidthHorizontal": { "value": "120", "type": "other" },
+      "minWidthStacked": { "value": "80", "type": "other" }
+    }
+  }
+}

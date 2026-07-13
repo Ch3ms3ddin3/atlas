@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none" role="img" aria-label="Atlas app icon">
+  <title>Atlas  App icon</title>
+  <rect width="1024" height="1024" fill="#FAF7F2"/>
+  <g transform="translate(412 362) scale(2)">
+    <line x1="32" y1="72" x2="32" y2="28" stroke="#1A2332" stroke-width="4" stroke-linecap="round"/>
+    <line x1="64" y1="72" x2="64" y2="28" stroke="#1A2332" stroke-width="4" stroke-linecap="round"/>
+    <path d="M36 28Q50 16 64 28" stroke="#1A2332" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="14" r="2" fill="#C4654A"/>
+  </g>
+</svg>

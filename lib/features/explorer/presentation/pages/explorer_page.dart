@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/location/location_repository.dart';
+import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
@@ -101,8 +102,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   void _openPlace(PlaceGuide place) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PlaceDetailPage(place: place),
+      AtlasPageRoute<void>(
+        page: PlaceDetailPage(place: place),
       ),
     );
   }
@@ -117,7 +118,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AtlasSpacing.section),
+                  const SizedBox(height: AtlasSpacing.xxl),
                   AtlasPageHeader(
                     title: 'Explorer',
                     subtitle:
@@ -177,8 +178,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
 /// Ouvre un lieu depuis n'importe quel écran de l'application.
 void openPlaceGuide(BuildContext context, PlaceGuide place) {
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => PlaceDetailPage(place: place),
+    AtlasPageRoute<void>(
+      page: PlaceDetailPage(place: place),
     ),
   );
 }

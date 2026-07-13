@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Accueil'), findsWidgets);
-    expect(find.text('Bonjour Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
     expect(find.text('Marrakech'), findsOneWidget);
     expect(
       find.text(
@@ -42,7 +42,7 @@ void main() {
     expect(find.text('Jour ouvré'), findsOneWidget);
 
     expect(AtlasBottomNav.destinations, hasLength(5));
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(AtlasBottomNav), findsOneWidget);
   });
 
   testWidgets('La navigation bascule entre les onglets', (
@@ -88,7 +88,7 @@ void main() {
     await tester.tap(find.text('Accueil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bonjour Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsWidgets);
   });
 
@@ -96,6 +96,8 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
+
+    await tester.pumpAndSettle();
 
     expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
@@ -240,6 +242,6 @@ void main() {
     await tester.tap(find.text('Accueil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bonjour Salma'), findsOneWidget);
+    expect(find.text('Bonjour, Salma'), findsOneWidget);
   });
 }

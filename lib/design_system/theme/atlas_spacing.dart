@@ -12,7 +12,7 @@ abstract final class AtlasSpacing {
   static const double pageHorizontal = 24;
   static const double pageHorizontalWide = 48;
   static const double maxContentWidth = 840;
-  static const double cardRadius = 16;
+  static const double cardRadius = 18;
   static const double cardPadding = 20;
   static const double cardPaddingPrimary = 28;
   static const double cardPaddingCompact = 16;

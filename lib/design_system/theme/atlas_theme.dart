@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'atlas_colors.dart';
 import 'atlas_spacing.dart';
+import 'atlas_typography.dart';
 
 /// Thème Material 3 centralisé pour toute l'application Atlas.
 abstract final class AtlasTheme {
@@ -18,12 +19,12 @@ abstract final class AtlasTheme {
       onSecondaryContainer: AtlasColors.midnightBlue,
       tertiary: AtlasColors.subtleGold,
       onTertiary: AtlasColors.midnightBlue,
-      tertiaryContainer: Color(0xFFF0E6CE),
+      tertiaryContainer: AtlasColors.subtleGoldMuted,
       onTertiaryContainer: AtlasColors.midnightBlue,
-      error: Color(0xFFB3261E),
-      onError: Colors.white,
-      errorContainer: Color(0xFFF9DEDC),
-      onErrorContainer: Color(0xFF410E0B),
+      error: AtlasColors.error,
+      onError: AtlasColors.surfaceWhite,
+      errorContainer: AtlasColors.errorMuted,
+      onErrorContainer: AtlasColors.errorOnContainer,
       surface: AtlasColors.warmOffWhite,
       onSurface: AtlasColors.midnightBlue,
       onSurfaceVariant: AtlasColors.midnightBlueMuted,
@@ -37,10 +38,7 @@ abstract final class AtlasTheme {
       surfaceTint: AtlasColors.terracotta,
     );
 
-    final textTheme = Typography.material2021().black.apply(
-      bodyColor: AtlasColors.midnightBlue,
-      displayColor: AtlasColors.midnightBlue,
-    );
+    final textTheme = AtlasTypography.textTheme();
 
     const fieldBorderRadius = BorderRadius.all(Radius.circular(12));
     final inputBorder = OutlineInputBorder(
@@ -57,12 +55,13 @@ abstract final class AtlasTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AtlasColors.warmOffWhite,
       textTheme: textTheme,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AtlasColors.warmOffWhite,
         foregroundColor: AtlasColors.midnightBlue,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
+        titleTextStyle: textTheme.headlineMedium,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AtlasColors.warmOffWhite,
@@ -97,16 +96,19 @@ abstract final class AtlasTheme {
         thickness: 1,
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: AtlasColors.surfaceWhite,
         elevation: 0,
+        shadowColor: const Color(0x1A1A2332),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AtlasColors.sandMuted),
+          borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
+          side: BorderSide(
+            color: AtlasColors.sandMuted.withValues(alpha: 0.65),
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AtlasColors.surfaceWhite,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AtlasSpacing.md,
@@ -116,13 +118,13 @@ abstract final class AtlasTheme {
         enabledBorder: inputBorder,
         focusedBorder: focusedInputBorder,
         errorBorder: inputBorder.copyWith(
-          borderSide: const BorderSide(color: Color(0xFFB3261E)),
+          borderSide: const BorderSide(color: AtlasColors.error),
         ),
         focusedErrorBorder: focusedInputBorder.copyWith(
-          borderSide: const BorderSide(color: Color(0xFFB3261E), width: 1.5),
+          borderSide: const BorderSide(color: AtlasColors.error, width: 1.5),
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(
-          color: AtlasColors.midnightBlueMuted.withValues(alpha: 0.55),
+          color: AtlasColors.midnightBlueMuted.withValues(alpha: 0.68),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -147,24 +149,53 @@ abstract final class AtlasTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: AtlasColors.terracotta,
-          foregroundColor: AtlasColors.warmOffWhite,
-          disabledBackgroundColor:
-              AtlasColors.terracotta.withValues(alpha: 0.35),
-          disabledForegroundColor:
-              AtlasColors.warmOffWhite.withValues(alpha: 0.7),
-          minimumSize: const Size(double.infinity, 48),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AtlasSpacing.xl,
-            vertical: AtlasSpacing.md,
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AtlasColors.terracotta.withValues(alpha: 0.35);
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return AtlasColors.terracottaDeep;
+            }
+            return AtlasColors.terracotta;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AtlasColors.warmOffWhite.withValues(alpha: 0.7);
+            }
+            return AtlasColors.warmOffWhite;
+          }),
+          minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(
+              horizontal: AtlasSpacing.xl,
+              vertical: AtlasSpacing.md,
+            ),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          textStyle: textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
+          textStyle: WidgetStatePropertyAll(
+            textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AtlasColors.terracotta,
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AtlasColors.midnightBlue,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: AtlasColors.warmOffWhite,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );

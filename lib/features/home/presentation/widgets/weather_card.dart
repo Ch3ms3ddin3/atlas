@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../domain/models/home_models.dart';
 
@@ -11,11 +12,15 @@ class WeatherCard extends StatelessWidget {
     required this.data,
     this.isLoading = false,
     this.onTap,
+    this.animateEntrance = false,
+    this.entranceDelay = Duration.zero,
   });
 
   final WeatherData data;
   final bool isLoading;
   final VoidCallback? onTap;
+  final bool animateEntrance;
+  final Duration entranceDelay;
 
   @override
   Widget build(BuildContext context) {
@@ -30,19 +35,21 @@ class WeatherCard extends StatelessWidget {
     return AtlasCard(
       onTap: onTap,
       emphasis: AtlasCardEmphasis.primary,
+      animateEntrance: animateEntrance,
+      entranceDelay: entranceDelay,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Météo',
             style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              color: AtlasTextStyles.cardLabel(theme.colorScheme),
               letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: AtlasSpacing.xxl),
+          const SizedBox(height: AtlasSpacing.lg),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Column(
@@ -56,7 +63,7 @@ class WeatherCard extends StatelessWidget {
                         height: 0.95,
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.lg),
+                    const SizedBox(height: AtlasSpacing.md),
                     Text(
                       conditionLabel,
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -65,30 +72,31 @@ class WeatherCard extends StatelessWidget {
                         height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.xs),
+                    const SizedBox(height: AtlasSpacing.sm),
                     Text(
                       feelsLikeLabel,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AtlasTextStyles.helper(theme.colorScheme),
                         height: 1.4,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: AtlasSpacing.md),
               Icon(
                 data.icon,
-                size: 56,
+                size: 70,
                 color: theme.colorScheme.primary
                     .withValues(alpha: isLoading ? 0.35 : 0.75),
               ),
             ],
           ),
-          const SizedBox(height: AtlasSpacing.xl),
+          const SizedBox(height: AtlasSpacing.lg),
           Text(
             updatedAtLabel,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+              color: AtlasTextStyles.metadata(theme.colorScheme),
             ),
           ),
         ],

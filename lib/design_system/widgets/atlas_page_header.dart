@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/atlas_spacing.dart';
+import '../theme/atlas_text_styles.dart';
 
 /// En-tête de page réutilisable — titre, sous-titre et note optionnelle.
 class AtlasPageHeader extends StatelessWidget {
@@ -33,7 +34,7 @@ class AtlasPageHeader extends StatelessWidget {
         Text(
           subtitle,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: AtlasTextStyles.helper(theme.colorScheme),
             height: 1.45,
           ),
         ),
@@ -42,7 +43,7 @@ class AtlasPageHeader extends StatelessWidget {
           Text(
             footnote!,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+              color: AtlasTextStyles.metadata(theme.colorScheme),
             ),
           ),
         ],

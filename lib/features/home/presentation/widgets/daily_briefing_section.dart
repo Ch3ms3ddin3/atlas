@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/models/home_models.dart';
 import 'exchange_rate_card.dart';
@@ -41,6 +42,7 @@ class DailyBriefingSection extends StatelessWidget {
                     child: WeatherCard(
                       data: weather,
                       isLoading: isWeatherLoading,
+                      animateEntrance: true,
                     ),
                   ),
                   const SizedBox(width: AtlasSpacing.lg),
@@ -49,6 +51,8 @@ class DailyBriefingSection extends StatelessWidget {
                     child: PrayerTimeCard(
                       data: prayerTime,
                       onTap: onPrayerTap,
+                      animateEntrance: true,
+                      entranceDelay: AtlasMotion.staggerDelay,
                     ),
                   ),
                 ],
@@ -75,11 +79,14 @@ class DailyBriefingSection extends StatelessWidget {
             WeatherCard(
               data: weather,
               isLoading: isWeatherLoading,
+              animateEntrance: true,
             ),
             const SizedBox(height: AtlasSpacing.lg),
             PrayerTimeCard(
               data: prayerTime,
               onTap: onPrayerTap,
+              animateEntrance: true,
+              entranceDelay: AtlasMotion.staggerDelay,
             ),
             const SizedBox(height: AtlasSpacing.lg),
             Row(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 
 /// Titre de section réutilisable — discret, hiérarchie légère.
 class HomeSectionHeader extends StatelessWidget {
@@ -27,7 +28,7 @@ class HomeSectionHeader extends StatelessWidget {
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w500,
               letterSpacing: 0.1,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: AtlasTextStyles.subtitle(theme.colorScheme),
             ),
           ),
         ),
