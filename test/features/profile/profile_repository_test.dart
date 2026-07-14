@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/core/location/morocco_cities.dart';
+import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/data/profile_preferences_store.dart';
-import 'package:atlas/features/profile/data/profile_repository.dart';
 import 'package:atlas/features/profile/data/profile_validator.dart';
 import 'package:atlas/features/profile/domain/models/user_profile.dart';
 
@@ -39,17 +39,20 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       const store = ProfilePreferencesStore();
 
-      final profile = await store.load();
+      final snapshot = await store.loadSnapshot();
 
-      expect(profile.firstName, UserProfile.defaultFirstName);
-      expect(profile.preferredCity, UserProfile.defaultPreferredCity);
-      expect(profile.language, AtlasLanguage.french);
-      expect(profile.userType, AtlasUserType.resident);
+      expect(snapshot.profile.firstName, UserProfile.defaultFirstName);
+      expect(snapshot.profile.preferredCity, UserProfile.defaultPreferredCity);
+      expect(snapshot.profile.language, AtlasLanguage.french);
+      expect(snapshot.profile.userType, AtlasUserType.resident);
+      expect(snapshot.localUpdatedAt, isNull);
+      expect(snapshot.syncPending, isFalse);
     });
 
-    test('persiste et recharge le profil', () async {
+    test('persiste le profil et les métadonnées de synchronisation', () async {
       SharedPreferences.setMockInitialValues({});
       const store = ProfilePreferencesStore();
+      final updatedAt = DateTime.utc(2026, 7, 12, 9);
 
       const saved = UserProfile(
         firstName: 'Salma',
@@ -57,20 +60,23 @@ void main() {
         language: AtlasLanguage.english,
         userType: AtlasUserType.visitor,
       );
-      await store.save(saved);
-      final profile = await store.load();
+      await store.saveProfile(saved, localUpdatedAt: updatedAt);
+      await store.setSyncPending(true);
+      final snapshot = await store.loadSnapshot();
 
-      expect(profile.firstName, 'Salma');
-      expect(profile.preferredCity, 'Casablanca');
-      expect(profile.language, AtlasLanguage.english);
-      expect(profile.userType, AtlasUserType.visitor);
+      expect(snapshot.profile.firstName, 'Salma');
+      expect(snapshot.profile.preferredCity, 'Casablanca');
+      expect(snapshot.profile.language, AtlasLanguage.english);
+      expect(snapshot.profile.userType, AtlasUserType.visitor);
+      expect(snapshot.localUpdatedAt, updatedAt);
+      expect(snapshot.syncPending, isTrue);
     });
   });
 
-  group('ProfileRepository', () {
+  group('LocalProfileRepository', () {
     test('notifie les écouteurs après enregistrement', () async {
       SharedPreferences.setMockInitialValues({});
-      final repository = ProfileRepository();
+      final repository = LocalProfileRepository();
       var notifications = 0;
       repository.addListener(() => notifications++);
 
@@ -91,7 +97,7 @@ void main() {
 
     test('refuse un profil invalide', () async {
       SharedPreferences.setMockInitialValues({});
-      final repository = ProfileRepository();
+      final repository = LocalProfileRepository();
       await repository.load();
 
       final saved = await repository.save(

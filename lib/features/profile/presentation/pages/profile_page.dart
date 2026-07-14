@@ -9,7 +9,7 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../data/profile_validator.dart';
-import '../../data/profile_repository.dart';
+import '../../domain/profile_repository.dart';
 import '../../domain/models/user_profile.dart';
 import '../profile_scope.dart';
 import '../widgets/profile_prayer_section.dart';

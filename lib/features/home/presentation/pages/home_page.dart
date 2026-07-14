@@ -10,7 +10,7 @@ import '../../../../core/location/user_location.dart';
 import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
-import '../../../profile/data/profile_repository.dart';
+import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../procedures/data/procedure_reminder_links.dart';

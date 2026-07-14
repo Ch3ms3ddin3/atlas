@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/profile_repository.dart';
+import '../domain/profile_repository.dart';
 
 /// Fournit le [ProfileRepository] partagé à toute l'application.
 class ProfileScope extends InheritedNotifier<ProfileRepository> {

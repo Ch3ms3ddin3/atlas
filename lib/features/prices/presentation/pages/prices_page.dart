@@ -8,7 +8,7 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
-import '../../../profile/data/profile_repository.dart';
+import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../domain/price_repository.dart';

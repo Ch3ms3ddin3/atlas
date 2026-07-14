@@ -114,9 +114,9 @@ class PrayerNotificationCoordinator {
 
   Future<UserLocation> _resolveLocationForSync() async {
     try {
-      final profile = await _profilePreferencesStore.load();
+      final snapshot = await _profilePreferencesStore.loadSnapshot();
       return await _locationRepository.resolveLocation(
-        preferredCityName: profile.preferredCity,
+        preferredCityName: snapshot.profile.preferredCity,
       );
     } catch (_) {
       return const UserLocation(

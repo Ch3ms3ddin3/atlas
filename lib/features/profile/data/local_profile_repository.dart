@@ -1,32 +1,50 @@
-import 'package:flutter/foundation.dart';
-
 import '../domain/models/user_profile.dart';
+import '../domain/profile_repository.dart';
 import 'profile_preferences_store.dart';
 import 'profile_validator.dart';
 
-/// Accès au profil local — charge, valide et notifie les écrans connectés.
-class ProfileRepository extends ChangeNotifier {
-  ProfileRepository({
+/// Profil local uniquement — repli permanent et tests hors-ligne.
+class LocalProfileRepository extends ProfileRepository {
+  LocalProfileRepository({
     ProfilePreferencesStore? store,
-  }) : _store = store ?? const ProfilePreferencesStore();
+  })  : _store = store ?? const ProfilePreferencesStore(),
+        super.base();
 
   final ProfilePreferencesStore _store;
 
   UserProfile _profile = UserProfile.defaults;
   bool _isLoaded = false;
 
+  @override
   UserProfile get profile => _profile;
+
+  @override
   bool get isLoaded => _isLoaded;
 
-  /// Charge le profil depuis le stockage local.
+  @override
   Future<void> load() async {
-    _profile = await _store.load();
+    final snapshot = await _store.loadSnapshot();
+    _profile = snapshot.profile;
     _isLoaded = true;
     notifyListeners();
   }
 
-  /// Valide et enregistre le profil ; retourne false si invalide.
+  @override
   Future<bool> save(UserProfile candidate) async {
+    final sanitized = _sanitize(candidate);
+    if (sanitized == null) return false;
+
+    await _store.saveProfile(
+      sanitized,
+      localUpdatedAt: DateTime.now().toUtc(),
+    );
+    await _store.setSyncPending(false);
+    _profile = sanitized;
+    notifyListeners();
+    return true;
+  }
+
+  UserProfile? _sanitize(UserProfile candidate) {
     final sanitized = UserProfile(
       firstName: ProfileValidator.sanitizeFirstName(candidate.firstName),
       preferredCity:
@@ -39,12 +57,8 @@ class ProfileRepository extends ChangeNotifier {
       firstName: sanitized.firstName,
       preferredCity: sanitized.preferredCity,
     )) {
-      return false;
+      return null;
     }
-
-    await _store.save(sanitized);
-    _profile = sanitized;
-    notifyListeners();
-    return true;
+    return sanitized;
   }
 }

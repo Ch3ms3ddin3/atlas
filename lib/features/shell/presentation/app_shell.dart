@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../profile/data/profile_repository.dart';
+import '../../profile/data/syncing_profile_repository.dart';
+import '../../profile/domain/profile_repository.dart';
 import '../../profile/presentation/profile_scope.dart';
 import '../../explorer/presentation/pages/explorer_page.dart';
 import '../../home/presentation/pages/home_page.dart';
@@ -20,7 +21,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final ProfileRepository _profileRepository = ProfileRepository();
+  final ProfileRepository _profileRepository = SyncingProfileRepository();
   int _currentIndex = 0;
 
   static const _pages = <Widget>[

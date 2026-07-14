@@ -1,7 +1,7 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M1 complete — read-only editorial sync (procedures, places, prices) with local fallback.  
-**Next:** M2 (favorites) — awaiting approval.
+**Status:** M2 complete — profile sync with local-first fallback and anonymous session.  
+**Next:** M3 (favorites) — awaiting approval.
 
 ---
 
@@ -54,7 +54,40 @@ Inject secrets as ephemeral env files or `--dart-define` pairs. Never commit rea
 
 ---
 
-## M1 deliverables (current)
+## M2 deliverables (current)
+
+### Database
+
+| File | Role |
+|---|---|
+| `supabase/migrations/00003_profiles.sql` | `profiles` table + RLS (1:1 with `auth.users`) |
+
+### Repository layers
+
+| Layer | Role |
+|---|---|
+| `domain/profile_repository.dart` | Abstract `ChangeNotifier` interface + factory |
+| `data/local_profile_repository.dart` | SharedPreferences only (permanent fallback) |
+| `data/supabase_profile_repository.dart` | Fetch + upsert |
+| `data/profile_sync_coordinator.dart` | Conflict merge rules |
+| `data/syncing_profile_repository.dart` | Local-first + background sync |
+| `data/profile_preferences_store.dart` | Profile + `localUpdatedAt` + `syncPending` |
+
+### Bootstrap
+
+`AppShell` instancie `SyncingProfileRepository` directement (cycle de vie par session).
+
+### Sync behaviour
+
+1. `load()` — local immediately, then background pull/merge/push.
+2. `save()` — local immediately, then background upsert.
+3. Offline push failure → `profile_sync_pending = true`, silent retry on next `load()`.
+4. Conflict: newer `updated_at` wins; equal timestamps → local wins.
+5. Remote applies only when `profile_local_updated_at` is absent (no local edits).
+
+---
+
+## M1 deliverables
 
 ### Database
 
@@ -153,7 +186,7 @@ All editorial tables use **`id uuid PRIMARY KEY`** and a separate **`slug text U
 | `user_type` | `text` | `resident` \| `mre` \| `visitor` |
 | `created_at` / `updated_at` | `timestamptz` | auto + trigger |
 
-Local `SharedPreferences` profile remains source of truth until explicit sign-in (M5).
+Local `SharedPreferences` remains the immediate read/write path; Supabase is synchronized in the background.
 
 ### `prices`
 
@@ -203,7 +236,8 @@ User corrections. Status: `pending` \| `reviewed` \| `dismissed`.
 | Phase | Auth | UI |
 |---|---|---|
 | **M0** ✓ | Anonymous session (silent) | None |
-| M3 | Anonymous (favorites) | None |
+| **M2** ✓ | Profile sync (anonymous) | None |
+| M3 | Favorites (anonymous) | None |
 | M5 | Email, Google, Apple + account linking | Sign-in screens |
 
 Anonymous sessions are created in `SupabaseBootstrap` when Supabase is configured and auth is enabled on the project.
@@ -229,9 +263,9 @@ UI pages receive `PriceRepository` via constructor or scope — never `SupabaseC
 1. Procedures (smallest catalog)
 2. Places
 3. Prices
-4. Favorites (needs anonymous auth)
-5. Content reports
-6. Profile sync (needs sign-in UI)
+4. Favorites (M3)
+5. Content reports (M4)
+6. Account linking UI (M5)
 
 ---
 
@@ -268,4 +302,4 @@ M0 tests cover env parsing, health repository (mocked probe), and app launch wit
 - No removal of static catalogs
 - No UI or navigation changes
 
-Wait for explicit approval before starting **M2**.
+Wait for explicit approval before starting **M3**.
