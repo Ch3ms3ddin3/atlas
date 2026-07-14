@@ -11,24 +11,35 @@ class AuthFormSheet extends StatefulWidget {
   const AuthFormSheet({
     super.key,
     required this.initialMode,
+    this.scaffoldMessenger,
   });
 
   final AuthFormMode initialMode;
+  final ScaffoldMessengerState? scaffoldMessenger;
 
   static Future<void> show(
     BuildContext context, {
     required AuthFormMode initialMode,
   }) {
+    final repository = AuthScope.read(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.viewInsetsOf(context).bottom,
+      builder: (sheetContext) {
+        return AuthScope(
+          repository: repository,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+            ),
+            child: AuthFormSheet(
+              initialMode: initialMode,
+              scaffoldMessenger: scaffoldMessenger,
+            ),
           ),
-          child: AuthFormSheet(initialMode: initialMode),
         );
       },
     );
@@ -100,8 +111,10 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
     }
 
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
+    final messenger =
+        widget.scaffoldMessenger ?? ScaffoldMessenger.maybeOf(context);
+    messenger
+      ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Text(
