@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:atlas/features/prices/data/local_price_repository.dart';
 import 'package:atlas/features/prices/data/price_catalog.dart';
 import 'package:atlas/features/prices/data/price_mapper.dart';
-import 'package:atlas/features/prices/data/price_repository.dart';
 import 'package:atlas/features/prices/domain/models/price_models.dart';
 
 void main() {
@@ -90,8 +90,8 @@ void main() {
     });
   });
 
-  group('PriceRepository', () {
-    const repository = PriceRepository();
+  group('LocalPriceRepository', () {
+    final repository = LocalPriceRepository();
 
     test('expose au moins 24 repères au total', () {
       expect(PriceCatalog.guides.length, greaterThanOrEqualTo(24));

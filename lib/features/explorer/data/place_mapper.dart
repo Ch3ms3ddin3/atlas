@@ -16,28 +16,36 @@ abstract final class PlaceMapper {
     PlaceCategory.souk: 'Souk',
   };
 
-  static String resolveCityName(String? cityName) {
+  static String resolveCityName(
+    String? cityName, {
+    Iterable<PlaceGuide>? guides,
+  }) {
     if (cityName == null || cityName.trim().isEmpty) {
       return LocationConstants.fallbackCity;
     }
 
     final normalized = cityName.trim().toLowerCase();
-    final knownCities = PlaceCatalog.guides
+    final catalog = guides ?? PlaceCatalog.guides;
+    final knownCities = catalog
         .map((guide) => guide.cityName.toLowerCase())
         .toSet();
 
     if (knownCities.contains(normalized)) {
-      return _canonicalCityName(normalized);
+      return _canonicalCityName(normalized, catalog);
     }
 
     return LocationConstants.fallbackCity;
   }
 
-  static List<PlaceGuide> filter(PlaceSearchQuery query) {
-    final cityName = resolveCityName(query.cityName);
+  static List<PlaceGuide> filter(
+    PlaceSearchQuery query, {
+    List<PlaceGuide>? source,
+  }) {
+    final catalog = source ?? PlaceCatalog.guides;
+    final cityName = resolveCityName(query.cityName, guides: catalog);
     final normalizedQuery = query.text.trim().toLowerCase();
 
-    return PlaceCatalog.guides.where((guide) {
+    return catalog.where((guide) {
       if (guide.cityName.toLowerCase() != cityName.toLowerCase()) {
         return false;
       }
@@ -57,8 +65,12 @@ abstract final class PlaceMapper {
     }).toList();
   }
 
-  static PlaceGuide? findById(String id) {
-    for (final guide in PlaceCatalog.guides) {
+  static PlaceGuide? findById(
+    String id, {
+    List<PlaceGuide>? source,
+  }) {
+    final catalog = source ?? PlaceCatalog.guides;
+    for (final guide in catalog) {
       if (guide.id == id) return guide;
     }
     return null;
@@ -76,8 +88,11 @@ abstract final class PlaceMapper {
     );
   }
 
-  static String _canonicalCityName(String normalizedCity) {
-    for (final guide in PlaceCatalog.guides) {
+  static String _canonicalCityName(
+    String normalizedCity,
+    Iterable<PlaceGuide> guides,
+  ) {
+    for (final guide in guides) {
       if (guide.cityName.toLowerCase() == normalizedCity) {
         return guide.cityName;
       }

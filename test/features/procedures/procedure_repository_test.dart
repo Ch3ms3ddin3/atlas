@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:atlas/features/procedures/data/local_procedure_repository.dart';
 import 'package:atlas/features/procedures/data/procedure_catalog.dart';
 import 'package:atlas/features/procedures/data/procedure_mapper.dart';
 import 'package:atlas/features/procedures/data/procedure_reminder_links.dart';
-import 'package:atlas/features/procedures/data/procedure_repository.dart';
 import 'package:atlas/features/procedures/domain/models/procedure_models.dart';
 
 void main() {
@@ -30,8 +30,8 @@ void main() {
     });
   });
 
-  group('ProcedureRepository', () {
-    const repository = ProcedureRepository();
+  group('LocalProcedureRepository', () {
+    final repository = LocalProcedureRepository();
 
     test('expose au moins 7 guides', () {
       expect(repository.getAll().length, greaterThanOrEqualTo(7));

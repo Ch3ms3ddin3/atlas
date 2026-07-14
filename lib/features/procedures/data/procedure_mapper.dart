@@ -10,10 +10,14 @@ abstract final class ProcedureMapper {
     ProcedureCategory.transport: 'Transport',
   };
 
-  static List<ProcedureGuide> filter(ProcedureSearchQuery query) {
+  static List<ProcedureGuide> filter(
+    ProcedureSearchQuery query, {
+    List<ProcedureGuide>? source,
+  }) {
+    final guides = source ?? ProcedureCatalog.guides;
     final normalizedQuery = query.text.trim().toLowerCase();
 
-    return ProcedureCatalog.guides.where((guide) {
+    return guides.where((guide) {
       final matchesCategory =
           query.category == null || guide.category == query.category;
       if (!matchesCategory) return false;
@@ -29,8 +33,12 @@ abstract final class ProcedureMapper {
     }).toList();
   }
 
-  static ProcedureGuide? findById(String id) {
-    for (final guide in ProcedureCatalog.guides) {
+  static ProcedureGuide? findById(
+    String id, {
+    List<ProcedureGuide>? source,
+  }) {
+    final guides = source ?? ProcedureCatalog.guides;
+    for (final guide in guides) {
       if (guide.id == id) return guide;
     }
     return null;

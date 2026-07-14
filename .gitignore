@@ -49,3 +49,6 @@ app.*.map.json
 .env.*
 !.env.example
 !.env.*.example
+
+# Supabase CLI cache
+supabase/.temp/

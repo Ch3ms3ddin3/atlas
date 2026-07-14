@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:atlas/features/explorer/data/local_place_repository.dart';
 import 'package:atlas/features/explorer/data/place_catalog.dart';
 import 'package:atlas/features/explorer/data/place_mapper.dart';
-import 'package:atlas/features/explorer/data/place_repository.dart';
 import 'package:atlas/features/explorer/domain/models/place_models.dart';
 
 void main() {
@@ -53,8 +53,8 @@ void main() {
     });
   });
 
-  group('PlaceRepository', () {
-    const repository = PlaceRepository();
+  group('LocalPlaceRepository', () {
+    final repository = LocalPlaceRepository();
 
     test('expose au moins 12 lieux au total', () {
       expect(PlaceCatalog.guides.length, greaterThanOrEqualTo(12));

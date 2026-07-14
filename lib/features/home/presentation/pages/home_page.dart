@@ -8,13 +8,13 @@ import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
 import '../../../explorer/data/place_mapper.dart';
-import '../../../explorer/data/place_repository.dart';
+import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
 import '../../../profile/data/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../procedures/data/procedure_reminder_links.dart';
-import '../../../procedures/data/procedure_repository.dart';
+import '../../../procedures/domain/procedure_repository.dart';
 import '../../../procedures/presentation/pages/procedures_page.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
@@ -56,8 +56,8 @@ class _HomePageState extends State<HomePage> {
   final GreetingRepository _greetingRepository = const GreetingRepository();
   final TodayEssentialsRepository _todayEssentialsRepository =
       const TodayEssentialsRepository();
-  final ProcedureRepository _procedureRepository = const ProcedureRepository();
-  final PlaceRepository _placeRepository = const PlaceRepository();
+  final ProcedureRepository _procedureRepository = ProcedureRepository();
+  final PlaceRepository _placeRepository = PlaceRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,

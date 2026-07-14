@@ -14,29 +14,37 @@ abstract final class PriceMapper {
     PriceCategory.housing: 'Logement',
   };
 
-  static String resolveCityName(String? cityName) {
+  static String resolveCityName(
+    String? cityName, {
+    Iterable<PriceGuide>? guides,
+  }) {
     if (cityName == null || cityName.trim().isEmpty) {
       return LocationConstants.fallbackCity;
     }
 
     final normalized = cityName.trim().toLowerCase();
-    final knownCities = PriceCatalog.guides
+    final catalog = guides ?? PriceCatalog.guides;
+    final knownCities = catalog
         .where((guide) => !guide.isNational)
         .map((guide) => guide.cityName.toLowerCase())
         .toSet();
 
     if (knownCities.contains(normalized)) {
-      return _canonicalCityName(normalized);
+      return _canonicalCityName(normalized, catalog);
     }
 
     return LocationConstants.fallbackCity;
   }
 
-  static List<PriceGuide> filter(PriceSearchQuery query) {
-    final cityName = resolveCityName(query.cityName);
+  static List<PriceGuide> filter(
+    PriceSearchQuery query, {
+    List<PriceGuide>? source,
+  }) {
+    final catalog = source ?? PriceCatalog.guides;
+    final cityName = resolveCityName(query.cityName, guides: catalog);
     final normalizedQuery = query.text.trim().toLowerCase();
 
-    return PriceCatalog.guides.where((guide) {
+    return catalog.where((guide) {
       if (!_matchesCity(guide, cityName)) {
         return false;
       }
@@ -59,8 +67,12 @@ abstract final class PriceMapper {
     }).toList();
   }
 
-  static PriceGuide? findById(String id) {
-    for (final guide in PriceCatalog.guides) {
+  static PriceGuide? findById(
+    String id, {
+    List<PriceGuide>? source,
+  }) {
+    final catalog = source ?? PriceCatalog.guides;
+    for (final guide in catalog) {
       if (guide.id == id) return guide;
     }
     return null;
@@ -98,8 +110,11 @@ abstract final class PriceMapper {
     return buffer.toString();
   }
 
-  static String _canonicalCityName(String normalizedCity) {
-    for (final guide in PriceCatalog.guides) {
+  static String _canonicalCityName(
+    String normalizedCity,
+    Iterable<PriceGuide> guides,
+  ) {
+    for (final guide in guides) {
       if (guide.isNational) continue;
       if (guide.cityName.toLowerCase() == normalizedCity) {
         return guide.cityName;

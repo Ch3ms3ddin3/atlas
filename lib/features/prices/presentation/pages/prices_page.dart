@@ -11,7 +11,7 @@ import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/data/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
-import '../../data/price_repository.dart';
+import '../../domain/price_repository.dart';
 import '../../domain/models/price_models.dart';
 import '../pages/price_detail_page.dart';
 import '../widgets/price_category_filter.dart';
@@ -27,7 +27,7 @@ class PricesPage extends StatefulWidget {
 }
 
 class _PricesPageState extends State<PricesPage> {
-  final PriceRepository _repository = const PriceRepository();
+  final PriceRepository _repository = PriceRepository();
   final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
 

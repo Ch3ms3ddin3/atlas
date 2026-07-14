@@ -1,0 +1,130 @@
+import 'dart:io';
+
+import 'package:atlas/core/icons/atlas_material_icons.dart';
+import 'package:atlas/features/explorer/data/place_catalog.dart';
+import 'package:atlas/features/explorer/domain/models/place_models.dart';
+import 'package:atlas/features/prices/data/price_catalog.dart';
+import 'package:atlas/features/prices/domain/models/price_models.dart';
+import 'package:atlas/features/procedures/data/procedure_catalog.dart';
+import 'package:atlas/features/procedures/domain/models/procedure_models.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('génère supabase/seed.sql depuis les catalogues Dart', () {
+    final buffer = StringBuffer()
+      ..writeln(
+        '-- Généré par test/tool/generate_editorial_seed_test.dart',
+      )
+      ..writeln('BEGIN;')
+      ..writeln()
+      ..writeln(_truncate('procedures'))
+      ..writeln(_truncate('places'))
+      ..writeln(_truncate('prices'));
+
+    for (final guide in ProcedureCatalog.guides) {
+      buffer.writeln(_procedureInsert(guide));
+    }
+
+    buffer.writeln();
+    for (final guide in PlaceCatalog.guides) {
+      buffer.writeln(_placeInsert(guide));
+    }
+
+    buffer.writeln();
+    for (final guide in PriceCatalog.guides) {
+      buffer.writeln(_priceInsert(guide));
+    }
+
+    buffer.writeln();
+    buffer.writeln('COMMIT;');
+
+    File('supabase/seed.sql').writeAsStringSync(buffer.toString());
+  });
+}
+
+String _truncate(String table) =>
+    'TRUNCATE TABLE $table RESTART IDENTITY CASCADE;';
+
+String _procedureInsert(ProcedureGuide guide) {
+  return '''
+INSERT INTO procedures (
+  slug, title, summary, category, category_label, estimated_duration,
+  documents, steps, icon_key, official_url
+) VALUES (
+  ${_text(guide.id)},
+  ${_text(guide.title)},
+  ${_text(guide.summary)},
+  ${_text(guide.category.name)},
+  ${_text(guide.categoryLabel)},
+  ${_text(guide.estimatedDuration)},
+  ${_textArray(guide.documents)},
+  ${_textArray(guide.steps)},
+  ${_text(AtlasMaterialIcons.keyFor(guide.icon))},
+  ${guide.officialUrl == null ? 'NULL' : _text(guide.officialUrl!)}
+) ON CONFLICT (slug) DO NOTHING;''';
+}
+
+String _placeInsert(PlaceGuide guide) {
+  return '''
+INSERT INTO places (
+  slug, name, city_name, category, category_label, neighborhood, price_level,
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+) VALUES (
+  ${_text(guide.id)},
+  ${_text(guide.name)},
+  ${_text(guide.cityName)},
+  ${_text(guide.category.name)},
+  ${_text(guide.categoryLabel)},
+  ${_text(guide.neighborhood)},
+  ${_text(guide.priceLevel)},
+  ${guide.isEditorsPick},
+  ${_text(_colorHex(guide.imageColor))},
+  ${_text(guide.summary)},
+  ${_textArray(guide.practicalTips)},
+  ${guide.bestTimeToVisit == null ? 'NULL' : _text(guide.bestTimeToVisit!)},
+  ${guide.mapsUrl == null ? 'NULL' : _text(guide.mapsUrl!)}
+) ON CONFLICT (slug) DO NOTHING;''';
+}
+
+String _priceInsert(PriceGuide guide) {
+  return '''
+INSERT INTO prices (
+  slug, name, city_name, category, category_label,
+  min_amount_mad, max_amount_mad, average_amount_mad, unit_label, summary,
+  price_factors, warning_signs, negotiation_tips, icon_key, source_note,
+  is_tourist_trap, last_updated_at
+) VALUES (
+  ${_text(guide.id)},
+  ${_text(guide.name)},
+  ${_text(guide.cityName)},
+  ${_text(guide.category.name)},
+  ${_text(guide.categoryLabel)},
+  ${guide.minAmountMad},
+  ${guide.maxAmountMad},
+  ${guide.averageAmountMad},
+  ${_text(guide.unitLabel)},
+  ${_text(guide.summary)},
+  ${_textArray(guide.priceFactors)},
+  ${_textArray(guide.warningSigns)},
+  ${_textArray(guide.negotiationTips)},
+  ${_text(AtlasMaterialIcons.keyFor(guide.icon))},
+  ${guide.sourceNote == null ? 'NULL' : _text(guide.sourceNote!)},
+  ${guide.isTouristTrap},
+  ${_text(guide.lastUpdatedAt.toUtc().toIso8601String())}
+) ON CONFLICT (slug) DO NOTHING;''';
+}
+
+String _text(String value) => "'${_escape(value)}'";
+
+String _textArray(List<String> values) {
+  if (values.isEmpty) return 'ARRAY[]::text[]';
+  return 'ARRAY[${values.map(_text).join(', ')}]';
+}
+
+String _escape(String value) => value.replaceAll("'", "''");
+
+String _colorHex(Color color) {
+  final rgb = color.toARGB32() & 0xFFFFFF;
+  return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
+}

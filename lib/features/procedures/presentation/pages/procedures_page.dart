@@ -6,7 +6,7 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
-import '../../data/procedure_repository.dart';
+import '../../domain/procedure_repository.dart';
 import '../../domain/models/procedure_models.dart';
 import '../pages/procedure_detail_page.dart';
 import '../widgets/procedure_category_filter.dart';
@@ -21,7 +21,7 @@ class ProceduresPage extends StatefulWidget {
 }
 
 class _ProceduresPageState extends State<ProceduresPage> {
-  final ProcedureRepository _repository = const ProcedureRepository();
+  final ProcedureRepository _repository = ProcedureRepository();
   final TextEditingController _searchController = TextEditingController();
 
   ProcedureCategory? _selectedCategory;

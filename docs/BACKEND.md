@@ -1,7 +1,7 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M0 complete — configuration, health check, anonymous session bootstrap.  
-**Next:** M1 (read-only editorial sync) — awaiting approval.
+**Status:** M1 complete — read-only editorial sync (procedures, places, prices) with local fallback.  
+**Next:** M2 (favorites) — awaiting approval.
 
 ---
 
@@ -54,7 +54,46 @@ Inject secrets as ephemeral env files or `--dart-define` pairs. Never commit rea
 
 ---
 
-## M0 deliverables (current)
+## M1 deliverables (current)
+
+### Database
+
+| File | Role |
+|---|---|
+| `supabase/migrations/00002_editorial_tables.sql` | `procedures`, `places`, `prices` tables + RLS |
+| `supabase/seed.sql` | SQL seed from static Dart catalogs |
+
+Regenerate seed after catalog edits:
+
+```bash
+flutter test test/tool/generate_editorial_seed_test.dart
+```
+
+### Repository layers (per feature)
+
+| Layer | Role |
+|---|---|
+| `domain/*_repository.dart` | Abstract interface + factory registration |
+| `data/local_*_repository.dart` | Static catalog (permanent fallback) |
+| `data/supabase_*_repository.dart` | Read-only Supabase fetch |
+| `data/resilient_*_repository.dart` | Remote first, local on failure/empty |
+| `data/*_record_mapper.dart` | Postgres row → domain model |
+
+### Bootstrap
+
+`EditorialRepositoryBootstrap.registerDefaults()` in `main.dart` wires resilient repos.  
+`EditorialRepositoryBootstrap.warmUp()` preloads Supabase data when configured.
+
+### Behaviour
+
+1. Sync API unchanged — pages call `ProcedureRepository()` etc. as before.
+2. First read uses local catalog; remote cache applied after `warmUp()`.
+3. Supabase failure → silent fallback to static catalogs.
+4. UI/widgets unchanged — only import paths and factory registration.
+
+---
+
+## M0 deliverables
 
 ### Flutter
 
@@ -229,4 +268,4 @@ M0 tests cover env parsing, health repository (mocked probe), and app launch wit
 - No removal of static catalogs
 - No UI or navigation changes
 
-Wait for explicit approval before starting **M1**.
+Wait for explicit approval before starting **M2**.

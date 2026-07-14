@@ -11,7 +11,7 @@ import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/data/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
-import '../../data/place_repository.dart';
+import '../../domain/place_repository.dart';
 import '../../domain/models/place_models.dart';
 import '../pages/place_detail_page.dart';
 import '../widgets/place_category_filter.dart';
@@ -26,7 +26,7 @@ class ExplorerPage extends StatefulWidget {
 }
 
 class _ExplorerPageState extends State<ExplorerPage> {
-  final PlaceRepository _repository = const PlaceRepository();
+  final PlaceRepository _repository = PlaceRepository();
   final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
 
