@@ -33,7 +33,11 @@ abstract final class FavoritesSyncCoordinator {
       );
     }
 
-    final mergedRecords = _mergeRecords(local.records, remote);
+    final mergedRecords = _mergeRecords(
+      local.records,
+      remote,
+      preferLocalWhenPending: local.syncPending,
+    );
     final activeKeys = _activeKeys(mergedRecords);
     final changed = !_recordsEquivalent(local.records, mergedRecords);
     final shouldPushLocal =
@@ -49,8 +53,9 @@ abstract final class FavoritesSyncCoordinator {
 
   static List<FavoriteRecord> _mergeRecords(
     List<FavoriteRecord> local,
-    List<FavoriteRecord> remote,
-  ) {
+    List<FavoriteRecord> remote, {
+    required bool preferLocalWhenPending,
+  }) {
     final localMap = _toMap(local);
     final remoteMap = _toMap(remote);
     final merged = <FavoriteKey, FavoriteRecord>{};
@@ -68,7 +73,11 @@ abstract final class FavoritesSyncCoordinator {
         continue;
       }
 
-      merged[key] = _pickLatest(localRecord, remoteRecord);
+      merged[key] = _pickLatest(
+        localRecord,
+        remoteRecord,
+        preferLocalWhenPending: preferLocalWhenPending,
+      );
     }
 
     return merged.values.toList(growable: false);
@@ -76,8 +85,11 @@ abstract final class FavoritesSyncCoordinator {
 
   static FavoriteRecord _pickLatest(
     FavoriteRecord local,
-    FavoriteRecord remote,
-  ) {
+    FavoriteRecord remote, {
+    bool preferLocalWhenPending = false,
+  }) {
+    if (preferLocalWhenPending) return local;
+
     final localUpdatedAt = local.updatedAt.toUtc();
     final remoteUpdatedAt = remote.updatedAt.toUtc();
 
@@ -126,6 +138,14 @@ abstract final class FavoritesSyncCoordinator {
       for (final record in records)
         if (record.isActive) record.key,
     };
+  }
+
+  static bool snapshotsEquivalent(
+    FavoritesLocalSnapshot left,
+    FavoritesLocalSnapshot right,
+  ) {
+    return left.syncPending == right.syncPending &&
+        _recordsEquivalent(left.records, right.records);
   }
 
   static bool _recordsEquivalent(

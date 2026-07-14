@@ -9,7 +9,6 @@ import '../domain/favorites_repository.dart';
 import '../domain/models/favorite_key.dart';
 import '../domain/models/favorite_record.dart';
 import 'favorite_validator.dart';
-import 'favorites_local_snapshot.dart';
 import 'favorites_preferences_store.dart';
 import 'favorites_sync_coordinator.dart';
 import 'supabase_favorites_repository.dart';
@@ -41,6 +40,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
   Set<FavoriteKey> _activeFavorites = const {};
   bool _isLoaded = false;
   bool _syncInProgress = false;
+  bool _syncQueued = false;
 
   @override
   Set<FavoriteKey> get activeFavorites => _activeFavorites;
@@ -70,7 +70,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     };
     _isLoaded = true;
     notifyListeners();
-    unawaited(_syncAfterLoad(snapshot));
+    unawaited(_syncAfterLoad());
   }
 
   @override
@@ -105,6 +105,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
 
     final pushed = await _pushRecords(records);
     await _store.setSyncPending(!pushed);
+    _scheduleFollowUpSync();
     return true;
   }
 
@@ -140,6 +141,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
 
     final pushed = await _pushRecords(records);
     await _store.setSyncPending(!pushed);
+    _scheduleFollowUpSync();
     return true;
   }
 
@@ -154,8 +156,19 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     return addFavorite(entityType: entityType, entitySlug: entitySlug);
   }
 
-  Future<void> _syncAfterLoad(FavoritesLocalSnapshot local) async {
-    if (_syncInProgress || !_canSync) return;
+  void _scheduleFollowUpSync() {
+    if (_syncInProgress) {
+      _syncQueued = true;
+    }
+  }
+
+  Future<void> _syncAfterLoad() async {
+    if (_syncInProgress) {
+      _syncQueued = true;
+      return;
+    }
+    if (!_canSync) return;
+
     _syncInProgress = true;
 
     try {
@@ -163,16 +176,34 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
-      final merge = FavoritesSyncCoordinator.merge(local: local, remote: remote);
+      var localSnapshot = await _store.loadSnapshot();
+      var merge = FavoritesSyncCoordinator.merge(
+        local: localSnapshot,
+        remote: remote,
+      );
 
       if (merge.changed) {
-        final pruned = _pruneInactive(merge.records);
-        await _store.saveRecords(pruned);
-        _activeFavorites = merge.activeKeys;
-        notifyListeners();
+        final latestSnapshot = await _store.loadSnapshot();
+        if (!FavoritesSyncCoordinator.snapshotsEquivalent(
+          localSnapshot,
+          latestSnapshot,
+        )) {
+          localSnapshot = latestSnapshot;
+          merge = FavoritesSyncCoordinator.merge(
+            local: localSnapshot,
+            remote: remote,
+          );
+        }
+
+        if (merge.changed) {
+          final pruned = _pruneInactive(merge.records);
+          await _store.saveRecords(pruned);
+          _activeFavorites = merge.activeKeys;
+          notifyListeners();
+        }
       }
 
-      if (local.syncPending || merge.shouldPushLocal) {
+      if (localSnapshot.syncPending || merge.shouldPushLocal) {
         final snapshot = await _store.loadSnapshot();
         final pushed = await _pushRecords(snapshot.records);
         await _store.setSyncPending(!pushed);
@@ -187,6 +218,10 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       }
     } finally {
       _syncInProgress = false;
+      if (_syncQueued) {
+        _syncQueued = false;
+        unawaited(_syncAfterLoad());
+      }
     }
   }
 

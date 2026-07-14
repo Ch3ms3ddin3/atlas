@@ -110,6 +110,34 @@ void main() {
       expect(result.shouldPushLocal, isFalse);
     });
 
+    test('conserve le local en attente de sync malgré une tombstone distante plus récente', () {
+      final result = FavoritesSyncCoordinator.merge(
+        local: FavoritesLocalSnapshot(
+          records: [
+            localRecord.copyWith(updatedAt: localTime),
+          ],
+          syncPending: true,
+        ),
+        remote: [
+          FavoriteRecord(
+            entityType: FavoriteEntityType.place,
+            entitySlug: 'place-jardin-majorelle',
+            isActive: false,
+            updatedAt: remoteTime,
+          ),
+        ],
+      );
+
+      expect(result.activeKeys, {
+        const FavoriteKey(
+          entityType: FavoriteEntityType.place,
+          entitySlug: 'place-jardin-majorelle',
+        ),
+      });
+      expect(result.changed, isFalse);
+      expect(result.shouldPushLocal, isTrue);
+    });
+
     test('le local l emporte à timestamps égaux', () {
       final result = FavoritesSyncCoordinator.merge(
         local: FavoritesLocalSnapshot(
