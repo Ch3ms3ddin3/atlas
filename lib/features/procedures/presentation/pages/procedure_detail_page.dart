@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
+import '../../../favorites/domain/favorite_entity_type.dart';
+import '../../../favorites/presentation/widgets/favorite_toggle_button.dart';
 import '../../domain/models/procedure_models.dart';
 
 /// Détail d'une démarche — étapes, documents et lien officiel.
@@ -20,6 +22,12 @@ class ProcedureDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(guide.title),
+        actions: [
+          FavoriteToggleButton(
+            entityType: FavoriteEntityType.procedure,
+            entitySlug: guide.id,
+          ),
+        ],
       ),
       body: SafeArea(
         child: AtlasContentContainer(

@@ -11,6 +11,7 @@ import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
+import '../../../favorites/presentation/favorites_page_wrapper.dart';
 import '../../domain/place_repository.dart';
 import '../../domain/models/place_models.dart';
 import '../pages/place_detail_page.dart';
@@ -104,6 +105,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     Navigator.of(context).push(
       AtlasPageRoute<void>(
         page: PlaceDetailPage(place: place),
+        wrapPage: (child) => wrapWithFavoritesScope(context, child),
       ),
     );
   }
@@ -180,6 +182,7 @@ void openPlaceGuide(BuildContext context, PlaceGuide place) {
   Navigator.of(context).push(
     AtlasPageRoute<void>(
       page: PlaceDetailPage(place: place),
+      wrapPage: (child) => wrapWithFavoritesScope(context, child),
     ),
   );
 }

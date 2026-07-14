@@ -11,6 +11,7 @@ import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
+import '../../../favorites/presentation/favorites_page_wrapper.dart';
 import '../../domain/price_repository.dart';
 import '../../domain/models/price_models.dart';
 import '../pages/price_detail_page.dart';
@@ -105,6 +106,7 @@ class _PricesPageState extends State<PricesPage> {
     Navigator.of(context).push(
       AtlasPageRoute<void>(
         page: PriceDetailPage(guide: guide),
+        wrapPage: (child) => wrapWithFavoritesScope(context, child),
       ),
     );
   }
@@ -184,6 +186,7 @@ void openPriceGuide(BuildContext context, PriceGuide guide) {
   Navigator.of(context).push(
     AtlasPageRoute<void>(
       page: PriceDetailPage(guide: guide),
+      wrapPage: (child) => wrapWithFavoritesScope(context, child),
     ),
   );
 }

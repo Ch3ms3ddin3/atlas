@@ -6,11 +6,14 @@ import '../theme/atlas_motion.dart';
 class AtlasPageRoute<T> extends PageRouteBuilder<T> {
   AtlasPageRoute({
     required Widget page,
+    Widget Function(Widget page)? wrapPage,
     super.settings,
   }) : super(
           transitionDuration: AtlasMotion.pageTransitionDuration,
           reverseTransitionDuration: AtlasMotion.pageTransitionDuration,
-          pageBuilder: (context, animation, secondaryAnimation) => page,
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return wrapPage != null ? wrapPage(page) : page;
+          },
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final curved = CurvedAnimation(
               parent: animation,

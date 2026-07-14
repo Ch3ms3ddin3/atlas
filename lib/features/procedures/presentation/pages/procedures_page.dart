@@ -6,6 +6,7 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
+import '../../../favorites/presentation/favorites_page_wrapper.dart';
 import '../../domain/procedure_repository.dart';
 import '../../domain/models/procedure_models.dart';
 import '../pages/procedure_detail_page.dart';
@@ -60,6 +61,7 @@ class _ProceduresPageState extends State<ProceduresPage> {
     Navigator.of(context).push(
       AtlasPageRoute<void>(
         page: ProcedureDetailPage(guide: guide),
+        wrapPage: (child) => wrapWithFavoritesScope(context, child),
       ),
     );
   }
@@ -132,6 +134,7 @@ void openProcedureGuide(BuildContext context, ProcedureGuide guide) {
   Navigator.of(context).push(
     AtlasPageRoute<void>(
       page: ProcedureDetailPage(guide: guide),
+      wrapPage: (child) => wrapWithFavoritesScope(context, child),
     ),
   );
 }
