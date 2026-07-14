@@ -1,7 +1,7 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M2 complete — profile sync with local-first fallback and anonymous session.  
-**Next:** M3 (favorites) — awaiting approval.
+**Status:** M4 complete — content reports sync with local-first fallback and anonymous session.  
+**Next:** M5 (account linking + sign-in UI) — awaiting approval.
 
 ---
 
@@ -54,7 +54,73 @@ Inject secrets as ephemeral env files or `--dart-define` pairs. Never commit rea
 
 ---
 
-## M2 deliverables (current)
+## M4 deliverables (current)
+
+### Database
+
+| File | Role |
+|---|---|
+| `supabase/migrations/00005_content_reports.sql` | `content_reports` table + RLS (per-user rows) |
+
+### Repository layers
+
+| Layer | Role |
+|---|---|
+| `domain/content_reports_repository.dart` | Abstract `ChangeNotifier` interface |
+| `data/local_content_reports_repository.dart` | SharedPreferences only (permanent fallback) |
+| `data/supabase_content_reports_repository.dart` | Fetch + insert |
+| `data/content_reports_sync_coordinator.dart` | Status merge rules |
+| `data/syncing_content_reports_repository.dart` | Local-first + background sync |
+| `data/content_reports_preferences_store.dart` | Reports JSON + `syncPending` |
+
+### Bootstrap
+
+`AppShell` instancie `SyncingContentReportsRepository` directement (cycle de vie par session).
+
+### Sync behaviour
+
+1. `load()` — local immediately, then background pull status / push pending inserts.
+2. `submitReport()` — local immediately, then background insert.
+3. Offline push failure → `content_reports_sync_pending = true`, silent retry on next `load()`.
+4. Client inserts are immutable; moderation updates `status` via service role.
+5. Conflict: newer `updated_at` wins for status; equal timestamps → remote status wins.
+
+---
+
+## M3 deliverables
+
+### Database
+
+| File | Role |
+|---|---|
+| `supabase/migrations/00004_favorites.sql` | `favorites` table + RLS (per-user rows) |
+
+### Repository layers
+
+| Layer | Role |
+|---|---|
+| `domain/favorites_repository.dart` | Abstract `ChangeNotifier` interface |
+| `data/local_favorites_repository.dart` | SharedPreferences only (permanent fallback) |
+| `data/supabase_favorites_repository.dart` | Fetch + upsert |
+| `data/favorites_sync_coordinator.dart` | Per-item conflict merge rules |
+| `data/syncing_favorites_repository.dart` | Local-first + background sync |
+| `data/favorites_preferences_store.dart` | Favorites + `syncPending` |
+
+### Bootstrap
+
+`AppShell` instancie `SyncingFavoritesRepository` directement (cycle de vie par session).
+
+### Sync behaviour
+
+1. `load()` — local immediately, then background pull/merge/push.
+2. `addFavorite()` / `removeFavorite()` — local immediately, then background upsert.
+3. Offline push failure → `favorites_sync_pending = true`, silent retry on next `load()`.
+4. Conflict: per `(entity_type, entity_slug)`, newer `updated_at` wins; equal timestamps → local wins.
+5. Tombstones (`is_active = false`) preserve removals for multi-device sync.
+
+---
+
+## M2 deliverables
 
 ### Database
 
@@ -209,13 +275,23 @@ Curated places. `image_color` as `#RRGGBB` hex.
 | `user_id` | `uuid` | FK → `auth.users` |
 | `entity_type` | `text` | `price` \| `procedure` \| `place` |
 | `entity_slug` | `text` | |
-| `created_at` | `timestamptz` | |
+| `is_active` | `boolean` | `false` = tombstone de suppression |
+| `created_at` / `updated_at` | `timestamptz` | auto + trigger |
 
 Unique: `(user_id, entity_type, entity_slug)`.
 
 ### `content_reports`
 
-User corrections. Status: `pending` \| `reviewed` \| `dismissed`.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` PK | client-generated before insert |
+| `user_id` | `uuid` | FK → `auth.users` |
+| `entity_type` | `text` | `price` \| `procedure` \| `place` |
+| `entity_slug` | `text` | |
+| `report_type` | `text` | `outdated` \| `incorrect` \| `missing_info` \| `other` |
+| `details` | `text` | 1–2000 chars |
+| `status` | `text` | `pending` \| `reviewed` \| `dismissed` |
+| `created_at` / `updated_at` | `timestamptz` | auto + trigger |
 
 ---
 
@@ -225,7 +301,7 @@ User corrections. Status: `pending` \| `reviewed` \| `dismissed`.
 |---|---|---|---|---|
 | Editorial (`prices`, `procedures`, `places`) | published rows, all users | service role only | service role only | service role only |
 | `profiles` | own row | own row | own row | deny |
-| `favorites` | own rows | own rows | deny | own rows |
+| `favorites` | own rows | own rows | own rows | own rows |
 | `content_reports` | own rows | own rows | service role | deny |
 | `app_health` | all (M0) | service role | service role | service role |
 
@@ -237,7 +313,8 @@ User corrections. Status: `pending` \| `reviewed` \| `dismissed`.
 |---|---|---|
 | **M0** ✓ | Anonymous session (silent) | None |
 | **M2** ✓ | Profile sync (anonymous) | None |
-| M3 | Favorites (anonymous) | None |
+| **M3** ✓ | Favorites (anonymous) | None |
+| **M4** ✓ | Content reports (anonymous) | None |
 | M5 | Email, Google, Apple + account linking | Sign-in screens |
 
 Anonymous sessions are created in `SupabaseBootstrap` when Supabase is configured and auth is enabled on the project.
@@ -263,8 +340,8 @@ UI pages receive `PriceRepository` via constructor or scope — never `SupabaseC
 1. Procedures (smallest catalog)
 2. Places
 3. Prices
-4. Favorites (M3)
-5. Content reports (M4)
+4. Favorites (M3) ✓
+5. Content reports (M4) ✓
 6. Account linking UI (M5)
 
 ---
@@ -302,4 +379,4 @@ M0 tests cover env parsing, health repository (mocked probe), and app launch wit
 - No removal of static catalogs
 - No UI or navigation changes
 
-Wait for explicit approval before starting **M3**.
+Wait for explicit approval before starting **M5**.
