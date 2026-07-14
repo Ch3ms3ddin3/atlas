@@ -1,7 +1,7 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M4 complete — content reports sync with local-first fallback and anonymous session.  
-**Next:** M5 (account linking + sign-in UI) — awaiting approval.
+**Status:** M5 complete — email/password auth, anonymous upgrade, and profile sign-in UI.  
+**Next:** Post-MVP enhancements (Google/Apple OAuth, moderation tools) — awaiting approval.
 
 ---
 
@@ -54,7 +54,34 @@ Inject secrets as ephemeral env files or `--dart-define` pairs. Never commit rea
 
 ---
 
-## M4 deliverables (current)
+## M5 deliverables (current)
+
+### Auth layers
+
+| Layer | Role |
+|---|---|
+| `domain/auth_repository.dart` | Abstract `ChangeNotifier` interface |
+| `data/supabase_auth_repository.dart` | Sign-up, sign-in, sign-out, anonymous upgrade |
+| `data/auth_credentials_validator.dart` | Email/password validation |
+| `presentation/auth_scope.dart` | Inherited scope |
+| `presentation/widgets/profile_account_section.dart` | Profile account card |
+| `presentation/widgets/auth_form_sheet.dart` | Sign-in / sign-up bottom sheet |
+
+### Bootstrap
+
+`AppShell` instancie `SupabaseAuthRepository` et relance la synchronisation profil / favoris / signalements après chaque changement de session.
+
+### Behaviour
+
+1. **Offline-first preserved** — sans Supabase configuré, l'app reste 100 % locale.
+2. **Sign-up** — si session anonyme active, `updateUser` conserve le même `user_id` (pas de perte de données synchronisées).
+3. **Sign-in** — connexion à un compte existant ; les données locales restent et fusionnent en arrière-plan.
+4. **Sign-out** — déconnexion puis nouvelle session anonyme ; SharedPreferences inchangé.
+5. **UI** — section « Compte Atlas » sur l'écran Profil uniquement.
+
+---
+
+## M4 deliverables
 
 ### Database
 
@@ -315,7 +342,8 @@ Unique: `(user_id, entity_type, entity_slug)`.
 | **M2** ✓ | Profile sync (anonymous) | None |
 | **M3** ✓ | Favorites (anonymous) | None |
 | **M4** ✓ | Content reports (anonymous) | None |
-| M5 | Email, Google, Apple + account linking | Sign-in screens |
+| **M5** ✓ | Email/password + anonymous upgrade | Profile account section |
+| Post-MVP | Google / Apple OAuth | Sign-in screens |
 
 Anonymous sessions are created in `SupabaseBootstrap` when Supabase is configured and auth is enabled on the project.
 
@@ -342,7 +370,7 @@ UI pages receive `PriceRepository` via constructor or scope — never `SupabaseC
 3. Prices
 4. Favorites (M3) ✓
 5. Content reports (M4) ✓
-6. Account linking UI (M5)
+6. Account linking UI (M5) ✓
 
 ---
 
@@ -379,4 +407,4 @@ M0 tests cover env parsing, health repository (mocked probe), and app launch wit
 - No removal of static catalogs
 - No UI or navigation changes
 
-Wait for explicit approval before starting **M5**.
+M0–M5 migration complete. OAuth providers remain post-MVP.

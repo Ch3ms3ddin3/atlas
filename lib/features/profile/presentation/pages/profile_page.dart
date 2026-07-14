@@ -8,6 +8,7 @@ import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../auth/presentation/widgets/profile_account_section.dart';
 import '../../data/profile_validator.dart';
 import '../../domain/profile_repository.dart';
 import '../../domain/models/user_profile.dart';
@@ -143,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     const AtlasPageHeader(
                       title: 'Profil',
                       subtitle:
-                          'Personnalisez Atlas — sans compte, vos données restent '
+                          'Personnalisez Atlas — vos données restent d\'abord '
                           'sur cet appareil.',
                     ),
                     const SizedBox(height: AtlasSpacing.xl),
@@ -284,6 +285,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         onPermissionDenied: _onPermissionDenied,
                       ),
                     ),
+                    const SizedBox(height: AtlasSpacing.lg),
+                    const ProfileAccountSection(),
                     const SizedBox(height: AtlasSpacing.xl),
                     FilledButton(
                       onPressed:
@@ -297,25 +300,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             )
                           : const Text('Enregistrer'),
-                    ),
-                    const SizedBox(height: AtlasSpacing.lg),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.lock_outline,
-                          size: 16,
-                          color: AtlasTextStyles.metadata(theme.colorScheme),
-                        ),
-                        const SizedBox(width: AtlasSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            'Aucun compte · données stockées localement',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AtlasTextStyles.metadata(theme.colorScheme),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(height: AtlasSpacing.sectionLarge),
                   ],
