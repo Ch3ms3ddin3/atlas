@@ -1,3 +1,7 @@
+import 'package:flutter/foundation.dart';
+
+import '../../../core/editorial/editorial_catalog_load_state.dart';
+import '../../../core/editorial/resilient_editorial_catalog.dart';
 import '../domain/models/price_models.dart';
 import '../domain/price_repository.dart';
 import 'local_price_repository.dart';
@@ -5,37 +9,46 @@ import 'price_catalog.dart';
 import 'price_mapper.dart';
 import 'supabase_price_repository.dart';
 
-/// Catalogue éditorial avec repli local si Supabase est indisponible.
-class ResilientPriceRepository implements PriceRepository {
+/// Prix : local immédiat, puis refresh Supabase via [ResilientEditorialCatalog].
+///
+/// Les slugs (`PriceGuide.id`) restent stables pour favoris et signalements.
+class ResilientPriceRepository with ChangeNotifier implements PriceRepository {
   ResilientPriceRepository({
     LocalPriceRepository? local,
     Future<List<PriceGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
-  })  : _local = local ?? LocalPriceRepository(),
-        _fetchRemote = fetchRemote ?? const SupabasePriceRepository().fetchAll,
-        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5);
+  }) : _catalog = ResilientEditorialCatalog<PriceGuide>(
+          localItems: (local ?? LocalPriceRepository()).items,
+          fetchRemote: fetchRemote ?? const SupabasePriceRepository().fetchAll,
+          fetchTimeout: fetchTimeout,
+        ) {
+    _catalog.addListener(_onCatalogChanged);
+  }
 
-  final LocalPriceRepository _local;
-  final Future<List<PriceGuide>> Function() _fetchRemote;
-  final Duration _fetchTimeout;
+  final ResilientEditorialCatalog<PriceGuide> _catalog;
 
-  List<PriceGuide>? _remoteCache;
-  bool _warmUpStarted = false;
+  /// État exposé par l'abstraction éditoriale partagée.
+  EditorialCatalogLoadState get loadState => _catalog.loadState;
 
-  List<PriceGuide> get _source => _remoteCache ?? _local.catalog;
+  /// Dernière erreur distante, si [loadState] est [EditorialCatalogLoadState.error].
+  Object? get lastError => _catalog.lastError;
+
+  /// `true` lorsque les données affichées viennent de Supabase.
+  bool get isUsingRemote => _catalog.isUsingRemote;
+
+  List<PriceGuide> get _source => _catalog.items;
+
+  void _onCatalogChanged() => notifyListeners();
 
   @override
-  Future<void> warmUp() async {
-    if (_warmUpStarted) return;
-    _warmUpStarted = true;
-
-    try {
-      final guides = await _fetchRemote().timeout(_fetchTimeout);
-      if (guides.isNotEmpty) {
-        _remoteCache = List<PriceGuide>.unmodifiable(guides);
-      }
-    } catch (_) {}
+  void dispose() {
+    _catalog.removeListener(_onCatalogChanged);
+    _catalog.dispose();
+    super.dispose();
   }
+
+  @override
+  Future<void> warmUp() => _catalog.warmUp();
 
   @override
   List<PriceGuide> getAll({String? cityName}) {
@@ -72,10 +85,10 @@ class ResilientPriceRepository implements PriceRepository {
 
   @override
   DateTime get catalogLastReviewedAt {
-    if (_remoteCache == null || _remoteCache!.isEmpty) {
+    if (!isUsingRemote) {
       return PriceCatalog.lastReviewedAt;
     }
-    return _remoteCache!
+    return _source
         .map((guide) => guide.lastUpdatedAt)
         .reduce((a, b) => a.isAfter(b) ? a : b);
   }

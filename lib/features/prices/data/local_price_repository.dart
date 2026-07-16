@@ -1,14 +1,19 @@
+import '../../../core/editorial/editorial_local_catalog.dart';
 import '../domain/models/price_models.dart';
 import '../domain/price_repository.dart';
 import 'price_catalog.dart';
 import 'price_mapper.dart';
 
 /// Catalogue statique local — repli permanent et hors-ligne.
-class LocalPriceRepository implements PriceRepository {
+class LocalPriceRepository
+    implements PriceRepository, EditorialLocalCatalog<PriceGuide> {
   LocalPriceRepository();
 
   List<PriceGuide> get catalog =>
       List<PriceGuide>.unmodifiable(PriceCatalog.guides);
+
+  @override
+  List<PriceGuide> get items => catalog;
 
   @override
   Future<void> warmUp() async {}
