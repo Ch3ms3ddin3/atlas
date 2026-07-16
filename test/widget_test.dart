@@ -33,8 +33,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const AtlasApp());
 
-    expect(find.text('—°'), findsOneWidget);
-    expect(find.text('Chargement…'), findsOneWidget);
+    expect(find.text('Chargement de la météo…'), findsOneWidget);
 
     await tester.pumpAndSettle();
 
@@ -48,6 +47,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Briefing du jour'), findsOneWidget);
+    expect(find.text('Météo indisponible'), findsOneWidget);
     expect(find.text('Horaires indisponibles'), findsOneWidget);
     expect(find.text('Taux indisponible'), findsOneWidget);
     expect(find.text('Change'), findsOneWidget);
@@ -97,7 +97,8 @@ void main() {
     await tapBottomNav(tester, 'Accueil');
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
-    expect(find.text('Forte chaleur prévue'), findsWidgets);
+    expect(find.text('Météo indisponible'), findsOneWidget);
+    expect(find.text('Forte chaleur prévue'), findsNothing);
   });
 
   testWidgets('Le tableau de bord affiche les sections principales', (

@@ -4,52 +4,45 @@ import '../../domain/models/home_models.dart';
 
 /// Convertit la réponse Open-Meteo en [WeatherData] affichable.
 abstract final class WeatherMapper {
-  static WeatherData fromOpenMeteo(Map<String, dynamic> json) {
-    final current = json['current'] as Map<String, dynamic>? ?? {};
-    final weatherCode = current['weather_code'] as int? ?? 0;
-    final updatedAt = _formatUpdatedAt(current['time'] as String?);
+  /// Mapping strict — lève si température / ressenti / code absents.
+  static WeatherData fromOpenMeteo(
+    Map<String, dynamic> json, {
+    DateTime? fetchedAt,
+  }) {
+    final current = json['current'];
+    if (current is! Map) {
+      throw const FormatException('Réponse Open-Meteo sans bloc current');
+    }
+
+    final weatherCode = _asInt(current['weather_code']);
+    if (weatherCode == null) {
+      throw const FormatException('weather_code manquant');
+    }
+
+    final temperature = _roundTemperature(current['temperature_2m']);
+    final feelsLike = _roundTemperature(current['apparent_temperature']);
+    if (temperature == null || feelsLike == null) {
+      throw const FormatException('températures manquantes');
+    }
+
+    final observedAtIso = current['time'] as String?;
+    final hourlyMetrics = _hourlyMetrics(json, observedAtIso);
 
     return WeatherData(
-      temperature: _roundTemperature(current['temperature_2m']),
-      feelsLike: _roundTemperature(current['apparent_temperature']),
-      condition: _conditionLabel(weatherCode),
-      icon: _iconForCode(weatherCode),
-      updatedAt: updatedAt,
+      temperature: temperature,
+      feelsLike: feelsLike,
+      condition: conditionLabel(weatherCode),
+      icon: iconForCode(weatherCode),
+      weatherCode: weatherCode,
+      fetchedAt: fetchedAt ?? DateTime.now(),
+      observedAtIso: observedAtIso,
+      windKmh: _optionalNonNegativeDouble(current['wind_speed_10m']),
+      uvIndex: hourlyMetrics.uvIndex,
+      rainProbabilityPercent: hourlyMetrics.rainProbabilityPercent,
     );
   }
 
-  static int _roundTemperature(dynamic value) {
-    if (value is num) {
-      return value.round();
-    }
-    return 0;
-  }
-
-  static String _formatUpdatedAt(String? isoTime) {
-    if (isoTime == null || isoTime.isEmpty) {
-      return 'à l\'instant';
-    }
-
-    try {
-      final observedAt = DateTime.parse(isoTime);
-      final difference = DateTime.now().difference(observedAt);
-
-      if (difference.inMinutes < 1) {
-        return 'à l\'instant';
-      }
-      if (difference.inMinutes < 60) {
-        return 'il y a ${difference.inMinutes} min';
-      }
-      if (difference.inHours < 24) {
-        return 'il y a ${difference.inHours} h';
-      }
-      return 'il y a ${difference.inDays} j';
-    } on FormatException {
-      return 'à l\'instant';
-    }
-  }
-
-  static String _conditionLabel(int code) {
+  static String conditionLabel(int code) {
     return switch (code) {
       0 => 'Ciel dégagé',
       1 => 'Peu nuageux',
@@ -70,7 +63,7 @@ abstract final class WeatherMapper {
     };
   }
 
-  static IconData _iconForCode(int code) {
+  static IconData iconForCode(int code) {
     return switch (code) {
       0 || 1 => Icons.wb_sunny_outlined,
       2 || 3 => Icons.wb_cloudy_outlined,
@@ -81,5 +74,83 @@ abstract final class WeatherMapper {
       95 || 96 || 99 => Icons.thunderstorm_outlined,
       _ => Icons.wb_cloudy_outlined,
     };
+  }
+
+  static int? _roundTemperature(dynamic value) {
+    if (value is num) return value.round();
+    if (value is String) return double.tryParse(value)?.round();
+    return null;
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static double? _optionalNonNegativeDouble(dynamic value) {
+    if (value == null) return null;
+    final parsed = value is num
+        ? value.toDouble()
+        : value is String
+            ? double.tryParse(value)
+            : null;
+    if (parsed == null || parsed.isNaN || parsed < 0) return null;
+    return parsed;
+  }
+
+  static ({double? uvIndex, int? rainProbabilityPercent}) _hourlyMetrics(
+    Map<String, dynamic> json,
+    String? observedAtIso,
+  ) {
+    final hourly = json['hourly'];
+    if (hourly is! Map) {
+      return (uvIndex: null, rainProbabilityPercent: null);
+    }
+
+    final times = hourly['time'];
+    if (times is! List || times.isEmpty) {
+      return (uvIndex: null, rainProbabilityPercent: null);
+    }
+
+    var index = 0;
+    if (observedAtIso != null && observedAtIso.isNotEmpty) {
+      final match = times.indexWhere((item) => item.toString() == observedAtIso);
+      if (match >= 0) {
+        index = match;
+      } else {
+        // Prend l'heure la plus proche / première future si exact match absent.
+        index = 0;
+        final observed = DateTime.tryParse(observedAtIso);
+        if (observed != null) {
+          for (var i = 0; i < times.length; i++) {
+            final t = DateTime.tryParse(times[i].toString());
+            if (t != null && !t.isBefore(observed)) {
+              index = i;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    final uvList = hourly['uv_index'];
+    final rainList = hourly['precipitation_probability'];
+
+    double? uv;
+    if (uvList is List && index < uvList.length) {
+      uv = _optionalNonNegativeDouble(uvList[index]);
+    }
+
+    int? rain;
+    if (rainList is List && index < rainList.length) {
+      final value = _asInt(rainList[index]);
+      if (value != null && value >= 0 && value <= 100) {
+        rain = value;
+      }
+    }
+
+    return (uvIndex: uv, rainProbabilityPercent: rain);
   }
 }

@@ -9,23 +9,21 @@ abstract final class TodayEssentialsMapper {
   static const _heatThresholdCelsius = 35;
 
   static TodayEssentialsData fromContext({
-    required WeatherData weather,
+    WeatherData? weather,
     required HolidayStatusData holidayStatus,
     required String cityName,
     required AtlasUserType userType,
   }) {
     return TodayEssentialsData(
-      alert: _buildAlert(
-        weather: weather,
-        cityName: cityName,
-      ),
+      alert: weather == null
+          ? null
+          : _buildAlert(weather: weather, cityName: cityName),
       tip: _buildTip(
         weather: weather,
         holidayStatus: holidayStatus,
         cityName: cityName,
         userType: userType,
       ),
-      // Pas de compteur / échéance fictifs — les démarches utiles sont sur l'accueil.
       adminReminder: null,
     );
   }
@@ -78,7 +76,7 @@ abstract final class TodayEssentialsMapper {
   }
 
   static DailyInfoData _buildTip({
-    required WeatherData weather,
+    WeatherData? weather,
     required HolidayStatusData holidayStatus,
     required String cityName,
     required AtlasUserType userType,
@@ -93,7 +91,8 @@ abstract final class TodayEssentialsMapper {
       );
     }
 
-    if (weather.temperature >= _heatThresholdCelsius) {
+    // Conseils chaleur uniquement avec météo réelle.
+    if (weather != null && weather.temperature >= _heatThresholdCelsius) {
       return DailyInfoData(
         category: 'Conseil local',
         content:

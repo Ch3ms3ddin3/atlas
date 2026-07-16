@@ -81,7 +81,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
-    expect(find.text('Chargement…'), findsOneWidget);
+    expect(find.text('Chargement de la météo…'), findsOneWidget);
     await tester.pumpAndSettle();
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
@@ -193,7 +193,7 @@ void main() {
     expect(find.text('Démarches utiles'), findsOneWidget);
   });
 
-  testWidgets('offline APIs: Home still renders with estimated weather', (
+  testWidgets('offline APIs: Home still renders without invented weather', (
     WidgetTester tester,
   ) async {
     // TestWidgetsFlutterBinding returns HTTP 400 for all requests.
@@ -204,9 +204,11 @@ void main() {
     );
 
     expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.textContaining('données estimées'), findsWidgets);
+    expect(find.text('Météo indisponible'), findsOneWidget);
     expect(find.text('Horaires indisponibles'), findsOneWidget);
     expect(find.text('Taux indisponible'), findsOneWidget);
+    expect(find.text('Forte chaleur prévue'), findsNothing);
+    expect(find.textContaining('données estimées'), findsWidgets);
     expect(find.text('Actions rapides'), findsOneWidget);
     expect(find.text('Repères de prix'), findsOneWidget);
   });

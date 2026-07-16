@@ -27,11 +27,13 @@ class TodayEssentialsSection extends StatelessWidget {
 
     return Column(
       children: [
-        ImportantAlerts(
-          alerts: [data.alert],
-          onAlertTap: (_) => onAlertTap?.call(),
-        ),
-        const SizedBox(height: AtlasSpacing.lg),
+        if (data.alert != null) ...[
+          ImportantAlerts(
+            alerts: [data.alert!],
+            onAlertTap: (_) => onAlertTap?.call(),
+          ),
+          const SizedBox(height: AtlasSpacing.lg),
+        ],
         DailyInfoCard(data: data.tip, onTap: onTipTap),
         if (reminder != null) ...[
           const SizedBox(height: AtlasSpacing.lg),

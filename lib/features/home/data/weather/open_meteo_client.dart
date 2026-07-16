@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import '../../../../core/network/atlas_http_client.dart';
-import 'weather_mapper.dart';
 import '../../domain/models/home_models.dart';
+import 'weather_mapper.dart';
 
 /// Client réseau pour l'API Open-Meteo.
 class OpenMeteoClient {
   const OpenMeteoClient();
 
-  /// Récupère la météo actuelle pour les coordonnées données.
+  /// Récupère la météo actuelle pour les coordonnées données (Africa/Casablanca).
   Future<WeatherData> fetchCurrentWeather({
     required double latitude,
     required double longitude,
@@ -19,7 +19,10 @@ class OpenMeteoClient {
       {
         'latitude': '$latitude',
         'longitude': '$longitude',
-        'current': 'temperature_2m,apparent_temperature,weather_code',
+        'current':
+            'temperature_2m,apparent_temperature,weather_code,wind_speed_10m',
+        'hourly': 'precipitation_probability,uv_index',
+        'forecast_days': '1',
         'timezone': 'Africa/Casablanca',
       },
     );

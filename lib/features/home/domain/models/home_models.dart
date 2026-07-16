@@ -46,33 +46,75 @@ class AdmissionTemporaireData {
 /// Contenu de la section « À savoir aujourd'hui ».
 class TodayEssentialsData {
   const TodayEssentialsData({
-    required this.alert,
     required this.tip,
+    this.alert,
     this.adminReminder,
   });
 
-  final AlertData alert;
+  /// Alerte météo — absente si la météo live/cache est indisponible.
+  final AlertData? alert;
   final DailyInfoData tip;
 
   /// Rappel optionnel — masqué s'il n'y a pas de donnée réelle.
   final AdminReminderData? adminReminder;
 }
 
-/// Données météo pour la carte du jour.
+/// Données météo pour la carte du jour — jamais de valeurs inventées.
 class WeatherData {
   const WeatherData({
     required this.temperature,
     required this.condition,
     required this.feelsLike,
     required this.icon,
-    required this.updatedAt,
+    required this.weatherCode,
+    this.fetchedAt,
+    this.observedAtIso,
+    this.windKmh,
+    this.uvIndex,
+    this.rainProbabilityPercent,
   });
 
   final int temperature;
   final String condition;
   final int feelsLike;
   final IconData icon;
-  final String updatedAt;
+  final int weatherCode;
+  final DateTime? fetchedAt;
+  final String? observedAtIso;
+
+  /// Vent à 10 m (km/h) — null si absent ou invalide.
+  final double? windKmh;
+
+  /// Indice UV — null si absent ou invalide.
+  final double? uvIndex;
+
+  /// Probabilité de précipitation (%) — null si absente ou invalide.
+  final int? rainProbabilityPercent;
+
+  bool get hasWind => windKmh != null && windKmh! >= 0;
+
+  bool get hasUv => uvIndex != null && uvIndex! >= 0;
+
+  bool get hasRainProbability =>
+      rainProbabilityPercent != null &&
+      rainProbabilityPercent! >= 0 &&
+      rainProbabilityPercent! <= 100;
+
+  String get lastUpdatedLabel {
+    final reference = fetchedAt ??
+        (observedAtIso == null ? null : DateTime.tryParse(observedAtIso!));
+    if (reference == null) return 'Mis à jour récemment';
+
+    final difference = DateTime.now().difference(reference);
+    if (difference.inMinutes < 1) return 'Mis à jour à l\'instant';
+    if (difference.inMinutes < 60) {
+      return 'Mis à jour il y a ${difference.inMinutes} min';
+    }
+    if (difference.inHours < 24) {
+      return 'Mis à jour il y a ${difference.inHours} h';
+    }
+    return 'Mis à jour il y a ${difference.inDays} j';
+  }
 }
 
 /// Horaire d'une prière.

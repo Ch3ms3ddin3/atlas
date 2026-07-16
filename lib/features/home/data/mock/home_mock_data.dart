@@ -10,12 +10,13 @@ abstract final class HomeMockData {
     dateLabel: 'Dimanche 12 juillet 2026',
   );
 
+  /// Fixture de tests uniquement — jamais affichée en production.
   static const weather = WeatherData(
     temperature: 38,
-    condition: 'Très ensoleillé',
+    condition: 'Ciel dégagé',
     feelsLike: 41,
     icon: Icons.wb_sunny_outlined,
-    updatedAt: 'il y a 5 min',
+    weatherCode: 0,
   );
 
   static const prayerTime = PrayerTimeData(

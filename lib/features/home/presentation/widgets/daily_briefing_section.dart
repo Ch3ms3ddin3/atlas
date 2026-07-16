@@ -5,6 +5,7 @@ import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
+import '../../domain/models/weather_snapshot.dart';
 import 'exchange_rate_card.dart';
 import 'holiday_status_card.dart';
 import 'prayer_time_card.dart';
@@ -14,16 +15,14 @@ import 'weather_card.dart';
 class DailyBriefingSection extends StatelessWidget {
   const DailyBriefingSection({
     super.key,
-    required this.weather,
-    this.isWeatherLoading = false,
+    required this.weatherSnapshot,
     required this.prayerSnapshot,
     required this.exchangeRateSnapshot,
     required this.holidayStatus,
     this.onPrayerTap,
   });
 
-  final WeatherData weather;
-  final bool isWeatherLoading;
+  final WeatherSnapshot weatherSnapshot;
   final PrayerTimesSnapshot prayerSnapshot;
   final ExchangeRateSnapshot exchangeRateSnapshot;
   final HolidayStatusData holidayStatus;
@@ -42,8 +41,7 @@ class DailyBriefingSection extends StatelessWidget {
                   Expanded(
                     flex: 3,
                     child: WeatherCard(
-                      data: weather,
-                      isLoading: isWeatherLoading,
+                      snapshot: weatherSnapshot,
                       animateEntrance: true,
                     ),
                   ),
@@ -82,8 +80,7 @@ class DailyBriefingSection extends StatelessWidget {
         return Column(
           children: [
             WeatherCard(
-              data: weather,
-              isLoading: isWeatherLoading,
+              snapshot: weatherSnapshot,
               animateEntrance: true,
             ),
             const SizedBox(height: AtlasSpacing.lg),

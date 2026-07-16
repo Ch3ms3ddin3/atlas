@@ -14,7 +14,7 @@
 
 ⬜ Onboarding
 
-⬜ Weather API
+✅ Weather API
 
 ✅ Prayer API
 

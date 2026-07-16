@@ -32,6 +32,7 @@ import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
+import '../../domain/models/weather_snapshot.dart';
 import '../../data/today_essentials/today_essentials_repository.dart';
 import '../../data/weather/weather_repository.dart';
 import '../widgets/daily_briefing_section.dart';
@@ -79,8 +80,7 @@ class _HomePageState extends State<HomePage> {
     cityName: LocationConstants.fallbackCity,
     isFromGps: false,
   );
-  WeatherData _weather = HomeMockData.weather;
-  bool _isWeatherLoading = true;
+  WeatherSnapshot _weatherSnapshot = const WeatherSnapshot.loading();
   PrayerTimesSnapshot _prayerSnapshot = const PrayerTimesSnapshot.loading();
   ExchangeRateSnapshot _exchangeRateSnapshot =
       const ExchangeRateSnapshot.loading();
@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage> {
       city: _location.cityName,
     );
     _todayEssentials = _todayEssentialsRepository.build(
-      weather: _weather,
+      weather: _weatherSnapshot.data,
       holidayStatus: _holidayStatus,
       cityName: _location.cityName,
       userType: profile.userType,
@@ -330,7 +330,7 @@ class _HomePageState extends State<HomePage> {
 
     if (locationChanged) {
       setState(() {
-        _isWeatherLoading = true;
+        _weatherSnapshot = const WeatherSnapshot.loading();
         _prayerSnapshot = const PrayerTimesSnapshot.loading();
       });
       await Future.wait([
@@ -346,7 +346,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadWeather() async {
     final latitude = _location.latitude;
     final longitude = _location.longitude;
-    final weather = await _weatherRepository.getWeather(
+    final snapshot = await _weatherRepository.getWeather(
       latitude: latitude,
       longitude: longitude,
     );
@@ -355,9 +355,10 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     setState(() {
-      _weather = weather;
-      _isWeatherLoading = false;
-      _weatherFetchedAt = DateTime.now();
+      _weatherSnapshot = snapshot;
+      _weatherFetchedAt = snapshot.hasWeather
+          ? snapshot.data?.fetchedAt ?? DateTime.now()
+          : null;
       _refreshDerivedDashboardData();
     });
   }
@@ -403,7 +404,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _refreshAll() async {
-    setState(() => _isWeatherLoading = true);
+    setState(() => _weatherSnapshot = const WeatherSnapshot.loading());
     await _resolveLocation();
     await Future.wait([
       _loadWeather(),
@@ -509,8 +510,7 @@ class _HomePageState extends State<HomePage> {
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 2,
                       child: DailyBriefingSection(
-                        weather: _weather,
-                        isWeatherLoading: _isWeatherLoading,
+                        weatherSnapshot: _weatherSnapshot,
                         prayerSnapshot: _prayerSnapshot,
                         exchangeRateSnapshot: _exchangeRateSnapshot,
                         holidayStatus: _holidayStatus,

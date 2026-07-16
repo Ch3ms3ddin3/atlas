@@ -30,9 +30,9 @@ void main() {
         userType: AtlasUserType.resident,
       );
 
-      expect(essentials.alert.title, 'Forte chaleur prévue');
-      expect(essentials.alert.severity, AlertSeverity.caution);
-      expect(essentials.alert.detail, contains('Marrakech'));
+      expect(essentials.alert!.title, 'Forte chaleur prévue');
+      expect(essentials.alert!.severity, AlertSeverity.caution);
+      expect(essentials.alert!.detail, contains('Marrakech'));
     });
 
     test('génère une alerte pluie selon l\'icône météo', () {
@@ -42,31 +42,39 @@ void main() {
           condition: 'Pluie',
           feelsLike: 22,
           icon: Icons.water_drop_outlined,
-          updatedAt: 'à l\'instant',
+          weatherCode: 61,
         ),
         holidayStatus: workingDay,
         cityName: 'Casablanca',
         userType: AtlasUserType.resident,
       );
 
-      expect(essentials.alert.title, 'Pluie prévue');
-      expect(essentials.alert.severity, AlertSeverity.caution);
+      expect(essentials.alert!.title, 'Pluie prévue');
+      expect(essentials.alert!.severity, AlertSeverity.caution);
+    });
+
+    test('masque alerte et conseils météo si météo indisponible', () {
+      final essentials = TodayEssentialsMapper.fromContext(
+        weather: null,
+        holidayStatus: workingDay,
+        cityName: 'Marrakech',
+        userType: AtlasUserType.resident,
+      );
+
+      expect(essentials.alert, isNull);
+      expect(essentials.tip.content, HomeMockData.todayEssentials.tip.content);
+      expect(essentials.tip.content, isNot(contains('hydratez-vous')));
     });
 
     test('propose un conseil férié quand les administrations sont fermées', () {
       final essentials = TodayEssentialsMapper.fromContext(
-        weather: const WeatherData(
-          temperature: 24,
-          condition: 'Peu nuageux',
-          feelsLike: 24,
-          icon: Icons.wb_sunny_outlined,
-          updatedAt: 'à l\'instant',
-        ),
+        weather: null,
         holidayStatus: holiday,
         cityName: 'Rabat',
         userType: AtlasUserType.resident,
       );
 
+      expect(essentials.alert, isNull);
       expect(essentials.tip.category, 'Jour férié');
       expect(essentials.tip.content, contains('demain'));
     });
@@ -89,7 +97,7 @@ void main() {
           condition: 'Peu nuageux',
           feelsLike: 24,
           icon: Icons.wb_sunny_outlined,
-          updatedAt: 'à l\'instant',
+          weatherCode: 1,
         ),
         holidayStatus: workingDay,
         cityName: 'Marrakech',
@@ -106,7 +114,7 @@ void main() {
           condition: 'Peu nuageux',
           feelsLike: 24,
           icon: Icons.wb_sunny_outlined,
-          updatedAt: 'à l\'instant',
+          weatherCode: 1,
         ),
         holidayStatus: workingDay,
         cityName: 'Marrakech',

@@ -7,7 +7,7 @@ class TodayEssentialsRepository {
   const TodayEssentialsRepository();
 
   TodayEssentialsData build({
-    required WeatherData weather,
+    WeatherData? weather,
     required HolidayStatusData holidayStatus,
     required String cityName,
     AtlasUserType userType = UserProfile.defaultUserType,
