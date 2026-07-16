@@ -12,6 +12,24 @@ enum PlaceCategory {
   souk,
 }
 
+/// Ordre d'affichage de la liste Explorer.
+enum PlaceSort {
+  /// Ordre éditorial du catalogue (défaut).
+  catalog,
+
+  /// Nom A → Z.
+  nameAsc,
+
+  /// Quartier, puis nom.
+  neighborhood,
+
+  /// Niveau de prix croissant.
+  priceLevel,
+
+  /// Sélections Atlas en tête, puis nom.
+  editorsPick,
+}
+
 /// Lieu curaté avec informations pratiques.
 class PlaceGuide {
   const PlaceGuide({
@@ -51,9 +69,17 @@ class PlaceSearchQuery {
     this.text = '',
     this.category,
     this.cityName,
+    this.sort = PlaceSort.catalog,
+    this.strictCity = false,
   });
 
   final String text;
   final PlaceCategory? category;
   final String? cityName;
+
+  /// Tri appliqué après filtrage — [PlaceSort.catalog] conserve l'ordre source.
+  final PlaceSort sort;
+
+  /// Si `true`, ne remplace pas une ville non couverte par le repli Marrakech.
+  final bool strictCity;
 }

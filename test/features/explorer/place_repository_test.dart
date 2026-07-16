@@ -51,6 +51,61 @@ void main() {
         'Marrakech',
       );
     });
+
+    test('strictCity conserve une ville non couverte et renvoie vide', () {
+      final places = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          cityName: 'Tanger',
+          strictCity: true,
+        ),
+      );
+
+      expect(places, isEmpty);
+    });
+
+    test('le tri catalog conserve l\'ordre source', () {
+      final base = PlaceMapper.filter(
+        const PlaceSearchQuery(cityName: 'Marrakech'),
+      );
+      final sorted = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          cityName: 'Marrakech',
+          sort: PlaceSort.catalog,
+        ),
+      );
+
+      expect(sorted.map((place) => place.id), base.map((place) => place.id));
+    });
+
+    test('le tri nameAsc ordonne alphabétiquement', () {
+      final places = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          cityName: 'Marrakech',
+          sort: PlaceSort.nameAsc,
+        ),
+      );
+
+      final names = places.map((place) => place.name).toList();
+      expect(names, List<String>.from(names)..sort());
+    });
+
+    test('le tri editorsPick place les sélections en tête', () {
+      final places = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          cityName: 'Marrakech',
+          sort: PlaceSort.editorsPick,
+        ),
+      );
+
+      expect(places.first.isEditorsPick, isTrue);
+      final firstNonPick = places.indexWhere((place) => !place.isEditorsPick);
+      if (firstNonPick != -1) {
+        expect(
+          places.skip(firstNonPick).every((place) => !place.isEditorsPick),
+          isTrue,
+        );
+      }
+    });
   });
 
   group('LocalPlaceRepository', () {
