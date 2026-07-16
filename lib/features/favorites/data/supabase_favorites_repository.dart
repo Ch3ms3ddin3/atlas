@@ -4,7 +4,7 @@ import '../../../core/supabase/supabase_bootstrap.dart';
 import '../domain/models/favorite_record.dart';
 import 'favorite_record_mapper.dart';
 
-/// Lecture et écriture Supabase des favoris.
+/// Accès Supabase à la table `favorites` (lecture + upsert soft-delete).
 class SupabaseFavoritesRepository {
   const SupabaseFavoritesRepository({
     SupabaseClient? Function()? clientProvider,
@@ -12,6 +12,7 @@ class SupabaseFavoritesRepository {
 
   final SupabaseClient? Function()? _clientProvider;
 
+  /// Charge toutes les lignes de l'utilisateur, y compris les tombstones.
   Future<List<FavoriteRecord>> fetch(String userId) async {
     final client = _clientProvider?.call();
     if (client == null) {
@@ -29,6 +30,7 @@ class SupabaseFavoritesRepository {
     ];
   }
 
+  /// Insert ou met à jour sur `(user_id, entity_type, entity_slug)`.
   Future<void> upsert({
     required String userId,
     required FavoriteRecord record,

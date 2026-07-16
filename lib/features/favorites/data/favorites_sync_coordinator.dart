@@ -13,11 +13,21 @@ class FavoritesMergeResult {
 
   final List<FavoriteRecord> records;
   final Set<FavoriteKey> activeKeys;
+
+  /// `true` si l'état fusionné diffère du snapshot local courant.
   final bool changed;
+
+  /// `true` s'il faut pousser le local vers Supabase après la fusion.
   final bool shouldPushLocal;
 }
 
 /// Applique les règles de conflit entre favoris locaux et distants.
+///
+/// Par clé `(entity_type, entity_slug)` :
+/// - distant absent → conserver le local (et pousser si besoin) ;
+/// - `syncPending` → le local l'emporte (évite qu'une tombstone distante
+///   plus récente n'efface un favori non encore poussé) ;
+/// - sinon le `updated_at` le plus récent gagne ; à égalité → local.
 abstract final class FavoritesSyncCoordinator {
   static FavoritesMergeResult merge({
     required FavoritesLocalSnapshot local,

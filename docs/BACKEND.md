@@ -140,10 +140,11 @@ Inject secrets as ephemeral env files or `--dart-define` pairs. Never commit rea
 ### Sync behaviour
 
 1. `load()` — local immediately, then background pull/merge/push.
-2. `addFavorite()` / `removeFavorite()` — local immediately, then background upsert.
-3. Offline push failure → `favorites_sync_pending = true`, silent retry on next `load()`.
+2. `addFavorite()` / `removeFavorite()` — local immediately, mark `syncPending`, then upsert.
+3. Offline / failed push → `favorites_sync_pending = true`, silent retry on next `load()`.
 4. Conflict: per `(entity_type, entity_slug)`, newer `updated_at` wins; equal timestamps → local wins.
-5. Tombstones (`is_active = false`) preserve removals for multi-device sync.
+5. While `syncPending` is true, local wins over a newer remote tombstone (avoids wipe before push).
+6. Tombstones (`is_active = false`) preserve removals for multi-device sync; local storage keeps active rows only after a successful push.
 
 ---
 

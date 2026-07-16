@@ -14,6 +14,13 @@ import 'favorites_sync_coordinator.dart';
 import 'supabase_favorites_repository.dart';
 
 /// Favoris local d'abord, synchronisation Supabase silencieuse en arrière-plan.
+///
+/// Flux :
+/// 1. `load()` applique SharedPreferences puis fusionne le distant.
+/// 2. `addFavorite` / `removeFavorite` écrivent le local immédiatement,
+///    marquent `syncPending`, puis tentent un upsert.
+/// 3. Si une sync est déjà en cours, une reprise est mise en file d'attente
+///    pour ne pas écraser un favori ajouté pendant le fetch distant.
 class SyncingFavoritesRepository extends FavoritesRepository {
   SyncingFavoritesRepository({
     FavoritesPreferencesStore? store,
@@ -100,6 +107,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     final records = _upsertRecord(snapshot.records, record);
 
     await _store.saveRecords(records);
+    await _store.setSyncPending(true);
     _activeFavorites = {..._activeFavorites, key};
     notifyListeners();
 
@@ -136,6 +144,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     final records = _upsertRecord(snapshot.records, record);
 
     await _store.saveRecords(records);
+    await _store.setSyncPending(true);
     _activeFavorites = {..._activeFavorites}..remove(key);
     notifyListeners();
 
@@ -162,6 +171,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     }
   }
 
+  /// Pull distant → fusion → push si nécessaire. Ne bloque jamais l'UI.
   Future<void> _syncAfterLoad() async {
     if (_syncInProgress) {
       _syncQueued = true;
@@ -176,6 +186,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
+      // Relecture après le fetch : un add/remove peut avoir eu lieu pendant l'attente.
       var localSnapshot = await _store.loadSnapshot();
       var merge = FavoritesSyncCoordinator.merge(
         local: localSnapshot,
@@ -213,9 +224,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
         }
       }
     } catch (error) {
-      if (kDebugMode) {
-        debugPrint('[Atlas] Synchronisation favoris ignorée: $error');
-      }
+      _logSyncFailure('synchronisation', error);
     } finally {
       _syncInProgress = false;
       if (_syncQueued) {
@@ -228,7 +237,8 @@ class SyncingFavoritesRepository extends FavoritesRepository {
   Future<List<FavoriteRecord>?> _fetchRemote(String userId) async {
     try {
       return await _remote.fetch(userId).timeout(_syncTimeout);
-    } catch (_) {
+    } catch (error) {
+      _logSyncFailure('lecture distante', error);
       return null;
     }
   }
@@ -246,9 +256,17 @@ class SyncingFavoritesRepository extends FavoritesRepository {
             .timeout(_syncTimeout);
       }
       return true;
-    } catch (_) {
+    } catch (error) {
+      _logSyncFailure('écriture distante', error);
       return false;
     }
+  }
+
+  static void _logSyncFailure(String operation, Object error) {
+    if (!kDebugMode) return;
+    debugPrint(
+      '[Atlas] Synchronisation favoris ignorée ($operation): $error',
+    );
   }
 
   bool get _canSync =>
@@ -268,6 +286,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     ];
   }
 
+  /// Les tombstones distantes restent en base ; en local on ne garde que les actifs.
   static List<FavoriteRecord> _pruneInactive(List<FavoriteRecord> records) {
     return [
       for (final record in records)
