@@ -18,7 +18,7 @@
 
 ✅ Prayer API
 
-⬜ Exchange Rate
+✅ Exchange Rate
 
 ⬜ Administration
 

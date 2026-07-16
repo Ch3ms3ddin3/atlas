@@ -105,23 +105,56 @@ class PrayerTimeData {
   final String calculationMethod;
 }
 
-/// Données de taux de change.
+/// Données de taux de change EUR/MAD — jamais de taux inventé.
 class ExchangeRateData {
   const ExchangeRateData({
     required this.fromCurrency,
     required this.toCurrency,
     required this.rate,
-    required this.trendLabel,
-    required this.isTrendingUp,
-    required this.updatedAt,
+    required this.sourceLabel,
+    required this.referenceDate,
+    this.fetchedAt,
   });
 
+  /// Devise de base (EUR).
   final String fromCurrency;
+
+  /// Devise cotée (MAD).
   final String toCurrency;
+
+  /// Taux live : 1 [fromCurrency] = [rate] [toCurrency].
   final double rate;
-  final String trendLabel;
-  final bool isTrendingUp;
-  final String updatedAt;
+
+  /// Provenance (ex. Frankfurter).
+  final String sourceLabel;
+
+  /// Date de référence renvoyée par l'API (yyyy-MM-dd) si disponible.
+  final String referenceDate;
+
+  /// Instant local du dernier succès réseau (ou relecture cache).
+  final DateTime? fetchedAt;
+
+  /// 1 MAD = [madToEur] EUR, dérivé du même taux live.
+  double get madToEur {
+    if (rate <= 0) return 0;
+    return 1 / rate;
+  }
+
+  String get lastUpdatedLabel {
+    if (fetchedAt != null) {
+      final difference = DateTime.now().difference(fetchedAt!);
+      if (difference.inMinutes < 1) return 'Mis à jour à l\'instant';
+      if (difference.inMinutes < 60) {
+        return 'Mis à jour il y a ${difference.inMinutes} min';
+      }
+      if (difference.inHours < 24) {
+        return 'Mis à jour il y a ${difference.inHours} h';
+      }
+      return 'Mis à jour il y a ${difference.inDays} j';
+    }
+    if (referenceDate.isNotEmpty) return 'Réf. $referenceDate';
+    return sourceLabel;
+  }
 }
 
 /// Niveau de sévérité d'une alerte.

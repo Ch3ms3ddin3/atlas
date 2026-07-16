@@ -30,6 +30,7 @@ import '../../data/home_dashboard_catalog.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
+import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 import '../../data/today_essentials/today_essentials_repository.dart';
 import '../../data/weather/weather_repository.dart';
@@ -81,7 +82,8 @@ class _HomePageState extends State<HomePage> {
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
   PrayerTimesSnapshot _prayerSnapshot = const PrayerTimesSnapshot.loading();
-  ExchangeRateData _exchangeRate = HomeMockData.exchangeRate;
+  ExchangeRateSnapshot _exchangeRateSnapshot =
+      const ExchangeRateSnapshot.loading();
   HolidayStatusData _holidayStatus = HomeMockData.holidayStatus;
   GreetingData _greeting = HomeMockData.greeting;
   TodayEssentialsData _todayEssentials = HomeMockData.todayEssentials;
@@ -380,11 +382,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadExchangeRate() async {
-    final exchangeRate = await _exchangeRateRepository.getExchangeRate();
+    final snapshot = await _exchangeRateRepository.getExchangeRate();
     if (!mounted) return;
     setState(() {
-      _exchangeRate = exchangeRate;
-      _exchangeFetchedAt = DateTime.now();
+      _exchangeRateSnapshot = snapshot;
+      _exchangeFetchedAt =
+          snapshot.hasRate ? snapshot.data?.fetchedAt ?? DateTime.now() : null;
       _refreshDerivedDashboardData();
     });
   }
@@ -509,7 +512,7 @@ class _HomePageState extends State<HomePage> {
                         weather: _weather,
                         isWeatherLoading: _isWeatherLoading,
                         prayerSnapshot: _prayerSnapshot,
-                        exchangeRate: _exchangeRate,
+                        exchangeRateSnapshot: _exchangeRateSnapshot,
                         holidayStatus: _holidayStatus,
                         onPrayerTap: _onPrayerCardTap,
                       ),

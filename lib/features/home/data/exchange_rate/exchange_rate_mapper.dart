@@ -4,17 +4,23 @@ import '../../domain/models/home_models.dart';
 abstract final class ExchangeRateMapper {
   static const liveSourceLabel = 'Frankfurter · taux de référence';
 
-  static ExchangeRateData fromFrankfurter(Map<String, dynamic> json) {
+  static ExchangeRateData fromFrankfurter(
+    Map<String, dynamic> json, {
+    DateTime? fetchedAt,
+  }) {
     final rate = json['rate'];
-    final date = json['date'] as String? ?? '';
+    final parsed = rate is num ? rate.toDouble() : double.tryParse('$rate');
+    if (parsed == null || parsed <= 0) {
+      throw FormatException('Taux Frankfurter invalide: $json');
+    }
 
     return ExchangeRateData(
       fromCurrency: 'EUR',
       toCurrency: 'MAD',
-      rate: rate is num ? rate.toDouble() : 0,
-      trendLabel: liveSourceLabel,
-      isTrendingUp: true,
-      updatedAt: date,
+      rate: parsed,
+      sourceLabel: liveSourceLabel,
+      referenceDate: json['date'] as String? ?? '',
+      fetchedAt: fetchedAt ?? DateTime.now(),
     );
   }
 }

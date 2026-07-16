@@ -49,8 +49,8 @@ void main() {
     );
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.text('Horaires indisponibles'), findsOneWidget);
-    expect(find.text('1 EUR'), findsOneWidget);
-    expect(find.textContaining('10.'), findsWidgets);
+    expect(find.text('Taux indisponible'), findsOneWidget);
+    expect(find.text('Change'), findsOneWidget);
     expect(find.text('Jour ouvré'), findsOneWidget);
 
     expect(AtlasBottomNav.destinations, hasLength(5));

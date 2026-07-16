@@ -35,9 +35,8 @@ abstract final class HomeMockData {
     fromCurrency: 'EUR',
     toCurrency: 'MAD',
     rate: 10.78,
-    trendLabel: '+0.1 % sur 7 jours',
-    isTrendingUp: true,
-    updatedAt: 'il y a 8 min',
+    sourceLabel: 'Frankfurter · taux de référence',
+    referenceDate: '2026-07-12',
   );
 
   static const holidayStatus = HolidayStatusData(

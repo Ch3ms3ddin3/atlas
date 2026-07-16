@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/models/home_models.dart';
+import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 import 'exchange_rate_card.dart';
 import 'holiday_status_card.dart';
@@ -16,7 +17,7 @@ class DailyBriefingSection extends StatelessWidget {
     required this.weather,
     this.isWeatherLoading = false,
     required this.prayerSnapshot,
-    required this.exchangeRate,
+    required this.exchangeRateSnapshot,
     required this.holidayStatus,
     this.onPrayerTap,
   });
@@ -24,7 +25,7 @@ class DailyBriefingSection extends StatelessWidget {
   final WeatherData weather;
   final bool isWeatherLoading;
   final PrayerTimesSnapshot prayerSnapshot;
-  final ExchangeRateData exchangeRate;
+  final ExchangeRateSnapshot exchangeRateSnapshot;
   final HolidayStatusData holidayStatus;
   final VoidCallback? onPrayerTap;
 
@@ -63,7 +64,10 @@ class DailyBriefingSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: ExchangeRateCard(data: exchangeRate, compact: true),
+                    child: ExchangeRateCard(
+                      snapshot: exchangeRateSnapshot,
+                      compact: true,
+                    ),
                   ),
                   const SizedBox(width: AtlasSpacing.lg),
                   Expanded(
@@ -94,7 +98,10 @@ class DailyBriefingSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: ExchangeRateCard(data: exchangeRate, compact: true),
+                  child: ExchangeRateCard(
+                    snapshot: exchangeRateSnapshot,
+                    compact: true,
+                  ),
                 ),
                 const SizedBox(width: AtlasSpacing.md),
                 Expanded(
