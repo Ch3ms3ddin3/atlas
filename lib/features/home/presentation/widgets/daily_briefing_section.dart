@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/models/home_models.dart';
+import '../../domain/models/prayer_times_snapshot.dart';
 import 'exchange_rate_card.dart';
 import 'holiday_status_card.dart';
 import 'prayer_time_card.dart';
@@ -14,7 +15,7 @@ class DailyBriefingSection extends StatelessWidget {
     super.key,
     required this.weather,
     this.isWeatherLoading = false,
-    required this.prayerTime,
+    required this.prayerSnapshot,
     required this.exchangeRate,
     required this.holidayStatus,
     this.onPrayerTap,
@@ -22,7 +23,7 @@ class DailyBriefingSection extends StatelessWidget {
 
   final WeatherData weather;
   final bool isWeatherLoading;
-  final PrayerTimeData prayerTime;
+  final PrayerTimesSnapshot prayerSnapshot;
   final ExchangeRateData exchangeRate;
   final HolidayStatusData holidayStatus;
   final VoidCallback? onPrayerTap;
@@ -49,7 +50,7 @@ class DailyBriefingSection extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: PrayerTimeCard(
-                      data: prayerTime,
+                      snapshot: prayerSnapshot,
                       onTap: onPrayerTap,
                       animateEntrance: true,
                       entranceDelay: AtlasMotion.staggerDelay,
@@ -83,7 +84,7 @@ class DailyBriefingSection extends StatelessWidget {
             ),
             const SizedBox(height: AtlasSpacing.lg),
             PrayerTimeCard(
-              data: prayerTime,
+              snapshot: prayerSnapshot,
               onTap: onPrayerTap,
               animateEntrance: true,
               entranceDelay: AtlasMotion.staggerDelay,

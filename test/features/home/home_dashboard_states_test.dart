@@ -205,6 +205,7 @@ void main() {
 
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.textContaining('données estimées'), findsWidgets);
+    expect(find.text('Horaires indisponibles'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
     expect(find.text('Repères de prix'), findsOneWidget);
   });

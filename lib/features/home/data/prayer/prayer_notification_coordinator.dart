@@ -24,7 +24,7 @@ class PrayerNotificationCoordinator {
             preferencesStore ?? const NotificationPreferencesStore(),
         _notificationService =
             notificationService ?? LocalNotificationService(),
-        _prayerRepository = prayerRepository ?? PrayerRepository(),
+        _prayerRepository = prayerRepository ?? PrayerRepository.instance,
         _locationRepository = locationRepository ?? LocationRepository(),
         _scheduler = scheduler ?? const PrayerNotificationScheduler(),
         _profilePreferencesStore =
@@ -96,6 +96,13 @@ class PrayerNotificationCoordinator {
       longitude: resolvedLocation.longitude,
       date: tomorrow,
     );
+
+    // Pas d'horaires inventés : sans données réelles, on annule les rappels.
+    if (todayTimings == null || tomorrowTimings == null) {
+      await _notificationService.cancelPrayerNotifications();
+      _lastSyncKey = null;
+      return;
+    }
 
     final notifications = _scheduler.build(
       todayTimings: todayTimings,

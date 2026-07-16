@@ -30,6 +30,7 @@ import '../../data/home_dashboard_catalog.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
+import '../../domain/models/prayer_times_snapshot.dart';
 import '../../data/today_essentials/today_essentials_repository.dart';
 import '../../data/weather/weather_repository.dart';
 import '../widgets/daily_briefing_section.dart';
@@ -61,7 +62,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final LocationRepository _locationRepository = LocationRepository();
   final WeatherRepository _weatherRepository = WeatherRepository();
-  final PrayerRepository _prayerRepository = PrayerRepository();
+  final PrayerRepository _prayerRepository = PrayerRepository.instance;
   final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
   final HolidayRepository _holidayRepository = HolidayRepository();
   final GreetingRepository _greetingRepository = const GreetingRepository();
@@ -79,7 +80,7 @@ class _HomePageState extends State<HomePage> {
   );
   WeatherData _weather = HomeMockData.weather;
   bool _isWeatherLoading = true;
-  PrayerTimeData _prayerTime = HomeMockData.prayerTime;
+  PrayerTimesSnapshot _prayerSnapshot = const PrayerTimesSnapshot.loading();
   ExchangeRateData _exchangeRate = HomeMockData.exchangeRate;
   HolidayStatusData _holidayStatus = HomeMockData.holidayStatus;
   GreetingData _greeting = HomeMockData.greeting;
@@ -103,7 +104,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _prayerTime = _prayerRepository.buildForNow();
     _attachCatalogListeners();
     _refreshDerivedDashboardData();
     _loadCatalogSections();
@@ -206,6 +206,7 @@ class _HomePageState extends State<HomePage> {
     _dateRollTimer = Timer(delay, () {
       if (mounted) {
         setState(_refreshDerivedDashboardData);
+        unawaited(_loadPrayerTimes());
       }
       unawaited(prayerNotificationCoordinator.sync(force: true));
       _scheduleDateRollTimer();
@@ -325,13 +326,18 @@ class _HomePageState extends State<HomePage> {
       _loadCatalogSections();
     });
 
-    if (locationChanged && location.isFromGps) {
-      setState(() => _isWeatherLoading = true);
+    if (locationChanged) {
+      setState(() {
+        _isWeatherLoading = true;
+        _prayerSnapshot = const PrayerTimesSnapshot.loading();
+      });
       await Future.wait([
         _loadWeather(),
         _loadPrayerTimes(),
       ]);
-      unawaited(prayerNotificationCoordinator.sync(location: location));
+      unawaited(
+        prayerNotificationCoordinator.sync(location: location, force: true),
+      );
     }
   }
 
@@ -357,7 +363,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadPrayerTimes() async {
     final latitude = _location.latitude;
     final longitude = _location.longitude;
-    final prayerTime = await _prayerRepository.getPrayerTimes(
+    final snapshot = await _prayerRepository.getPrayerTimes(
       latitude: latitude,
       longitude: longitude,
     );
@@ -366,8 +372,8 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     setState(() {
-      _prayerTime = prayerTime;
-      _prayerFetchedAt = DateTime.now();
+      _prayerSnapshot = snapshot;
+      _prayerFetchedAt = snapshot.hasSchedule ? DateTime.now() : null;
       _refreshDerivedDashboardData();
     });
     unawaited(prayerNotificationCoordinator.sync(location: _location));
@@ -408,7 +414,8 @@ class _HomePageState extends State<HomePage> {
 
   void _refreshPrayerCountdown() {
     if (!mounted) return;
-    setState(() => _prayerTime = _prayerRepository.buildForNow());
+    if (!_prayerSnapshot.hasSchedule) return;
+    setState(() => _prayerSnapshot = _prayerRepository.buildForNow());
   }
 
   void _onPrayerCardTap() {
@@ -501,7 +508,7 @@ class _HomePageState extends State<HomePage> {
                       child: DailyBriefingSection(
                         weather: _weather,
                         isWeatherLoading: _isWeatherLoading,
-                        prayerTime: _prayerTime,
+                        prayerSnapshot: _prayerSnapshot,
                         exchangeRate: _exchangeRate,
                         holidayStatus: _holidayStatus,
                         onPrayerTap: _onPrayerCardTap,

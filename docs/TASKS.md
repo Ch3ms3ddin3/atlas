@@ -16,7 +16,7 @@
 
 ⬜ Weather API
 
-⬜ Prayer API
+✅ Prayer API
 
 ⬜ Exchange Rate
 

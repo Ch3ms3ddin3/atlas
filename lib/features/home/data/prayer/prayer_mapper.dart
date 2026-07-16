@@ -5,27 +5,45 @@ abstract final class PrayerMapper {
   static const prayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
   static const liveCalculationMethod = 'AlAdhan · méthode Maroc';
-  static const fallbackCalculationMethod = 'données estimées';
 
   /// Heure actuelle en Africa/Casablanca (UTC+1 permanent depuis 2018).
   static DateTime casablancaNow() {
     return DateTime.now().toUtc().add(const Duration(hours: 1));
   }
 
-  static PrayerTimeData fromTimings(
-    Map<String, String> timings, {
-    required String calculationMethod,
+  /// Construit l'affichage du jour.
+  ///
+  /// Après Isha, [tomorrowTimings] doit fournir le vrai Fajr du lendemain —
+  /// le compte à rebours et la cellule Fajr utilisent cette heure.
+  static PrayerTimeData fromTimings({
+    required Map<String, String> todayTimings,
+    Map<String, String>? tomorrowTimings,
+    String calculationMethod = liveCalculationMethod,
     DateTime? referenceTime,
   }) {
     final now = referenceTime ?? casablancaNow();
     final nowMinutes = now.hour * 60 + now.minute;
 
-    final parsed = <String, int>{
+    final todayParsed = <String, int>{
       for (final name in prayerNames)
-        name: _parseTime(timings[name] ?? '00:00'),
+        name: _parseTime(todayTimings[name] ?? '00:00'),
     };
 
-    final next = _resolveNextPrayer(parsed, nowMinutes);
+    final next = _resolveNextPrayer(
+      todayParsed: todayParsed,
+      tomorrowTimings: tomorrowTimings,
+      nowMinutes: nowMinutes,
+    );
+
+    final displayTimings = Map<String, String>.from(todayTimings);
+    if (next.usesTomorrowFajr && tomorrowTimings != null) {
+      final tomorrowFajr = tomorrowTimings['Fajr'];
+      if (tomorrowFajr != null && tomorrowFajr.isNotEmpty) {
+        displayTimings['Fajr'] = tomorrowFajr;
+      }
+    }
+
+    final currentName = _resolveCurrentPrayer(todayParsed, nowMinutes);
 
     return PrayerTimeData(
       nextPrayerName: next.name,
@@ -35,31 +53,56 @@ abstract final class PrayerMapper {
         for (final name in prayerNames)
           PrayerScheduleItem(
             name: name,
-            time: timings[name] ?? '--:--',
-            isCurrent: false,
+            time: displayTimings[name] ?? '--:--',
+            isCurrent: name == currentName,
             isNext: name == next.name,
           ),
       ],
     );
   }
 
-  static ({String name, int minutesUntil}) _resolveNextPrayer(
-    Map<String, int> parsed,
-    int nowMinutes,
-  ) {
+  static ({String name, int minutesUntil, bool usesTomorrowFajr})
+      _resolveNextPrayer({
+    required Map<String, int> todayParsed,
+    required Map<String, String>? tomorrowTimings,
+    required int nowMinutes,
+  }) {
     for (final name in prayerNames) {
-      final prayerMinutes = parsed[name]!;
+      final prayerMinutes = todayParsed[name]!;
       if (prayerMinutes > nowMinutes) {
-        return (name: name, minutesUntil: prayerMinutes - nowMinutes);
+        return (
+          name: name,
+          minutesUntil: prayerMinutes - nowMinutes,
+          usesTomorrowFajr: false,
+        );
       }
     }
 
-    // Après Isha : prochaine prière = Fajr du lendemain.
-    final fajrMinutes = parsed['Fajr']!;
+    // Après Isha : Fajr du lendemain (horaires réels requis).
+    final tomorrowFajrRaw = tomorrowTimings?['Fajr'];
+    final tomorrowFajrMinutes = tomorrowFajrRaw == null || tomorrowFajrRaw.isEmpty
+        ? todayParsed['Fajr']!
+        : _parseTime(tomorrowFajrRaw);
+
     return (
       name: 'Fajr',
-      minutesUntil: (24 * 60 - nowMinutes) + fajrMinutes,
+      minutesUntil: (24 * 60 - nowMinutes) + tomorrowFajrMinutes,
+      usesTomorrowFajr: true,
     );
+  }
+
+  /// Dernière prière déjà commencée (fenêtre jusqu'à la suivante).
+  static String? _resolveCurrentPrayer(
+    Map<String, int> parsed,
+    int nowMinutes,
+  ) {
+    String? current;
+    for (final name in prayerNames) {
+      if (parsed[name]! <= nowMinutes) {
+        current = name;
+      }
+    }
+    return current;
   }
 
   static int _parseTime(String hhmm) {

@@ -6,18 +6,19 @@ import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../domain/models/home_models.dart';
+import '../../domain/models/prayer_times_snapshot.dart';
 
 /// Carte des horaires de prière — seconde carte du briefing.
 class PrayerTimeCard extends StatelessWidget {
   const PrayerTimeCard({
     super.key,
-    required this.data,
+    required this.snapshot,
     this.onTap,
     this.animateEntrance = false,
     this.entranceDelay = Duration.zero,
   });
 
-  final PrayerTimeData data;
+  final PrayerTimesSnapshot snapshot;
   final VoidCallback? onTap;
   final bool animateEntrance;
   final Duration entranceDelay;
@@ -31,62 +32,158 @@ class PrayerTimeCard extends StatelessWidget {
       emphasis: AtlasCardEmphasis.standard,
       animateEntrance: animateEntrance,
       entranceDelay: entranceDelay,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Prière',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: AtlasTextStyles.cardLabel(theme.colorScheme),
-              letterSpacing: 0.3,
-            ),
+      child: switch (snapshot.state) {
+        PrayerLoadState.loading => _LoadingBody(theme: theme),
+        PrayerLoadState.unavailable => _UnavailableBody(theme: theme),
+        PrayerLoadState.success ||
+        PrayerLoadState.stale =>
+          _ReadyBody(data: snapshot.data!, statusLabel: snapshot.statusLabel),
+      },
+    );
+  }
+}
+
+class _LoadingBody extends StatelessWidget {
+  const _LoadingBody({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Prière',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AtlasTextStyles.cardLabel(theme.colorScheme),
+            letterSpacing: 0.3,
           ),
-          const SizedBox(height: AtlasSpacing.lg),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                data.nextPrayerName,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: -0.4,
-                  height: 1,
+        ),
+        const SizedBox(height: AtlasSpacing.xl),
+        Text(
+          'Chargement des horaires…',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AtlasTextStyles.metadata(theme.colorScheme),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UnavailableBody extends StatelessWidget {
+  const _UnavailableBody({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Prière',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AtlasTextStyles.cardLabel(theme.colorScheme),
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: AtlasSpacing.lg),
+        Icon(
+          Icons.cloud_off_outlined,
+          size: 28,
+          color: AtlasColors.midnightBlueFaint,
+        ),
+        const SizedBox(height: AtlasSpacing.md),
+        Text(
+          'Horaires indisponibles',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AtlasSpacing.sm),
+        Text(
+          'Impossible de charger les horaires pour cette ville. '
+          'Réessayez avec une connexion ou tirez pour actualiser.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AtlasTextStyles.helper(theme.colorScheme),
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReadyBody extends StatelessWidget {
+  const _ReadyBody({
+    required this.data,
+    required this.statusLabel,
+  });
+
+  final PrayerTimeData data;
+  final String statusLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Prière',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AtlasTextStyles.cardLabel(theme.colorScheme),
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: AtlasSpacing.lg),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              data.nextPrayerName,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.4,
+                height: 1,
+              ),
+            ),
+            const SizedBox(width: AtlasSpacing.md),
+            Padding(
+              padding: const EdgeInsets.only(bottom: AtlasSpacing.xs),
+              child: AnimatedSwitcher(
+                duration: AtlasMotion.durationStandard,
+                switchInCurve: AtlasMotion.curveDefault,
+                switchOutCurve: AtlasMotion.curveExit,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: Text(
+                  data.nextPrayerCountdown,
+                  key: ValueKey<String>(data.nextPrayerCountdown),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              const SizedBox(width: AtlasSpacing.md),
-              Padding(
-                padding: const EdgeInsets.only(bottom: AtlasSpacing.xs),
-                child: AnimatedSwitcher(
-                  duration: AtlasMotion.durationStandard,
-                  switchInCurve: AtlasMotion.curveDefault,
-                  switchOutCurve: AtlasMotion.curveExit,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  ),
-                  child: Text(
-                    data.nextPrayerCountdown,
-                    key: ValueKey<String>(data.nextPrayerCountdown),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AtlasSpacing.lg),
-          _PrayerScheduleRow(schedule: data.schedule),
-          const SizedBox(height: AtlasSpacing.md),
-          Text(
-            data.calculationMethod,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AtlasTextStyles.metadata(theme.colorScheme),
             ),
+          ],
+        ),
+        const SizedBox(height: AtlasSpacing.lg),
+        _PrayerScheduleRow(schedule: data.schedule),
+        const SizedBox(height: AtlasSpacing.md),
+        Text(
+          statusLabel,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AtlasTextStyles.metadata(theme.colorScheme),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -139,9 +236,7 @@ class _PrayerScheduleCell extends StatelessWidget {
         vertical: AtlasSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: isCurrent
-            ? AtlasColors.terracottaGhost
-            : Colors.transparent,
+        color: isCurrent ? AtlasColors.terracottaGhost : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         border: isCurrent
             ? Border.all(

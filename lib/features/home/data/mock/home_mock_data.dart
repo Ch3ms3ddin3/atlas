@@ -21,7 +21,7 @@ abstract final class HomeMockData {
   static const prayerTime = PrayerTimeData(
     nextPrayerName: 'Asr',
     nextPrayerCountdown: 'dans 2h 14m',
-    calculationMethod: 'Ministère des Habous',
+    calculationMethod: 'AlAdhan · méthode Maroc',
     schedule: [
       PrayerScheduleItem(name: 'Fajr', time: '05:08', isCurrent: false, isNext: false),
       PrayerScheduleItem(name: 'Dhuhr', time: '13:22', isCurrent: false, isNext: false),
