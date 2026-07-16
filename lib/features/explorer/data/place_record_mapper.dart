@@ -4,27 +4,70 @@ import '../domain/models/place_models.dart';
 
 /// Convertit une ligne Supabase vers [PlaceGuide].
 abstract final class PlaceRecordMapper {
+  /// Mapping strict — lève si les champs obligatoires sont absents ou invalides.
   static PlaceGuide fromRow(Map<String, dynamic> row) {
+    final guide = tryFromRow(row);
+    if (guide == null) {
+      throw FormatException('Ligne place invalide: $row');
+    }
+    return guide;
+  }
+
+  /// Mapping tolérant — `null` si la ligne est malformée (à ignorer).
+  static PlaceGuide? tryFromRow(Map<String, dynamic> row) {
+    final slug = _requiredString(row['slug']);
+    final name = _requiredString(row['name']);
+    final cityName = _requiredString(row['city_name']);
+    final categoryLabel = _requiredString(row['category_label']);
+    final neighborhood = _requiredString(row['neighborhood']);
+    final priceLevel = _requiredString(row['price_level']);
+    final summary = _requiredString(row['summary']);
+
+    if (slug == null ||
+        name == null ||
+        cityName == null ||
+        categoryLabel == null ||
+        neighborhood == null ||
+        priceLevel == null ||
+        summary == null) {
+      return null;
+    }
+
+    final categoryName = row['category'] as String?;
     final category = PlaceCategory.values.firstWhere(
-      (value) => value.name == row['category'],
+      (value) => value.name == categoryName,
       orElse: () => PlaceCategory.monument,
     );
 
     return PlaceGuide(
-      id: row['slug'] as String,
-      name: row['name'] as String,
-      cityName: row['city_name'] as String,
+      id: slug,
+      name: name,
+      cityName: cityName,
       category: category,
-      categoryLabel: row['category_label'] as String,
-      neighborhood: row['neighborhood'] as String,
-      priceLevel: row['price_level'] as String,
+      categoryLabel: categoryLabel,
+      neighborhood: neighborhood,
+      priceLevel: priceLevel,
       isEditorsPick: row['is_editors_pick'] as bool? ?? false,
       imageColor: _parseColor(row['image_color'] as String?),
-      summary: row['summary'] as String,
+      summary: summary,
       practicalTips: _readStringList(row['practical_tips']),
-      bestTimeToVisit: row['best_time_to_visit'] as String?,
-      mapsUrl: row['maps_url'] as String?,
+      bestTimeToVisit: _optionalString(row['best_time_to_visit']),
+      mapsUrl: _optionalString(row['maps_url']),
     );
+  }
+
+  static String? _requiredString(dynamic value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed;
+  }
+
+  static String? _optionalString(dynamic value) {
+    if (value == null) return null;
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   static Color _parseColor(String? hex) {

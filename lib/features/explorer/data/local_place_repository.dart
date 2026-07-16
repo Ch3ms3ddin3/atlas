@@ -1,14 +1,19 @@
+import '../../../core/editorial/editorial_local_catalog.dart';
 import '../domain/models/place_models.dart';
 import '../domain/place_repository.dart';
 import 'place_catalog.dart';
 import 'place_mapper.dart';
 
 /// Catalogue statique local — repli permanent et hors-ligne.
-class LocalPlaceRepository implements PlaceRepository {
+class LocalPlaceRepository
+    implements PlaceRepository, EditorialLocalCatalog<PlaceGuide> {
   LocalPlaceRepository();
 
   List<PlaceGuide> get catalog =>
       List<PlaceGuide>.unmodifiable(PlaceCatalog.guides);
+
+  @override
+  List<PlaceGuide> get items => catalog;
 
   @override
   Future<void> warmUp() async {}

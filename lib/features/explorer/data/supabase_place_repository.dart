@@ -1,17 +1,19 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/editorial/editorial_remote_catalog.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../domain/models/place_models.dart';
 import 'place_record_mapper.dart';
 
 /// Lecture Supabase des lieux publiés.
-class SupabasePlaceRepository {
+class SupabasePlaceRepository implements EditorialRemoteCatalog<PlaceGuide> {
   const SupabasePlaceRepository({
     SupabaseClient? Function()? clientProvider,
   }) : _clientProvider = clientProvider ?? SupabaseBootstrap.clientOrNull;
 
   final SupabaseClient? Function()? _clientProvider;
 
+  @override
   Future<List<PlaceGuide>> fetchAll() async {
     final client = _clientProvider?.call();
     if (client == null) {
@@ -26,7 +28,7 @@ class SupabasePlaceRepository {
 
     return [
       for (final row in rows)
-        PlaceRecordMapper.fromRow(Map<String, dynamic>.from(row)),
+        ?PlaceRecordMapper.tryFromRow(Map<String, dynamic>.from(row)),
     ];
   }
 }

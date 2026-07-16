@@ -1,40 +1,53 @@
+import 'package:flutter/foundation.dart';
+
+import '../../../core/editorial/editorial_catalog_load_state.dart';
+import '../../../core/editorial/resilient_editorial_catalog.dart';
 import '../domain/models/place_models.dart';
 import '../domain/place_repository.dart';
 import 'local_place_repository.dart';
 import 'place_mapper.dart';
 import 'supabase_place_repository.dart';
 
-/// Catalogue éditorial avec repli local si Supabase est indisponible.
-class ResilientPlaceRepository implements PlaceRepository {
+/// Lieux : local immédiat, puis refresh Supabase via [ResilientEditorialCatalog].
+///
+/// Les slugs (`PlaceGuide.id`) restent stables pour favoris et signalements.
+class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
   ResilientPlaceRepository({
     LocalPlaceRepository? local,
     Future<List<PlaceGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
-  })  : _local = local ?? LocalPlaceRepository(),
-        _fetchRemote = fetchRemote ?? const SupabasePlaceRepository().fetchAll,
-        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5);
+  }) : _catalog = ResilientEditorialCatalog<PlaceGuide>(
+          localItems: (local ?? LocalPlaceRepository()).items,
+          fetchRemote: fetchRemote ?? const SupabasePlaceRepository().fetchAll,
+          fetchTimeout: fetchTimeout,
+        ) {
+    _catalog.addListener(_onCatalogChanged);
+  }
 
-  final LocalPlaceRepository _local;
-  final Future<List<PlaceGuide>> Function() _fetchRemote;
-  final Duration _fetchTimeout;
+  final ResilientEditorialCatalog<PlaceGuide> _catalog;
 
-  List<PlaceGuide>? _remoteCache;
-  bool _warmUpStarted = false;
+  /// État exposé par l'abstraction éditoriale partagée.
+  EditorialCatalogLoadState get loadState => _catalog.loadState;
 
-  List<PlaceGuide> get _source => _remoteCache ?? _local.catalog;
+  /// Dernière erreur distante, si [loadState] est [EditorialCatalogLoadState.error].
+  Object? get lastError => _catalog.lastError;
+
+  /// `true` lorsque les données affichées viennent de Supabase.
+  bool get isUsingRemote => _catalog.isUsingRemote;
+
+  List<PlaceGuide> get _source => _catalog.items;
+
+  void _onCatalogChanged() => notifyListeners();
 
   @override
-  Future<void> warmUp() async {
-    if (_warmUpStarted) return;
-    _warmUpStarted = true;
-
-    try {
-      final guides = await _fetchRemote().timeout(_fetchTimeout);
-      if (guides.isNotEmpty) {
-        _remoteCache = List<PlaceGuide>.unmodifiable(guides);
-      }
-    } catch (_) {}
+  void dispose() {
+    _catalog.removeListener(_onCatalogChanged);
+    _catalog.dispose();
+    super.dispose();
   }
+
+  @override
+  Future<void> warmUp() => _catalog.warmUp();
 
   @override
   List<PlaceGuide> getAll({String? cityName}) {
