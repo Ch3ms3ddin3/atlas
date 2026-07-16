@@ -127,7 +127,9 @@ INSERT INTO procedures (
 
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-majorelle',
   'Jardin Majorelle',
@@ -141,11 +143,23 @@ INSERT INTO places (
   'Jardin botanique emblématique créé par Jacques Majorelle, célèbre pour son bleu Majorelle et ses collections de cactus.',
   ARRAY['Réservez vos billets en ligne pour éviter la file d''attente.', 'Portez des chaussures confortables — le jardin se parcourt à pied.', 'Le musée Berbère sur place mérite une visite de 30 minutes.'],
   'Tôt le matin, avant 10h',
-  'https://maps.google.com/?q=Jardin+Majorelle+Marrakech'
+  'https://maps.google.com/?q=Jardin+Majorelle+Marrakech',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-bahia',
   'Palais de la Bahia',
@@ -159,11 +173,23 @@ INSERT INTO places (
   'Palais du XIXe siècle aux décors somptueux — un des plus beaux exemples d''architecture andalouse à Marrakech.',
   ARRAY['Arrivez à l''ouverture pour profiter de la lumière dans les patios.', 'Prévoyez 1h à 1h30 pour la visite complète.', 'Les cours intérieures sont ombragées — idéal en été.'],
   'En matinée, hors week-end si possible',
-  'https://maps.google.com/?q=Palais+de+la+Bahia+Marrakech'
+  'https://maps.google.com/?q=Palais+de+la+Bahia+Marrakech',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-jemaa-el-fna',
   'Place Jemaa el-Fna',
@@ -177,11 +203,23 @@ INSERT INTO places (
   'Cœur battant de la Médina — spectacles de rue, étals de nourriture et artisanat dès la tombée du jour.',
   ARRAY['Négociez les prix dans les souks — c''est la coutume.', 'Goûtez les jus d''orange frais des étals de la place.', 'Restez vigilant sur vos affaires dans la foule du soir.'],
   'Fin d''après-midi et soirée',
-  'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech'
+  'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-ysl-museum',
   'Musée Yves Saint Laurent',
@@ -195,11 +233,23 @@ INSERT INTO places (
   'Musée dédié à Yves Saint Laurent, voisin du Jardin Majorelle — mode, design et héritage culturel.',
   ARRAY['Le billet combiné Jardin Majorelle + musée est souvent avantageux.', 'La photographie est interdite dans certaines salles.', 'Comptez 1h pour la visite du musée seul.'],
   'En semaine, milieu de matinée',
-  'https://maps.google.com/?q=Musée+Yves+Saint+Laurent+Marrakech'
+  'https://maps.google.com/?q=Musée+Yves+Saint+Laurent+Marrakech',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-hammam-marrakech',
   'Hammam traditionnel',
@@ -213,11 +263,23 @@ INSERT INTO places (
   'Expérience authentique de bain maure — gommage, vapeur et détente après une journée dans la Médina.',
   ARRAY['Apportez votre propre savon noir et gant de kessa si possible.', 'Les hammams locaux sont mixtes par créneaux horaires — renseignez-vous.', 'Prévoyez 1h30 à 2h pour l''expérience complète.'],
   'Fin d''après-midi',
-  'https://maps.google.com/?q=Hammam+Médina+Marrakech'
+  'https://maps.google.com/?q=Hammam+Médina+Marrakech',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-hassan-ii',
   'Mosquée Hassan II',
@@ -231,11 +293,23 @@ INSERT INTO places (
   'Deuxième plus grande mosquée au monde — architecture spectaculaire dominant l''Atlantique.',
   ARRAY['Les visites guidées sont obligatoires pour les non-musulmans.', 'Retirez vos chaussures et habillez-vous modestement.', 'La visite dure environ 1h — réservez à l''avance en haute saison.'],
   'Visite guidée le matin',
-  'https://maps.google.com/?q=Mosquée+Hassan+II+Casablanca'
+  'https://maps.google.com/?q=Mosquée+Hassan+II+Casablanca',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-corniche',
   'Corniche Ain Diab',
@@ -249,11 +323,23 @@ INSERT INTO places (
   'Promenade en bord de mer avec plages, cafés et restaurants — incontournable de Casablanca.',
   ARRAY['Le stationnement est difficile le week-end — privilégiez un taxi.', 'Les plages publiques sont gratuites, les clubs de plage sont payants.', 'Idéal pour un coucher de soleil suivi d''un dîner en bord de mer.'],
   'Fin d''après-midi en semaine',
-  'https://maps.google.com/?q=Corniche+Ain+Diab+Casablanca'
+  'https://maps.google.com/?q=Corniche+Ain+Diab+Casablanca',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-marche-central',
   'Marché Central',
@@ -267,11 +353,23 @@ INSERT INTO places (
   'Marché couvert historique transformé en food court — fruits de mer, cuisine marocaine et ambiance locale.',
   ARRAY['Les étals de poisson grillé sont les plus populaires.', 'Arrivez tôt pour avoir une table aux heures de pointe.', 'Les prix sont affichés — peu de négociation ici.'],
   'Déjeuner entre 12h et 14h',
-  'https://maps.google.com/?q=Marché+Central+Casablanca'
+  'https://maps.google.com/?q=Marché+Central+Casablanca',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-musee-judaisme',
   'Musée du Judaïsme Marocain',
@@ -285,11 +383,23 @@ INSERT INTO places (
   'Musée unique retraçant l''histoire millénaire du judaïsme marocain dans un ancien temple.',
   ARRAY['Fermé le samedi — vérifiez les horaires avant de vous déplacer.', 'La visite guidée enrichit beaucoup l''expérience.', 'Comptez 1h pour une visite complète.'],
   'Matinée en semaine',
-  'https://maps.google.com/?q=Musée+du+Judaïsme+Casablanca'
+  'https://maps.google.com/?q=Musée+du+Judaïsme+Casablanca',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-habous',
   'Quartier Habous',
@@ -303,11 +413,23 @@ INSERT INTO places (
   'Quartier néo-traditionnel avec souks, pâtisseries et artisanat — alternative plus calme à la Médina de Marrakech.',
   ARRAY['Les pâtisseries orientales du quartier sont réputées.', 'Moins touristique que la Médina — les prix sont plus doux.', 'Idéal pour acheter des souvenirs artisanaux.'],
   'Matinée',
-  'https://maps.google.com/?q=Quartier+Habous+Casablanca'
+  'https://maps.google.com/?q=Quartier+Habous+Casablanca',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-tour-hassan',
   'Tour Hassan',
@@ -321,11 +443,23 @@ INSERT INTO places (
   'Minaret inachevé du XIIe siècle et esplanade monumentale — symbole emblématique de Rabat.',
   ARRAY['L''esplanade est gratuite et ouverte en continu.', 'Combinez avec la visite du Mausolée Mohammed V juste en face.', 'Très photogénique au coucher du soleil.'],
   'Fin d''après-midi pour la lumière',
-  'https://maps.google.com/?q=Tour+Hassan+Rabat'
+  'https://maps.google.com/?q=Tour+Hassan+Rabat',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-oudayas',
   'Kasbah des Oudayas',
@@ -339,11 +473,23 @@ INSERT INTO places (
   'Citadelle aux ruelles bleues et blanches surplombant l''embouchure du Bouregreg — le quartier le plus pittoresque de Rabat.',
   ARRAY['Les ruelles sont étroites — chaussures confortables recommandées.', 'Le café Maure offre une vue magnifique sur le fleuve.', 'Moins de monde tôt le matin.'],
   'Matinée en semaine',
-  'https://maps.google.com/?q=Kasbah+des+Oudayas+Rabat'
+  'https://maps.google.com/?q=Kasbah+des+Oudayas+Rabat',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-chellah',
   'Chellah',
@@ -357,11 +503,23 @@ INSERT INTO places (
   'Site archéologique romain et médiéval aux jardins luxuriants — havre de paix en ville.',
   ARRAY['Les nids de storks sur les ruines sont spectaculaires au printemps.', 'Prévoyez 1h30 pour explorer le site en entier.', 'Ombragé et frais — idéal par temps chaud.'],
   'Matinée, surtout au printemps',
-  'https://maps.google.com/?q=Chellah+Rabat'
+  'https://maps.google.com/?q=Chellah+Rabat',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-musee-rabat',
   'Musée Mohammed VI',
@@ -375,11 +533,23 @@ INSERT INTO places (
   'Musée d''art moderne et contemporain africain — collection remarquable dans une architecture épurée.',
   ARRAY['Fermé le mardi — vérifiez les horaires.', 'La collection permanente est accessible avec un seul billet.', 'Comptez 1h30 pour une visite confortable.'],
   'Après-midi en semaine',
-  'https://maps.google.com/?q=Musée+Mohammed+VI+Rabat'
+  'https://maps.google.com/?q=Musée+Mohammed+VI+Rabat',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-plage-rabat',
   'Plage de Rabat',
@@ -393,7 +563,17 @@ INSERT INTO places (
   'Plage urbaine accessible depuis la Kasbah — idéale pour une pause fraîcheur en été.',
   ARRAY['La plage est surveillée en été.', 'Accessible à pied depuis la Kasbah des Oudayas.', 'Évitez les week-ends d''été si vous cherchez le calme.'],
   'Fin d''après-midi',
-  'https://maps.google.com/?q=Plage+Rabat'
+  'https://maps.google.com/?q=Plage+Rabat',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  ARRAY[]::text[],
+  NULL
 ) ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO prices (

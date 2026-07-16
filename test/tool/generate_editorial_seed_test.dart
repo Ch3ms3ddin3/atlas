@@ -69,7 +69,9 @@ String _placeInsert(PlaceGuide guide) {
   return '''
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
-  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url
+  is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
+  address, latitude, longitude, phone, website, email,
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   ${_text(guide.id)},
   ${_text(guide.name)},
@@ -83,9 +85,36 @@ INSERT INTO places (
   ${_text(guide.summary)},
   ${_textArray(guide.practicalTips)},
   ${guide.bestTimeToVisit == null ? 'NULL' : _text(guide.bestTimeToVisit!)},
-  ${guide.mapsUrl == null ? 'NULL' : _text(guide.mapsUrl!)}
+  ${guide.mapsUrl == null ? 'NULL' : _text(guide.mapsUrl!)},
+  ${guide.address == null ? 'NULL' : _text(guide.address!)},
+  ${guide.latitude ?? 'NULL'},
+  ${guide.longitude ?? 'NULL'},
+  ${guide.phone == null ? 'NULL' : _text(guide.phone!)},
+  ${guide.website == null ? 'NULL' : _text(guide.website!)},
+  ${guide.email == null ? 'NULL' : _text(guide.email!)},
+  ${_textArray(guide.imageUrls)},
+  ${_textArray(guide.amenities)},
+  ${_textArray(guide.accessibilityFeatures)},
+  ${_openingHoursJson(guide.openingHours)}
 ) ON CONFLICT (slug) DO NOTHING;''';
 }
+
+String _openingHoursJson(PlaceOpeningHours? hours) {
+  if (hours == null || !hours.hasContent) return 'NULL';
+  final entries = hours.entries
+      .map(
+        (entry) =>
+            '{"day": ${_jsonText(entry.dayLabel)}, '
+            '"hours": ${_jsonText(entry.hoursLabel)}}',
+      )
+      .join(', ');
+  final notePart = hours.note == null
+      ? ''
+      : ', "note": ${_jsonText(hours.note!)}';
+  return '\'{"entries": [$entries]$notePart}\'::jsonb';
+}
+
+String _jsonText(String value) => '"${_escape(value).replaceAll('"', '\\"')}"';
 
 String _priceInsert(PriceGuide guide) {
   return '''

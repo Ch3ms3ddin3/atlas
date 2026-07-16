@@ -173,7 +173,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Conseils pratiques'), findsOneWidget);
-    expect(find.textContaining('maps.google.com'), findsOneWidget);
+    expect(find.text('Meilleur moment'), findsOneWidget);
+    expect(find.byTooltip('Signaler un problème'), findsOneWidget);
+    expect(find.textContaining('maps.google.com'), findsNothing);
   });
 
   testWidgets('Un repère de prix ouvre le détail', (

@@ -3,7 +3,15 @@ enum ContentReportType {
   outdated,
   incorrect,
   missingInfo,
-  other,
+  other;
+
+  /// Libellé UI en français.
+  String get displayLabel => switch (this) {
+        ContentReportType.outdated => 'Contenu obsolète',
+        ContentReportType.incorrect => 'Information incorrecte',
+        ContentReportType.missingInfo => 'Information manquante',
+        ContentReportType.other => 'Autre',
+      };
 }
 
 /// Libellés persistés côté Supabase.

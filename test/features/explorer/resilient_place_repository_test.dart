@@ -84,6 +84,10 @@ void main() {
       expect(guide.mapsUrl, isNull);
       expect(guide.isEditorsPick, isFalse);
       expect(guide.practicalTips, isEmpty);
+      expect(guide.hasAddress, isFalse);
+      expect(guide.hasCoordinates, isFalse);
+      expect(guide.hasGallery, isFalse);
+      expect(guide.hasOpeningHours, isFalse);
     });
   });
 

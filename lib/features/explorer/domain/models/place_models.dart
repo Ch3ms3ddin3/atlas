@@ -30,7 +30,36 @@ enum PlaceSort {
   editorsPick,
 }
 
+/// Créneau horaire d'un jour — uniquement si fourni par le catalogue.
+class PlaceHoursEntry {
+  const PlaceHoursEntry({
+    required this.dayLabel,
+    required this.hoursLabel,
+  });
+
+  final String dayLabel;
+  final String hoursLabel;
+}
+
+/// Horaires d'ouverture structurés — absents tant que non publiés.
+class PlaceOpeningHours {
+  const PlaceOpeningHours({
+    this.entries = const [],
+    this.note,
+  });
+
+  final List<PlaceHoursEntry> entries;
+  final String? note;
+
+  bool get hasContent =>
+      entries.isNotEmpty || (note != null && note!.trim().isNotEmpty);
+}
+
 /// Lieu curaté avec informations pratiques.
+///
+/// Les champs optionnels restent nullables / vides pour accueillir de futures
+/// colonnes Supabase sans redesign UI — les sections s'affichent seulement
+/// lorsqu'une donnée réelle est présente.
 class PlaceGuide {
   const PlaceGuide({
     required this.id,
@@ -46,6 +75,16 @@ class PlaceGuide {
     required this.practicalTips,
     this.bestTimeToVisit,
     this.mapsUrl,
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.phone,
+    this.website,
+    this.email,
+    this.imageUrls = const [],
+    this.amenities = const [],
+    this.accessibilityFeatures = const [],
+    this.openingHours,
   });
 
   final String id;
@@ -61,6 +100,46 @@ class PlaceGuide {
   final List<String> practicalTips;
   final String? bestTimeToVisit;
   final String? mapsUrl;
+
+  /// Adresse complète — distincte du quartier affiché dans le hero.
+  final String? address;
+  final double? latitude;
+  final double? longitude;
+  final String? phone;
+  final String? website;
+  final String? email;
+
+  /// URLs d'images distantes — galerie masquée si vide.
+  final List<String> imageUrls;
+  final List<String> amenities;
+  final List<String> accessibilityFeatures;
+  final PlaceOpeningHours? openingHours;
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  bool get hasAddress => address != null && address!.trim().isNotEmpty;
+
+  bool get hasPhone => phone != null && phone!.trim().isNotEmpty;
+
+  bool get hasWebsite => website != null && website!.trim().isNotEmpty;
+
+  bool get hasEmail => email != null && email!.trim().isNotEmpty;
+
+  bool get hasGallery => imageUrls.isNotEmpty;
+
+  bool get hasAmenities => amenities.isNotEmpty;
+
+  bool get hasAccessibility => accessibilityFeatures.isNotEmpty;
+
+  bool get hasOpeningHours => openingHours?.hasContent ?? false;
+
+  bool get hasPracticalTips => practicalTips.isNotEmpty;
+
+  bool get hasBestTimeToVisit =>
+      bestTimeToVisit != null && bestTimeToVisit!.trim().isNotEmpty;
+
+  bool get hasContactActions =>
+      hasCoordinates || hasPhone || hasWebsite || hasEmail;
 }
 
 /// Filtre de recherche pour la liste des lieux.

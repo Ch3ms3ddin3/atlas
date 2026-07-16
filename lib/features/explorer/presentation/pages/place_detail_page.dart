@@ -1,235 +1,280 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/editorial/editorial_catalog_load_state.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
-import '../../../favorites/domain/favorite_entity_type.dart';
-import '../../../favorites/presentation/widgets/favorite_toggle_button.dart';
+import '../../../../design_system/widgets/atlas_empty_state.dart';
+import '../../../content_reports/domain/content_report_entity_type.dart';
+import '../../../content_reports/presentation/content_reports_scope.dart';
+import '../../../content_reports/presentation/widgets/content_report_sheet.dart';
+import '../../data/resilient_place_repository.dart';
 import '../../domain/models/place_models.dart';
+import '../../domain/place_repository.dart';
+import '../widgets/place_catalog_status_indicator.dart';
+import '../widgets/place_contact_actions.dart';
+import '../widgets/place_detail_hero.dart';
+import '../widgets/place_detail_section.dart';
+import '../widgets/place_editorial_tips.dart';
+import '../widgets/place_feature_chips_section.dart';
+import '../widgets/place_gallery_section.dart';
+import '../widgets/place_opening_hours_section.dart';
 
-/// Détail d'un lieu — description, conseils et lien cartographique.
-class PlaceDetailPage extends StatelessWidget {
+/// Fiche destination premium — sections conditionnelles selon les données réelles.
+class PlaceDetailPage extends StatefulWidget {
   const PlaceDetailPage({
     super.key,
-    required this.place,
-  });
+    this.place,
+    this.placeId,
+    this.repository,
+  }) : assert(
+          place != null || placeId != null,
+          'PlaceDetailPage requires place or placeId.',
+        );
 
-  final PlaceGuide place;
+  /// Snapshot initial (navigation depuis la liste / l'accueil).
+  final PlaceGuide? place;
+
+  /// Slug stable — permet le rechargement et l'ouverture hors snapshot.
+  final String? placeId;
+
+  /// Injection de test / hors bootstrap ; sinon [PlaceRepository.instance].
+  final PlaceRepository? repository;
+
+  @override
+  State<PlaceDetailPage> createState() => _PlaceDetailPageState();
+}
+
+class _PlaceDetailPageState extends State<PlaceDetailPage> {
+  PlaceRepository? _repository;
+  VoidCallback? _catalogListener;
+  PlaceGuide? _place;
+  var _resolving = false;
+  var _loadState = EditorialCatalogLoadState.idle;
+
+  String get _slug => widget.placeId ?? widget.place!.id;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ?? _tryRepositoryInstance();
+    _place = widget.place ?? _repository?.findById(_slug);
+    _syncLoadState();
+    _attachCatalogListener();
+    if (_place == null) {
+      _resolving = true;
+      _warmUpAndResolve();
+    }
+  }
+
+  @override
+  void dispose() {
+    _detachCatalogListener();
+    super.dispose();
+  }
+
+  PlaceRepository? _tryRepositoryInstance() {
+    try {
+      return PlaceRepository.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _attachCatalogListener() {
+    final repository = _repository;
+    if (repository is Listenable) {
+      _catalogListener = _onCatalogChanged;
+      (repository as Listenable).addListener(_catalogListener!);
+    }
+  }
+
+  void _detachCatalogListener() {
+    final repository = _repository;
+    if (repository is Listenable && _catalogListener != null) {
+      (repository as Listenable).removeListener(_catalogListener!);
+    }
+  }
+
+  void _onCatalogChanged() {
+    if (!mounted) return;
+    setState(() {
+      _syncLoadState();
+      final resolved = _repository?.findById(_slug);
+      if (resolved != null) {
+        _place = resolved;
+        _resolving = false;
+      } else if (_isSettled(_loadState)) {
+        _resolving = false;
+      }
+    });
+  }
+
+  void _syncLoadState() {
+    final repository = _repository;
+    if (repository is ResilientPlaceRepository) {
+      _loadState = repository.loadState;
+    } else if (_place != null) {
+      _loadState = EditorialCatalogLoadState.success;
+    } else {
+      _loadState = EditorialCatalogLoadState.idle;
+    }
+  }
+
+  Future<void> _warmUpAndResolve() async {
+    await _repository?.warmUp();
+    if (!mounted) return;
+    setState(() {
+      _syncLoadState();
+      _place = _repository?.findById(_slug) ?? _place;
+      _resolving = false;
+    });
+  }
+
+  Future<void> _onRefresh() async {
+    await _repository?.warmUp();
+    if (!mounted) return;
+    setState(() {
+      _syncLoadState();
+      _place = _repository?.findById(_slug) ?? _place;
+    });
+  }
+
+  bool _isSettled(EditorialCatalogLoadState state) {
+    return state == EditorialCatalogLoadState.success ||
+        state == EditorialCatalogLoadState.stale ||
+        state == EditorialCatalogLoadState.error;
+  }
+
+  Future<void> _openReport() async {
+    final place = _place;
+    if (place == null) return;
+    await showContentReportSheet(
+      context: context,
+      entityType: ContentReportEntityType.place,
+      entitySlug: place.id,
+      repository: ContentReportsScope.of(context),
+    );
+  }
+
+  void _onLaunchFailed() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impossible d\'ouvrir ce lien.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final place = _place;
+    final title = place?.name ?? 'Lieu';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(place.name),
-        actions: [
-          FavoriteToggleButton(
-            entityType: FavoriteEntityType.place,
-            entitySlug: place.id,
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(title)),
       body: SafeArea(
-        child: AtlasContentContainer(
-          child: ListView(
-            padding: const EdgeInsets.only(
-              top: AtlasSpacing.section,
-              bottom: AtlasSpacing.sectionLarge,
+        child: _buildBody(context, place),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, PlaceGuide? place) {
+    if (place == null) {
+      if (_resolving) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      return AtlasContentContainer(
+        child: ListView(
+          children: [
+            PlaceCatalogStatusIndicator(loadState: _loadState),
+            const AtlasEmptyState(
+              icon: Icons.place_outlined,
+              message:
+                  'Lieu introuvable. Ce lieu n\'est pas disponible dans le '
+                  'catalogue actuel.',
             ),
-            children: [
-            Container(
-              height: 160,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: place.imageColor.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
-              ),
-              child: Icon(
-                _categoryIcon(place.category),
-                size: 48,
-                color: Colors.white.withValues(alpha: 0.45),
-              ),
-            ),
-            const SizedBox(height: AtlasSpacing.xl),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${place.categoryLabel} · ${place.priceLevel}',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                if (place.isEditorsPick)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AtlasSpacing.sm,
-                      vertical: AtlasSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Sélection Atlas',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AtlasSpacing.sm),
-            Text(
-              '${place.neighborhood} · ${place.cityName}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          ],
+        ),
+      );
+    }
+
+    final theme = Theme.of(context);
+
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: AtlasContentContainer(
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(
+            top: AtlasSpacing.section,
+            bottom: AtlasSpacing.sectionLarge,
+          ),
+          children: [
+            PlaceCatalogStatusIndicator(loadState: _loadState),
+            PlaceDetailHero(
+              place: place,
+              onReport: _openReport,
             ),
             const SizedBox(height: AtlasSpacing.xl),
             Text(
               place.summary,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.5,
+                color: theme.colorScheme.onSurface,
+                height: 1.55,
+                fontSize: 17,
               ),
             ),
-            if (place.bestTimeToVisit != null) ...[
+            if (place.hasBestTimeToVisit) ...[
               const SizedBox(height: AtlasSpacing.section),
-              _InfoRow(
+              PlaceInfoRow(
                 icon: Icons.schedule_outlined,
                 label: 'Meilleur moment',
                 value: place.bestTimeToVisit!,
               ),
             ],
-            const SizedBox(height: AtlasSpacing.sectionLarge),
-            Text(
-              'Conseils pratiques',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AtlasSpacing.md),
-            for (final tip in place.practicalTips) ...[
-              _BulletItem(text: tip),
-              const SizedBox(height: AtlasSpacing.sm),
-            ],
-            if (place.mapsUrl != null) ...[
+            if (place.hasAddress) ...[
               const SizedBox(height: AtlasSpacing.section),
-              Text(
-                'Voir sur Google Maps',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: AtlasSpacing.sm),
-              SelectableText(
-                place.mapsUrl!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
+              const PlaceDetailSectionHeader(title: 'Adresse'),
+              PlaceInfoRow(
+                icon: Icons.location_on_outlined,
+                label: 'Adresse',
+                value: place.address!,
               ),
             ],
+            if (place.hasContactActions) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceContactActions(
+                place: place,
+                onLaunchFailed: _onLaunchFailed,
+              ),
             ],
-          ),
+            if (place.hasOpeningHours) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceOpeningHoursSection(openingHours: place.openingHours!),
+            ],
+            if (place.hasGallery) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceGallerySection(imageUrls: place.imageUrls),
+            ],
+            if (place.hasAccessibility) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceFeatureChipsSection(
+                title: 'Accessibilité',
+                features: place.accessibilityFeatures,
+              ),
+            ],
+            if (place.hasAmenities) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceFeatureChipsSection(
+                title: 'Équipements',
+                features: place.amenities,
+              ),
+            ],
+            if (place.hasPracticalTips) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceEditorialTips(tips: place.practicalTips),
+            ],
+          ],
         ),
       ),
-    );
-  }
-
-  IconData _categoryIcon(PlaceCategory category) {
-    return switch (category) {
-      PlaceCategory.jardin => Icons.park_outlined,
-      PlaceCategory.monument => Icons.account_balance_outlined,
-      PlaceCategory.restaurant => Icons.restaurant_outlined,
-      PlaceCategory.cafe => Icons.coffee_outlined,
-      PlaceCategory.musee => Icons.museum_outlined,
-      PlaceCategory.hammam => Icons.spa_outlined,
-      PlaceCategory.plage => Icons.beach_access_outlined,
-      PlaceCategory.souk => Icons.storefront_outlined,
-    };
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(width: AtlasSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AtlasSpacing.xs),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BulletItem extends StatelessWidget {
-  const _BulletItem({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '•',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.primary,
-          ),
-        ),
-        const SizedBox(width: AtlasSpacing.sm),
-        Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.45,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

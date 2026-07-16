@@ -53,6 +53,16 @@ abstract final class PlaceRecordMapper {
       practicalTips: _readStringList(row['practical_tips']),
       bestTimeToVisit: _optionalString(row['best_time_to_visit']),
       mapsUrl: _optionalString(row['maps_url']),
+      address: _optionalString(row['address']),
+      latitude: _optionalDouble(row['latitude']),
+      longitude: _optionalDouble(row['longitude']),
+      phone: _optionalString(row['phone']),
+      website: _optionalString(row['website']),
+      email: _optionalString(row['email']),
+      imageUrls: _readStringList(row['image_urls']),
+      amenities: _readStringList(row['amenities']),
+      accessibilityFeatures: _readStringList(row['accessibility_features']),
+      openingHours: _readOpeningHours(row['opening_hours']),
     );
   }
 
@@ -70,6 +80,15 @@ abstract final class PlaceRecordMapper {
     return trimmed.isEmpty ? null : trimmed;
   }
 
+  static double? _optionalDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.trim());
+    return null;
+  }
+
   static Color _parseColor(String? hex) {
     if (hex == null || hex.isEmpty) return const Color(0xFF1A2332);
     final normalized = hex.replaceFirst('#', '');
@@ -81,8 +100,47 @@ abstract final class PlaceRecordMapper {
 
   static List<String> _readStringList(dynamic value) {
     if (value is List) {
-      return value.map((item) => item.toString()).toList();
+      return value
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList(growable: false);
     }
     return const [];
+  }
+
+  static PlaceOpeningHours? _readOpeningHours(dynamic value) {
+    if (value == null) return null;
+
+    if (value is Map) {
+      final note = _optionalString(value['note']);
+      final rawEntries = value['entries'];
+      final entries = <PlaceHoursEntry>[];
+      if (rawEntries is List) {
+        for (final item in rawEntries) {
+          if (item is! Map) continue;
+          final day = _optionalString(item['day'] ?? item['day_label']);
+          final hours = _optionalString(item['hours'] ?? item['hours_label']);
+          if (day == null || hours == null) continue;
+          entries.add(PlaceHoursEntry(dayLabel: day, hoursLabel: hours));
+        }
+      }
+      final hours = PlaceOpeningHours(entries: entries, note: note);
+      return hours.hasContent ? hours : null;
+    }
+
+    if (value is List) {
+      final entries = <PlaceHoursEntry>[];
+      for (final item in value) {
+        if (item is! Map) continue;
+        final day = _optionalString(item['day'] ?? item['day_label']);
+        final hours = _optionalString(item['hours'] ?? item['hours_label']);
+        if (day == null || hours == null) continue;
+        entries.add(PlaceHoursEntry(dayLabel: day, hoursLabel: hours));
+      }
+      if (entries.isEmpty) return null;
+      return PlaceOpeningHours(entries: entries);
+    }
+
+    return null;
   }
 }

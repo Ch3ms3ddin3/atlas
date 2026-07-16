@@ -226,7 +226,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _openPlace(PlaceGuide place) {
     Navigator.of(context).push(
       AtlasPageRoute<void>(
-        page: PlaceDetailPage(place: place),
+        page: PlaceDetailPage(place: place, placeId: place.id),
         wrapPage: (child) => wrapWithFavoritesScope(context, child),
       ),
     );
@@ -404,19 +404,27 @@ class _ExplorerPageState extends State<ExplorerPage> {
 void openPlaceGuide(BuildContext context, PlaceGuide place) {
   Navigator.of(context).push(
     AtlasPageRoute<void>(
-      page: PlaceDetailPage(place: place),
+      page: PlaceDetailPage(place: place, placeId: place.id),
       wrapPage: (child) => wrapWithFavoritesScope(context, child),
     ),
   );
 }
 
-/// Ouvre un lieu par identifiant ; ne fait rien si introuvable.
+/// Ouvre un lieu par slug — affiche empty state si introuvable.
 void openPlaceGuideById(
   BuildContext context,
   PlaceRepository repository,
   String placeId,
 ) {
   final place = repository.findById(placeId);
-  if (place == null) return;
-  openPlaceGuide(context, place);
+  Navigator.of(context).push(
+    AtlasPageRoute<void>(
+      page: PlaceDetailPage(
+        place: place,
+        placeId: placeId,
+        repository: repository,
+      ),
+      wrapPage: (child) => wrapWithFavoritesScope(context, child),
+    ),
+  );
 }

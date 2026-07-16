@@ -26,6 +26,13 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>tel</string>
+		<string>mailto</string>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Atlas utilise votre position pour afficher la météo et les horaires de prière de votre ville.</string>
 	<key>UIApplicationSceneManifest</key>
