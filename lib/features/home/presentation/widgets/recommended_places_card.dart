@@ -135,6 +135,8 @@ class RecommendedPlacesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (places.isEmpty) return const SizedBox.shrink();
+
     return SizedBox(
       height: 218,
       child: ListView.separated(

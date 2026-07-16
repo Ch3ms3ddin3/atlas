@@ -23,6 +23,8 @@ class TodayEssentialsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reminder = data.adminReminder;
+
     return Column(
       children: [
         ImportantAlerts(
@@ -31,11 +33,13 @@ class TodayEssentialsSection extends StatelessWidget {
         ),
         const SizedBox(height: AtlasSpacing.lg),
         DailyInfoCard(data: data.tip, onTap: onTipTap),
-        const SizedBox(height: AtlasSpacing.lg),
-        AdministrativeReminderCard(
-          reminder: data.adminReminder,
-          onTap: onReminderTap,
-        ),
+        if (reminder != null) ...[
+          const SizedBox(height: AtlasSpacing.lg),
+          AdministrativeReminderCard(
+            reminder: reminder,
+            onTap: onReminderTap,
+          ),
+        ],
       ],
     );
   }

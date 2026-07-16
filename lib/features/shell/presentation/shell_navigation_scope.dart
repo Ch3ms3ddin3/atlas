@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Indices des onglets du shell (ordre de [AppShell]).
+abstract final class AtlasShellTab {
+  static const home = 0;
+  static const explorer = 1;
+  static const procedures = 2;
+  static const prices = 3;
+  static const profile = 4;
+}
+
 /// Accès UI à la navigation par onglets depuis les écrans enfants.
 class ShellNavigationScope extends InheritedWidget {
   const ShellNavigationScope({
@@ -14,9 +23,24 @@ class ShellNavigationScope extends InheritedWidget {
     return context.dependOnInheritedWidgetOfExactType<ShellNavigationScope>();
   }
 
-  static void goToProfile(BuildContext context) {
-    maybeOf(context)?.navigateToTab(4);
+  static void goToTab(BuildContext context, int index) {
+    maybeOf(context)?.navigateToTab(index);
   }
+
+  static void goToHome(BuildContext context) =>
+      goToTab(context, AtlasShellTab.home);
+
+  static void goToExplorer(BuildContext context) =>
+      goToTab(context, AtlasShellTab.explorer);
+
+  static void goToProcedures(BuildContext context) =>
+      goToTab(context, AtlasShellTab.procedures);
+
+  static void goToPrices(BuildContext context) =>
+      goToTab(context, AtlasShellTab.prices);
+
+  static void goToProfile(BuildContext context) =>
+      goToTab(context, AtlasShellTab.profile);
 
   @override
   bool updateShouldNotify(ShellNavigationScope oldWidget) => false;

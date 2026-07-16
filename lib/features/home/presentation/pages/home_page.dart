@@ -10,23 +10,34 @@ import '../../../../core/location/user_location.dart';
 import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
+import '../../../favorites/domain/favorite_entity_type.dart';
+import '../../../favorites/domain/favorites_repository.dart';
+import '../../../favorites/presentation/favorites_scope.dart';
+import '../../../prices/domain/models/price_models.dart';
+import '../../../prices/domain/price_repository.dart';
+import '../../../prices/presentation/pages/prices_page.dart';
+import '../../../procedures/domain/models/procedure_models.dart';
+import '../../../procedures/domain/procedure_repository.dart';
+import '../../../procedures/presentation/pages/procedures_page.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
-import '../../../procedures/data/procedure_reminder_links.dart';
-import '../../../procedures/domain/procedure_repository.dart';
-import '../../../procedures/presentation/pages/procedures_page.dart';
+import '../../../shell/presentation/shell_navigation_scope.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
 import '../../data/holiday/holiday_repository.dart';
+import '../../data/home_dashboard_catalog.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../data/today_essentials/today_essentials_repository.dart';
 import '../../data/weather/weather_repository.dart';
-import '../widgets/admission_temporaire_card.dart';
 import '../widgets/daily_briefing_section.dart';
 import '../widgets/greeting_header.dart';
+import '../widgets/home_favorites_section.dart';
+import '../widgets/home_optional_section.dart';
+import '../widgets/home_price_indicators_section.dart';
+import '../widgets/home_procedures_section.dart';
 import '../widgets/home_section_header.dart';
 import '../widgets/prayer_notification_settings_sheet.dart';
 import '../widgets/quick_actions_grid.dart';
@@ -58,6 +69,7 @@ class _HomePageState extends State<HomePage> {
       const TodayEssentialsRepository();
   final ProcedureRepository _procedureRepository = ProcedureRepository();
   final PlaceRepository _placeRepository = PlaceRepository();
+  final PriceRepository _priceRepository = PriceRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -73,7 +85,10 @@ class _HomePageState extends State<HomePage> {
   GreetingData _greeting = HomeMockData.greeting;
   TodayEssentialsData _todayEssentials = HomeMockData.todayEssentials;
   String _lastUpdatedLabel = HomeMockData.lastUpdated;
-  List<RecommendedPlaceData> _recommendedPlaces = HomeMockData.recommendedPlaces;
+  List<RecommendedPlaceData> _recommendedPlaces = const [];
+  List<ProcedureGuide> _curatedProcedures = const [];
+  List<PriceGuide> _priceIndicators = const [];
+  List<HomeFavoriteEntry> _favoriteEntries = const [];
   DateTime? _weatherFetchedAt;
   DateTime? _prayerFetchedAt;
   DateTime? _exchangeFetchedAt;
@@ -81,13 +96,17 @@ class _HomePageState extends State<HomePage> {
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
   ProfileRepository? _profileRepository;
+  FavoritesRepository? _favoritesRepository;
+  VoidCallback? _placeCatalogListener;
+  VoidCallback? _priceCatalogListener;
 
   @override
   void initState() {
     super.initState();
     _prayerTime = _prayerRepository.buildForNow();
+    _attachCatalogListeners();
     _refreshDerivedDashboardData();
-    _loadFeaturedPlaces();
+    _loadCatalogSections();
     _loadWeather();
     _loadPrayerTimes();
     _loadExchangeRate();
@@ -103,29 +122,75 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final repository = ProfileScope.of(context);
-    if (!identical(repository, _profileRepository)) {
+    final profileRepository = ProfileScope.of(context);
+    if (!identical(profileRepository, _profileRepository)) {
       _profileRepository?.removeListener(_onProfileChanged);
-      _profileRepository = repository;
+      _profileRepository = profileRepository;
       _profileRepository!.addListener(_onProfileChanged);
-      if (repository.isLoaded) {
+      if (profileRepository.isLoaded) {
         _refreshDerivedDashboardData();
+        _loadCatalogSections();
       }
+    }
+
+    final favoritesRepository = FavoritesScope.of(context);
+    if (!identical(favoritesRepository, _favoritesRepository)) {
+      _favoritesRepository?.removeListener(_onFavoritesChanged);
+      _favoritesRepository = favoritesRepository;
+      _favoritesRepository!.addListener(_onFavoritesChanged);
+      _loadFavoriteEntries();
     }
   }
 
   @override
   void dispose() {
     _profileRepository?.removeListener(_onProfileChanged);
+    _favoritesRepository?.removeListener(_onFavoritesChanged);
+    _detachCatalogListeners();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
     super.dispose();
   }
 
+  void _attachCatalogListeners() {
+    final places = _placeRepository;
+    if (places is Listenable) {
+      _placeCatalogListener = _onEditorialCatalogChanged;
+      (places as Listenable).addListener(_placeCatalogListener!);
+    }
+    final prices = _priceRepository;
+    if (prices is Listenable) {
+      _priceCatalogListener = _onEditorialCatalogChanged;
+      (prices as Listenable).addListener(_priceCatalogListener!);
+    }
+  }
+
+  void _detachCatalogListeners() {
+    final places = _placeRepository;
+    if (places is Listenable && _placeCatalogListener != null) {
+      (places as Listenable).removeListener(_placeCatalogListener!);
+    }
+    final prices = _priceRepository;
+    if (prices is Listenable && _priceCatalogListener != null) {
+      (prices as Listenable).removeListener(_priceCatalogListener!);
+    }
+  }
+
+  void _onEditorialCatalogChanged() {
+    if (!mounted) return;
+    setState(_loadCatalogSections);
+  }
+
   void _onProfileChanged() {
     if (!mounted) return;
     _refreshDerivedDashboardData();
+    _loadCatalogSections();
     unawaited(_resolveLocation());
+  }
+
+  void _onFavoritesChanged() {
+    if (!mounted) return;
+    setState(_loadFavoriteEntries);
   }
 
   void _scheduleDateRollTimer() {
@@ -167,11 +232,79 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
-  void _loadFeaturedPlaces() {
+  void _loadCatalogSections() {
     final featured = _placeRepository.getFeatured(cityName: _location.cityName);
     _recommendedPlaces = featured
         .map(PlaceMapper.toRecommendedPlaceData)
         .toList();
+
+    _curatedProcedures = HomeDashboardCatalog.resolveCuratedProcedures(
+      _procedureRepository.getAll,
+    );
+
+    final cityPrices = _priceRepository.getAll(cityName: _location.cityName);
+    _priceIndicators = HomeDashboardCatalog.pickUsefulPriceIndicators(
+      cityPrices,
+    );
+
+    _loadFavoriteEntries();
+  }
+
+  void _loadFavoriteEntries() {
+    final favorites = _favoritesRepository;
+    if (favorites == null || !favorites.isLoaded) {
+      _favoriteEntries = const [];
+      return;
+    }
+
+    final entries = <HomeFavoriteEntry>[];
+    for (final key in favorites.activeFavorites) {
+      switch (key.entityType) {
+        case FavoriteEntityType.place:
+          final place = _placeRepository.findById(key.entitySlug);
+          if (place == null) continue;
+          entries.add(
+            HomeFavoriteEntry(
+              entityType: FavoriteEntityType.place,
+              entitySlug: place.id,
+              title: place.name,
+              subtitle: '${place.categoryLabel} · ${place.neighborhood}',
+              icon: Icons.place_outlined,
+            ),
+          );
+        case FavoriteEntityType.procedure:
+          final procedure = _procedureRepository.findById(key.entitySlug);
+          if (procedure == null) continue;
+          entries.add(
+            HomeFavoriteEntry(
+              entityType: FavoriteEntityType.procedure,
+              entitySlug: procedure.id,
+              title: procedure.title,
+              subtitle: procedure.categoryLabel,
+              icon: procedure.icon,
+            ),
+          );
+        case FavoriteEntityType.price:
+          final price = _priceRepository.findById(key.entitySlug);
+          if (price == null) continue;
+          entries.add(
+            HomeFavoriteEntry(
+              entityType: FavoriteEntityType.price,
+              entitySlug: price.id,
+              title: price.name,
+              subtitle: '${price.categoryLabel} · ${price.unitLabel}',
+              icon: price.icon,
+            ),
+          );
+      }
+    }
+
+    entries.sort((a, b) {
+      final typeCompare = a.entityType.index.compareTo(b.entityType.index);
+      if (typeCompare != 0) return typeCompare;
+      return a.title.compareTo(b.title);
+    });
+    _favoriteEntries = entries;
   }
 
   Future<void> _resolveLocation() async {
@@ -189,7 +322,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _location = location;
       _refreshDerivedDashboardData();
-      _loadFeaturedPlaces();
+      _loadCatalogSections();
     });
 
     if (locationChanged && location.isFromGps) {
@@ -260,6 +393,19 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _refreshAll() async {
+    setState(() => _isWeatherLoading = true);
+    await _resolveLocation();
+    await Future.wait([
+      _loadWeather(),
+      _loadPrayerTimes(),
+      _loadExchangeRate(),
+      _loadHolidayStatus(),
+    ]);
+    if (!mounted) return;
+    setState(_loadCatalogSections);
+  }
+
   void _refreshPrayerCountdown() {
     if (!mounted) return;
     setState(() => _prayerTime = _prayerRepository.buildForNow());
@@ -293,32 +439,36 @@ class _HomePageState extends State<HomePage> {
     openPlaceGuideById(context, _placeRepository, place.id);
   }
 
-  void _onAdminReminderTap() {
-    final procedureId = ProcedureReminderLinks.procedureIdForReminder(
-      _todayEssentials.adminReminder.id,
-    );
-    if (procedureId == null) return;
-    openProcedureGuideById(context, _procedureRepository, procedureId);
+  void _onProcedureTap(ProcedureGuide guide) {
+    openProcedureGuideById(context, _procedureRepository, guide.id);
   }
 
-  void _onAdmissionTemporaireTap() {
-    openProcedureGuideById(
-      context,
-      _procedureRepository,
-      'admission-temporaire',
-    );
+  void _onPriceTap(PriceGuide guide) {
+    openPriceGuideById(context, _priceRepository, guide.id);
+  }
+
+  void _onFavoriteTap(HomeFavoriteEntry entry) {
+    switch (entry.entityType) {
+      case FavoriteEntityType.place:
+        openPlaceGuideById(context, _placeRepository, entry.entitySlug);
+      case FavoriteEntityType.procedure:
+        openProcedureGuideById(context, _procedureRepository, entry.entitySlug);
+      case FavoriteEntityType.price:
+        openPriceGuideById(context, _priceRepository, entry.entitySlug);
+    }
   }
 
   void _onQuickActionTap(QuickActionData action) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text('${action.label} — bientôt disponible'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    switch (action.id) {
+      case 'explorer':
+        ShellNavigationScope.goToExplorer(context);
+      case 'procedures':
+        ShellNavigationScope.goToProcedures(context);
+      case 'prices':
+        ShellNavigationScope.goToPrices(context);
+      case 'profile':
+        ShellNavigationScope.goToProfile(context);
+    }
   }
 
   @override
@@ -326,101 +476,121 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
 
     return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: AtlasContentContainer(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AtlasSpacing.xxl),
-                  AtlasReveal(
-                    child: GreetingHeader(data: _greeting),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay,
-                    child: const HomeSectionHeader(title: 'Briefing du jour'),
-                  ),
-                  const SizedBox(height: AtlasSpacing.xl),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 2,
-                    child: DailyBriefingSection(
-                      weather: _weather,
-                      isWeatherLoading: _isWeatherLoading,
-                      prayerTime: _prayerTime,
-                      exchangeRate: _exchangeRate,
-                      holidayStatus: _holidayStatus,
-                      onPrayerTap: _onPrayerCardTap,
+      child: RefreshIndicator(
+        onRefresh: _refreshAll,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: AtlasContentContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AtlasSpacing.xxl),
+                    AtlasReveal(
+                      child: GreetingHeader(data: _greeting),
                     ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 3,
-                    child: const HomeSectionHeader(title: 'À savoir aujourd\'hui'),
-                  ),
-                  const SizedBox(height: AtlasSpacing.xl),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 4,
-                    child: TodayEssentialsSection(
-                      data: _todayEssentials,
-                      onReminderTap: _onAdminReminderTap,
+                    const SizedBox(height: AtlasSpacing.section),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay,
+                      child: const HomeSectionHeader(title: 'Briefing du jour'),
                     ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 5,
-                    child: const HomeSectionHeader(title: 'Actions rapides'),
-                  ),
-                  const SizedBox(height: AtlasSpacing.xl),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 6,
-                    child: QuickActionsGrid(
-                      actions: HomeMockData.quickActions,
-                      onActionTap: _onQuickActionTap,
-                    ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 7,
-                    child: const HomeSectionHeader(title: 'Administratif'),
-                  ),
-                  const SizedBox(height: AtlasSpacing.xl),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 8,
-                    child: AdmissionTemporaireCard(
-                      data: HomeMockData.admissionTemporaire,
-                      onTap: _onAdmissionTemporaireTap,
-                    ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 9,
-                    child: const HomeSectionHeader(title: 'Recommandations'),
-                  ),
-                  const SizedBox(height: AtlasSpacing.xl),
-                  AtlasReveal(
-                    delay: AtlasMotion.staggerDelay * 10,
-                    child: RecommendedPlacesSection(
-                      places: _recommendedPlaces,
-                      onPlaceTap: _onPlaceTap,
-                    ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.section),
-                  Center(
-                    child: Text(
-                      _lastUpdatedLabel,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: AtlasTextStyles.metadata(theme.colorScheme),
+                    const SizedBox(height: AtlasSpacing.xl),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 2,
+                      child: DailyBriefingSection(
+                        weather: _weather,
+                        isWeatherLoading: _isWeatherLoading,
+                        prayerTime: _prayerTime,
+                        exchangeRate: _exchangeRate,
+                        holidayStatus: _holidayStatus,
+                        onPrayerTap: _onPrayerCardTap,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.sectionLarge),
-                ],
+                    const SizedBox(height: AtlasSpacing.section),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 3,
+                      child: const HomeSectionHeader(title: 'À savoir aujourd\'hui'),
+                    ),
+                    const SizedBox(height: AtlasSpacing.xl),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 4,
+                      child: TodayEssentialsSection(
+                        data: _todayEssentials,
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 5,
+                      child: HomeOptionalSection(
+                        title: 'Actions rapides',
+                        isEmpty: HomeDashboardCatalog.quickActions.isEmpty,
+                        topSpacing: AtlasSpacing.section,
+                        child: QuickActionsGrid(
+                          actions: HomeDashboardCatalog.quickActions,
+                          onActionTap: _onQuickActionTap,
+                        ),
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 6,
+                      child: HomeOptionalSection(
+                        title: 'Mes favoris',
+                        isEmpty: _favoriteEntries.isEmpty,
+                        child: HomeFavoritesSection(
+                          entries: _favoriteEntries,
+                          onEntryTap: _onFavoriteTap,
+                        ),
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 7,
+                      child: HomeOptionalSection(
+                        title: 'Recommandations',
+                        isEmpty: _recommendedPlaces.isEmpty,
+                        child: RecommendedPlacesSection(
+                          places: _recommendedPlaces,
+                          onPlaceTap: _onPlaceTap,
+                        ),
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 8,
+                      child: HomeOptionalSection(
+                        title: 'Démarches utiles',
+                        isEmpty: _curatedProcedures.isEmpty,
+                        child: HomeProceduresSection(
+                          guides: _curatedProcedures,
+                          onGuideTap: _onProcedureTap,
+                        ),
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 9,
+                      child: HomeOptionalSection(
+                        title: 'Repères de prix',
+                        isEmpty: _priceIndicators.isEmpty,
+                        child: HomePriceIndicatorsSection(
+                          guides: _priceIndicators,
+                          onGuideTap: _onPriceTap,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AtlasSpacing.section),
+                    Center(
+                      child: Text(
+                        _lastUpdatedLabel,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AtlasTextStyles.metadata(theme.colorScheme),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AtlasSpacing.sectionLarge),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

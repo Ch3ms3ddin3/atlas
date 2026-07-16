@@ -25,7 +25,8 @@ abstract final class TodayEssentialsMapper {
         cityName: cityName,
         userType: userType,
       ),
-      adminReminder: HomeMockData.todayEssentials.adminReminder,
+      // Pas de compteur / échéance fictifs — les démarches utiles sont sur l'accueil.
+      adminReminder: null,
     );
   }
 

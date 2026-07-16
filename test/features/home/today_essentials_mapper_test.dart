@@ -71,7 +71,7 @@ void main() {
       expect(essentials.tip.content, contains('demain'));
     });
 
-    test('conserve le rappel administratif mock', () {
+    test('n\'expose pas de rappel administratif fictif', () {
       final essentials = TodayEssentialsMapper.fromContext(
         weather: HomeMockData.weather,
         holidayStatus: workingDay,
@@ -79,10 +79,7 @@ void main() {
         userType: AtlasUserType.resident,
       );
 
-      expect(
-        essentials.adminReminder.title,
-        HomeMockData.todayEssentials.adminReminder.title,
-      );
+      expect(essentials.adminReminder, isNull);
     });
 
     test('utilise le conseil par défaut hors chaleur et hors férié', () {

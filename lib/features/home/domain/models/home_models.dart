@@ -48,12 +48,14 @@ class TodayEssentialsData {
   const TodayEssentialsData({
     required this.alert,
     required this.tip,
-    required this.adminReminder,
+    this.adminReminder,
   });
 
   final AlertData alert;
   final DailyInfoData tip;
-  final AdminReminderData adminReminder;
+
+  /// Rappel optionnel — masqué s'il n'y a pas de donnée réelle.
+  final AdminReminderData? adminReminder;
 }
 
 /// Données météo pour la carte du jour.

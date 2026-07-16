@@ -18,6 +18,16 @@ void main() {
     ensurePrayerNotificationCoordinatorForTests();
   });
 
+  Future<void> tapBottomNav(WidgetTester tester, String label) async {
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AtlasBottomNav),
+        matching: find.text(label),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('Atlas démarre sur Accueil avec 5 onglets', (
     WidgetTester tester,
   ) async {
@@ -40,7 +50,7 @@ void main() {
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.text('Asr'), findsWidgets);
     expect(find.text('1 EUR'), findsOneWidget);
-    expect(find.textContaining('MAD'), findsOneWidget);
+    expect(find.textContaining('10.'), findsWidgets);
     expect(find.text('Jour ouvré'), findsOneWidget);
 
     expect(AtlasBottomNav.destinations, hasLength(5));
@@ -51,9 +61,9 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
-
-    await tester.tap(find.text('Explorer'));
     await tester.pumpAndSettle();
+
+    await tapBottomNav(tester, 'Explorer');
 
     expect(
       find.textContaining('Lieux utiles à Marrakech'),
@@ -61,15 +71,13 @@ void main() {
     );
     expect(find.text('Jardin Majorelle'), findsWidgets);
 
-    await tester.tap(find.text('Démarches'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Démarches');
 
     expect(find.text('Guides pas à pas pour vos démarches au Maroc.'), findsOneWidget);
     expect(find.text('Renouveler la CIN'), findsOneWidget);
     expect(find.text('Carte de séjour'), findsOneWidget);
 
-    await tester.tap(find.text('Prix'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Prix');
 
     expect(
       find.textContaining('Repères de prix à Marrakech'),
@@ -78,8 +86,7 @@ void main() {
     expect(find.text('Course de taxi'), findsOneWidget);
     expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
 
-    await tester.tap(find.text('Profil'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Profil');
 
     expect(
       find.textContaining('Personnalisez Atlas'),
@@ -87,8 +94,7 @@ void main() {
     );
     expect(find.text('Enregistrer'), findsOneWidget);
 
-    await tester.tap(find.text('Accueil'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Accueil');
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsWidgets);
@@ -97,37 +103,48 @@ void main() {
   testWidgets('Le tableau de bord affiche les sections principales', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AtlasApp());
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
+    await tester.pumpWidget(const AtlasApp());
     await tester.pumpAndSettle();
 
     expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Administratif'), findsWidgets);
+    expect(find.text('Lieux'), findsWidgets);
+    expect(find.text('Mes favoris'), findsNothing);
     expect(find.text('Recommandations'), findsOneWidget);
-    expect(find.text('Admission temporaire'), findsOneWidget);
-    expect(find.text('42'), findsOneWidget);
+    expect(find.text('Démarches utiles'), findsOneWidget);
+    expect(find.text('Repères de prix'), findsOneWidget);
+    expect(find.textContaining('Admission temporaire'), findsOneWidget);
+    expect(find.text('42'), findsNothing);
     expect(find.text('Jardin Majorelle'), findsOneWidget);
     expect(find.text('Place Jemaa el-Fna'), findsOneWidget);
-    expect(find.text('Urgences'), findsOneWidget);
-    expect(find.text('Padel'), findsOneWidget);
+    expect(find.text('Course de taxi'), findsOneWidget);
+    expect(find.text('Urgences'), findsNothing);
+    expect(find.text('Padel'), findsNothing);
     expect(
       find.textContaining('Toutes les données mises à jour'),
       findsWidgets,
     );
   });
 
-  testWidgets('Le rappel administratif ouvre le guide CIN', (
+  testWidgets('Une démarche utile ouvre le guide CIN', (
     WidgetTester tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(const AtlasApp());
     await tester.pumpAndSettle();
 
     final reminder = find.text('Renouveler la CIN').first;
-    await tester.ensureVisible(reminder);
+    await tester.scrollUntilVisible(
+      reminder,
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(reminder);
     await tester.pumpAndSettle();
 
@@ -163,9 +180,9 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
-
-    await tester.tap(find.text('Prix'));
     await tester.pumpAndSettle();
+
+    await tapBottomNav(tester, 'Prix');
 
     final priceItem = find.text('Course de taxi').first;
     await tester.ensureVisible(priceItem);
@@ -196,23 +213,52 @@ void main() {
     expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
   });
 
-  testWidgets('Les actions rapides sont tappables', (
+  testWidgets('Les actions rapides naviguent vers les onglets Atlas', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(const AtlasApp());
-
-    await tester.ensureVisible(find.text('Urgences'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Urgences'));
+
+    final lieuxAction = find.text('Lieux').first;
+    await tester.ensureVisible(lieuxAction);
+    await tester.pumpAndSettle();
+    await tester.tap(lieuxAction);
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Urgences — bientôt disponible'),
+      find.textContaining('Lieux utiles à Marrakech'),
       findsOneWidget,
     );
+    expect(find.text('Urgences — bientôt disponible'), findsNothing);
+  });
+
+  testWidgets('Un repère de prix de l\'accueil ouvre le détail', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const AtlasApp());
+    await tester.pumpAndSettle();
+
+    final priceSection = find.text('Repères de prix');
+    await tester.scrollUntilVisible(
+      priceSection,
+      160,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final taxi = find.text('Course de taxi').first;
+    await tester.ensureVisible(taxi);
+    await tester.pumpAndSettle();
+    await tester.tap(taxi);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fourchette normale'), findsOneWidget);
   });
 
   testWidgets('Le profil enregistre le prénom et met à jour l\'accueil', (
@@ -224,8 +270,7 @@ void main() {
     await tester.pumpWidget(const AtlasApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profil'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Profil');
 
     await tester.enterText(find.byType(TextField).first, 'Salma');
 
@@ -241,8 +286,7 @@ void main() {
 
     expect(find.text('Profil enregistré'), findsOneWidget);
 
-    await tester.tap(find.text('Accueil'));
-    await tester.pumpAndSettle();
+    await tapBottomNav(tester, 'Accueil');
 
     expect(find.text('Bonjour, Salma'), findsOneWidget);
   });

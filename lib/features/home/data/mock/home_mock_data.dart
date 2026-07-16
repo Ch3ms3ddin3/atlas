@@ -63,31 +63,15 @@ abstract final class HomeMockData {
           'et profiter des températures plus clémentes.',
       icon: Icons.lightbulb_outline,
     ),
-    adminReminder: AdminReminderData(
-      id: 'admin-cin',
-      title: 'Renouveler la CIN',
-      statusLabel: 'Dans 18 jours',
-      status: AdminReminderStatus.dueSoon,
-      progressLabel: 'Rendez-vous à prendre à la commune de Gueliz',
-      progress: null,
-    ),
   );
 
+  /// Conservé pour tests / repli — les actions live viennent de [HomeDashboardCatalog].
   static const quickActions = <QuickActionData>[
-    QuickActionData(id: 'emergency', label: 'Urgences', icon: Icons.emergency_outlined),
-    QuickActionData(id: 'hospitals', label: 'Hôpitaux', icon: Icons.local_hospital_outlined),
-    QuickActionData(id: 'restaurants', label: 'Restaurants', icon: Icons.restaurant_outlined),
-    QuickActionData(id: 'padel', label: 'Padel', icon: Icons.sports_tennis_outlined),
-    QuickActionData(id: 'fuel', label: 'Carburant', icon: Icons.local_gas_station_outlined),
-    QuickActionData(id: 'parking', label: 'Parking', icon: Icons.local_parking_outlined),
+    QuickActionData(id: 'explorer', label: 'Lieux', icon: Icons.explore_outlined),
+    QuickActionData(id: 'procedures', label: 'Démarches', icon: Icons.description_outlined),
+    QuickActionData(id: 'prices', label: 'Prix', icon: Icons.payments_outlined),
+    QuickActionData(id: 'profile', label: 'Profil', icon: Icons.person_outline_rounded),
   ];
-
-  static const admissionTemporaire = AdmissionTemporaireData(
-    title: 'Admission temporaire',
-    daysRemaining: 42,
-    totalDays: 90,
-    expiryLabel: 'Expire le 23 août 2026',
-  );
 
   static const recommendedPlaces = <RecommendedPlaceData>[
     RecommendedPlaceData(
