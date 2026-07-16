@@ -7,13 +7,11 @@ import 'editorial_remote_catalog.dart';
 /// Cache résilient distant-d'abord avec repli local permanent.
 ///
 /// Motif partagé pour les catalogues places / procédures / prix :
-/// 1. avant `warmUp`, [items] sert le local ;
-/// 2. `warmUp` tente le distant (timeout) ;
-/// 3. succès non vide → cache distant ;
-/// 4. échec / vide → local inchangé, état [EditorialCatalogLoadState.readyLocalFallback].
-///
-/// Ne remplace pas encore les `Resilient*Repository` existants — base pour
-/// la migration incrémentale des features éditoriales.
+/// 1. avant `warmUp`, [items] sert le local (`idle`) ;
+/// 2. `warmUp` passe en `loading` puis tente le distant (timeout) ;
+/// 3. succès non vide → cache distant (`success`) ;
+/// 4. distant vide → local inchangé (`stale`) ;
+/// 5. échec / timeout → local inchangé (`error`).
 class ResilientEditorialCatalog<T> extends ChangeNotifier {
   ResilientEditorialCatalog({
     required List<T> localItems,
@@ -41,10 +39,14 @@ class ResilientEditorialCatalog<T> extends ChangeNotifier {
 
   List<T>? _remoteCache;
   EditorialCatalogLoadState _loadState = EditorialCatalogLoadState.idle;
+  Object? _lastError;
   bool _warmUpStarted = false;
 
   /// État courant du préchargement.
   EditorialCatalogLoadState get loadState => _loadState;
+
+  /// Dernière erreur de fetch distant, si [loadState] est [EditorialCatalogLoadState.error].
+  Object? get lastError => _lastError;
 
   /// `true` lorsque le cache distant est actif.
   bool get isUsingRemote => _remoteCache != null;
@@ -52,24 +54,26 @@ class ResilientEditorialCatalog<T> extends ChangeNotifier {
   /// Source effective : distant si disponible, sinon local.
   List<T> get items => _remoteCache ?? _localItems;
 
-  /// Précharge le distant une seule fois. Sans effet de bord UI obligatoire —
-  /// les écouteurs sont notifiés si l'état ou le cache change.
+  /// Précharge le distant une seule fois. Les écouteurs sont notifiés
+  /// à chaque changement d'état (et donc au passage local → distant).
   Future<void> warmUp() async {
     if (_warmUpStarted) return;
     _warmUpStarted = true;
+    _lastError = null;
     _setLoadState(EditorialCatalogLoadState.loading);
 
     try {
       final remoteItems = await _fetchRemote().timeout(_fetchTimeout);
       if (remoteItems.isNotEmpty) {
         _remoteCache = List<T>.unmodifiable(remoteItems);
-        _setLoadState(EditorialCatalogLoadState.readyRemote);
+        _setLoadState(EditorialCatalogLoadState.success);
         return;
       }
-      _setLoadState(EditorialCatalogLoadState.readyLocalFallback);
-    } catch (_) {
+      _setLoadState(EditorialCatalogLoadState.stale);
+    } catch (error) {
+      _lastError = error;
       // Repli silencieux sur le catalogue local.
-      _setLoadState(EditorialCatalogLoadState.readyLocalFallback);
+      _setLoadState(EditorialCatalogLoadState.error);
     }
   }
 

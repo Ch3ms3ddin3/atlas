@@ -31,13 +31,13 @@ void main() {
 
       await catalog.warmUp();
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyRemote);
+      expect(catalog.loadState, EditorialCatalogLoadState.success);
       expect(catalog.isUsingRemote, isTrue);
       expect(catalog.items, ['remote-a', 'remote-b']);
       expect(notifications, greaterThanOrEqualTo(1));
     });
 
-    test('retombe sur le local si le distant échoue', () async {
+    test('passe en error et retombe sur le local si le distant échoue', () async {
       final catalog = ResilientEditorialCatalog<String>(
         localItems: const ['local-a'],
         fetchRemote: () async => throw Exception('network error'),
@@ -45,12 +45,13 @@ void main() {
 
       await catalog.warmUp();
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyLocalFallback);
+      expect(catalog.loadState, EditorialCatalogLoadState.error);
+      expect(catalog.lastError, isA<Exception>());
       expect(catalog.isUsingRemote, isFalse);
       expect(catalog.items, ['local-a']);
     });
 
-    test('retombe sur le local si le distant est vide', () async {
+    test('passe en stale et retombe sur le local si le distant est vide', () async {
       final catalog = ResilientEditorialCatalog<String>(
         localItems: const ['local-a'],
         fetchRemote: () async => const [],
@@ -58,12 +59,12 @@ void main() {
 
       await catalog.warmUp();
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyLocalFallback);
+      expect(catalog.loadState, EditorialCatalogLoadState.stale);
       expect(catalog.isUsingRemote, isFalse);
       expect(catalog.items, ['local-a']);
     });
 
-    test('retombe sur le local si le distant dépasse le délai', () async {
+    test('passe en error si le distant dépasse le délai', () async {
       final catalog = ResilientEditorialCatalog<String>(
         localItems: const ['local-a'],
         fetchTimeout: const Duration(milliseconds: 20),
@@ -75,7 +76,7 @@ void main() {
 
       await catalog.warmUp();
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyLocalFallback);
+      expect(catalog.loadState, EditorialCatalogLoadState.error);
       expect(catalog.items, ['local-a']);
     });
 
@@ -115,7 +116,7 @@ void main() {
       gate.complete();
       await pending;
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyRemote);
+      expect(catalog.loadState, EditorialCatalogLoadState.success);
       expect(catalog.items, ['remote-a']);
     });
 
@@ -127,7 +128,7 @@ void main() {
 
       await catalog.warmUp();
 
-      expect(catalog.loadState, EditorialCatalogLoadState.readyRemote);
+      expect(catalog.loadState, EditorialCatalogLoadState.success);
       expect(catalog.items, ['remote-a']);
     });
   });

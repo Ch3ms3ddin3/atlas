@@ -1,43 +1,56 @@
+import 'package:flutter/foundation.dart';
+
+import '../../../core/editorial/editorial_catalog_load_state.dart';
+import '../../../core/editorial/resilient_editorial_catalog.dart';
 import '../domain/models/procedure_models.dart';
 import '../domain/procedure_repository.dart';
 import 'local_procedure_repository.dart';
 import 'procedure_mapper.dart';
 import 'supabase_procedure_repository.dart';
 
-/// Catalogue éditorial avec repli local si Supabase est indisponible.
-class ResilientProcedureRepository implements ProcedureRepository {
+/// Démarches : local immédiat, puis refresh Supabase via [ResilientEditorialCatalog].
+///
+/// Les slugs (`ProcedureGuide.id`) restent stables pour favoris et signalements.
+class ResilientProcedureRepository
+    with ChangeNotifier
+    implements ProcedureRepository {
   ResilientProcedureRepository({
     LocalProcedureRepository? local,
     Future<List<ProcedureGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
-  })  : _local = local ?? LocalProcedureRepository(),
-        _fetchRemote =
-            fetchRemote ?? const SupabaseProcedureRepository().fetchAll,
-        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5);
+  }) : _catalog = ResilientEditorialCatalog<ProcedureGuide>(
+          localItems: (local ?? LocalProcedureRepository()).items,
+          fetchRemote:
+              fetchRemote ?? const SupabaseProcedureRepository().fetchAll,
+          fetchTimeout: fetchTimeout,
+        ) {
+    _catalog.addListener(_onCatalogChanged);
+  }
 
-  final LocalProcedureRepository _local;
-  final Future<List<ProcedureGuide>> Function() _fetchRemote;
-  final Duration _fetchTimeout;
+  final ResilientEditorialCatalog<ProcedureGuide> _catalog;
 
-  List<ProcedureGuide>? _remoteCache;
-  bool _warmUpStarted = false;
+  /// État exposé par l'abstraction éditoriale partagée.
+  EditorialCatalogLoadState get loadState => _catalog.loadState;
 
-  List<ProcedureGuide> get _source => _remoteCache ?? _local.catalog;
+  /// Dernière erreur distante, si [loadState] est [EditorialCatalogLoadState.error].
+  Object? get lastError => _catalog.lastError;
+
+  /// `true` lorsque les données affichées viennent de Supabase.
+  bool get isUsingRemote => _catalog.isUsingRemote;
+
+  List<ProcedureGuide> get _source => _catalog.items;
+
+  void _onCatalogChanged() => notifyListeners();
 
   @override
-  Future<void> warmUp() async {
-    if (_warmUpStarted) return;
-    _warmUpStarted = true;
-
-    try {
-      final guides = await _fetchRemote().timeout(_fetchTimeout);
-      if (guides.isNotEmpty) {
-        _remoteCache = List<ProcedureGuide>.unmodifiable(guides);
-      }
-    } catch (_) {
-      // Repli silencieux sur le catalogue local.
-    }
+  void dispose() {
+    _catalog.removeListener(_onCatalogChanged);
+    _catalog.dispose();
+    super.dispose();
   }
+
+  @override
+  Future<void> warmUp() => _catalog.warmUp();
 
   @override
   List<ProcedureGuide> getAll() {

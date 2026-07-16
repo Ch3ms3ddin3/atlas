@@ -1,14 +1,19 @@
+import '../../../core/editorial/editorial_local_catalog.dart';
 import '../domain/models/procedure_models.dart';
 import '../domain/procedure_repository.dart';
 import 'procedure_catalog.dart';
 import 'procedure_mapper.dart';
 
 /// Catalogue statique local — repli permanent et hors-ligne.
-class LocalProcedureRepository implements ProcedureRepository {
+class LocalProcedureRepository
+    implements ProcedureRepository, EditorialLocalCatalog<ProcedureGuide> {
   LocalProcedureRepository();
 
   List<ProcedureGuide> get catalog =>
       List<ProcedureGuide>.unmodifiable(ProcedureCatalog.guides);
+
+  @override
+  List<ProcedureGuide> get items => catalog;
 
   @override
   Future<void> warmUp() async {}
