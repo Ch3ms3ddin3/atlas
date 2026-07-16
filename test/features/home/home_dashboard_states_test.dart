@@ -9,6 +9,9 @@ import 'package:atlas/features/explorer/data/local_place_repository.dart';
 import 'package:atlas/features/explorer/data/resilient_place_repository.dart';
 import 'package:atlas/features/explorer/domain/models/place_models.dart';
 import 'package:atlas/features/explorer/domain/place_repository.dart';
+import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
+import 'package:atlas/features/admission_temporaire/data/local_at_repository.dart';
+import 'package:atlas/features/admission_temporaire/presentation/at_scope.dart';
 import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
 import 'package:atlas/features/favorites/domain/favorite_entity_type.dart';
 import 'package:atlas/features/favorites/domain/favorites_repository.dart';
@@ -39,12 +42,15 @@ void main() {
     PriceRepository.resetForTest();
     ProcedureRepository.resetForTest();
     EditorialRepositoryBootstrap.registerDefaults();
+    resetAtBootstrapForTests();
+    ensureAtRepositoryForTests();
   });
 
   tearDown(() {
     PlaceRepository.resetForTest();
     PriceRepository.resetForTest();
     ProcedureRepository.resetForTest();
+    resetAtBootstrapForTests();
   });
 
   Future<void> pumpHomeDashboard(
@@ -54,6 +60,9 @@ void main() {
   }) async {
     await profile.load();
     await favorites.load();
+    final atRepository = LocalAtRepository();
+    await atRepository.load();
+    ensureAtRepositoryForTests(repository: atRepository);
 
     await tester.binding.setSurfaceSize(const Size(800, 1800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -65,9 +74,12 @@ void main() {
           repository: profile,
           child: FavoritesScope(
             repository: favorites,
-            child: ShellNavigationScope(
-              navigateToTab: (_) {},
-              child: const Scaffold(body: HomePage()),
+            child: AtScope(
+              repository: atRepository,
+              child: ShellNavigationScope(
+                navigateToTab: (_) {},
+                child: const Scaffold(body: HomePage()),
+              ),
             ),
           ),
         ),
@@ -86,6 +98,8 @@ void main() {
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
     expect(find.text('Briefing du jour'), findsOneWidget);
+    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
+    expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
     expect(find.text('Démarches utiles'), findsOneWidget);
     expect(find.text('Repères de prix'), findsOneWidget);

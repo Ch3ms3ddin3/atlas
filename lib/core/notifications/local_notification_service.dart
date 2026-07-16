@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../features/admission_temporaire/data/at_notification_scheduler.dart';
 import '../../features/home/data/prayer/prayer_notification_scheduler.dart';
 import 'notification_constants.dart';
 
@@ -39,6 +40,14 @@ class LocalNotificationService {
         NotificationConstants.channelId,
         NotificationConstants.channelName,
         description: NotificationConstants.channelDescription,
+        importance: Importance.high,
+      ),
+    );
+    await android?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        NotificationConstants.atChannelId,
+        NotificationConstants.atChannelName,
+        description: NotificationConstants.atChannelDescription,
         importance: Importance.high,
       ),
     );
@@ -98,32 +107,76 @@ class LocalNotificationService {
     }
   }
 
+  Future<void> cancelAtNotifications() async {
+    if (kIsWeb || !_initialized) return;
+
+    for (
+      var id = NotificationConstants.atNotificationIdStart;
+      id <= NotificationConstants.atNotificationIdEnd;
+      id++
+    ) {
+      await _plugin.cancel(id: id);
+    }
+  }
+
   Future<void> schedule(ScheduledPrayerNotification notification) async {
+    await _zonedSchedule(
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      scheduledAt: notification.scheduledAt,
+      channelId: NotificationConstants.channelId,
+      channelName: NotificationConstants.channelName,
+      channelDescription: NotificationConstants.channelDescription,
+    );
+  }
+
+  Future<void> scheduleAt(ScheduledAtNotification notification) async {
+    await _zonedSchedule(
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      scheduledAt: notification.scheduledAt,
+      channelId: NotificationConstants.atChannelId,
+      channelName: NotificationConstants.atChannelName,
+      channelDescription: NotificationConstants.atChannelDescription,
+    );
+  }
+
+  Future<void> _zonedSchedule({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledAt,
+    required String channelId,
+    required String channelName,
+    required String channelDescription,
+  }) async {
     if (kIsWeb || !_initialized) return;
 
     final scheduledDate = tz.TZDateTime(
       tz.getLocation('Africa/Casablanca'),
-      notification.scheduledAt.year,
-      notification.scheduledAt.month,
-      notification.scheduledAt.day,
-      notification.scheduledAt.hour,
-      notification.scheduledAt.minute,
+      scheduledAt.year,
+      scheduledAt.month,
+      scheduledAt.day,
+      scheduledAt.hour,
+      scheduledAt.minute,
     );
 
     await _plugin.zonedSchedule(
-      id: notification.id,
-      title: notification.title,
-      body: notification.body,
+      id: id,
+      title: title,
+      body: body,
       scheduledDate: scheduledDate,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          NotificationConstants.channelId,
-          NotificationConstants.channelName,
-          channelDescription: NotificationConstants.channelDescription,
+          channelId,
+          channelName,
+          channelDescription: channelDescription,
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );

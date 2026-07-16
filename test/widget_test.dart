@@ -6,6 +6,7 @@ import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
+import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
 import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
 import 'package:atlas/features/prices/presentation/widgets/price_disclaimer_banner.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
@@ -16,6 +17,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     EditorialRepositoryBootstrap.registerDefaults();
     ensurePrayerNotificationCoordinatorForTests();
+    ensureAtRepositoryForTests();
+  });
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    resetAtBootstrapForTests();
+    ensureAtRepositoryForTests();
   });
 
   Future<void> tapBottomNav(WidgetTester tester, String label) async {
@@ -47,6 +55,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Briefing du jour'), findsOneWidget);
+    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
+    expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Météo indisponible'), findsOneWidget);
     expect(find.text('Horaires indisponibles'), findsOneWidget);
     expect(find.text('Taux indisponible'), findsOneWidget);
@@ -111,6 +121,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
+    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
+    expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
     expect(find.text('Lieux'), findsWidgets);
     expect(find.text('Mes favoris'), findsNothing);

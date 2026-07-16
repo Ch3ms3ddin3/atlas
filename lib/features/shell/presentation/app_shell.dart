@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_scope.dart';
+import '../../admission_temporaire/data/at_bootstrap.dart';
+import '../../admission_temporaire/domain/at_repository.dart';
+import '../../admission_temporaire/presentation/at_scope.dart';
 import '../../content_reports/data/syncing_content_reports_repository.dart';
 import '../../content_reports/domain/content_reports_repository.dart';
 import '../../content_reports/presentation/content_reports_scope.dart';
@@ -35,6 +38,7 @@ class _AppShellState extends State<AppShell> {
   final FavoritesRepository _favoritesRepository = SyncingFavoritesRepository();
   final ContentReportsRepository _contentReportsRepository =
       SyncingContentReportsRepository();
+  late final AtRepository _atRepository;
   int _currentIndex = 0;
 
   static const _pages = <Widget>[
@@ -48,11 +52,15 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    _atRepository = atRepository;
     _authRepository.addListener(_onAuthSessionChanged);
     _authRepository.load();
     _profileRepository.load();
     _favoritesRepository.load();
     _contentReportsRepository.load();
+    if (!_atRepository.isLoaded) {
+      _atRepository.load();
+    }
   }
 
   @override
@@ -86,22 +94,25 @@ class _AppShellState extends State<AppShell> {
           repository: _favoritesRepository,
           child: ContentReportsScope(
             repository: _contentReportsRepository,
-            child: ShellNavigationScope(
-              navigateToTab: _navigateToTab,
-              child: Scaffold(
-                body: IndexedStack(
-                  index: _currentIndex,
-                  children: [
-                    for (var i = 0; i < _pages.length; i++)
-                      ShellTabTransition(
-                        isActive: _currentIndex == i,
-                        child: _pages[i],
-                      ),
-                  ],
-                ),
-                bottomNavigationBar: AtlasBottomNav(
-                  currentIndex: _currentIndex,
-                  onDestinationSelected: _navigateToTab,
+            child: AtScope(
+              repository: _atRepository,
+              child: ShellNavigationScope(
+                navigateToTab: _navigateToTab,
+                child: Scaffold(
+                  body: IndexedStack(
+                    index: _currentIndex,
+                    children: [
+                      for (var i = 0; i < _pages.length; i++)
+                        ShellTabTransition(
+                          isActive: _currentIndex == i,
+                          child: _pages[i],
+                        ),
+                    ],
+                  ),
+                  bottomNavigationBar: AtlasBottomNav(
+                    currentIndex: _currentIndex,
+                    onDestinationSelected: _navigateToTab,
+                  ),
                 ),
               ),
             ),

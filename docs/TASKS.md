@@ -26,4 +26,6 @@
 
 ⬜ Places
 
-⬜ Notifications
+✅ Notifications
+
+✅ AT Vehicle Tracker

@@ -8,11 +8,13 @@ import 'core/editorial/editorial_repository_bootstrap.dart';
 import 'core/notifications/prayer_notification_bootstrap.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 import 'core/supabase/supabase_health_repository.dart';
+import 'features/admission_temporaire/data/at_bootstrap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   EditorialRepositoryBootstrap.registerDefaults();
   await bootstrapPrayerNotifications();
+  await ensureAtNotificationCoordinator();
 
   final bootstrapResult = await SupabaseBootstrap.initialize();
   if (bootstrapResult.isReady) {

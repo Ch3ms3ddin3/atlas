@@ -7,6 +7,12 @@ import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
+import '../../../admission_temporaire/data/at_calculator.dart';
+import '../../../admission_temporaire/domain/at_repository.dart';
+import '../../../admission_temporaire/domain/models/at_vehicle.dart';
+import '../../../admission_temporaire/presentation/at_scope.dart';
+import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
+import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.dart';
 import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
@@ -100,6 +106,8 @@ class _HomePageState extends State<HomePage> {
   Timer? _dateRollTimer;
   ProfileRepository? _profileRepository;
   FavoritesRepository? _favoritesRepository;
+  AtRepository? _atRepository;
+  AtVehicle? _urgentVehicle;
   VoidCallback? _placeCatalogListener;
   VoidCallback? _priceCatalogListener;
 
@@ -142,12 +150,21 @@ class _HomePageState extends State<HomePage> {
       _favoritesRepository!.addListener(_onFavoritesChanged);
       _loadFavoriteEntries();
     }
+
+    final atRepository = AtScope.of(context);
+    if (!identical(atRepository, _atRepository)) {
+      _atRepository?.removeListener(_onAtChanged);
+      _atRepository = atRepository;
+      _atRepository!.addListener(_onAtChanged);
+      _refreshUrgentVehicle();
+    }
   }
 
   @override
   void dispose() {
     _profileRepository?.removeListener(_onProfileChanged);
     _favoritesRepository?.removeListener(_onFavoritesChanged);
+    _atRepository?.removeListener(_onAtChanged);
     _detachCatalogListeners();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
@@ -195,6 +212,20 @@ class _HomePageState extends State<HomePage> {
     setState(_loadFavoriteEntries);
   }
 
+  void _onAtChanged() {
+    if (!mounted) return;
+    setState(_refreshUrgentVehicle);
+  }
+
+  void _refreshUrgentVehicle() {
+    final repo = _atRepository;
+    if (repo == null || !repo.isLoaded) {
+      _urgentVehicle = null;
+      return;
+    }
+    _urgentVehicle = AtCalculator.mostUrgent(repo.activeVehicles);
+  }
+
   void _scheduleDateRollTimer() {
     final now = PrayerMapper.casablancaNow();
     final midnight = DateTime(now.year, now.month, now.day).add(
@@ -207,7 +238,10 @@ class _HomePageState extends State<HomePage> {
     _dateRollTimer?.cancel();
     _dateRollTimer = Timer(delay, () {
       if (mounted) {
-        setState(_refreshDerivedDashboardData);
+        setState(() {
+          _refreshDerivedDashboardData();
+          _refreshUrgentVehicle();
+        });
         unawaited(_loadPrayerTimes());
       }
       unawaited(prayerNotificationCoordinator.sync(force: true));
@@ -531,6 +565,24 @@ class _HomePageState extends State<HomePage> {
                     ),
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 5,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: AtlasSpacing.section),
+                          const HomeSectionHeader(
+                            title: 'Mes véhicules au Maroc',
+                          ),
+                          const SizedBox(height: AtlasSpacing.xl),
+                          HomeVehiclesCard(
+                            vehicle: _urgentVehicle,
+                            onTap: () => openVehiclesTracker(context),
+                            onAddTap: () => openVehiclesTracker(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 6,
                       child: HomeOptionalSection(
                         title: 'Actions rapides',
                         isEmpty: HomeDashboardCatalog.quickActions.isEmpty,
@@ -542,7 +594,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 6,
+                      delay: AtlasMotion.staggerDelay * 7,
                       child: HomeOptionalSection(
                         title: 'Mes favoris',
                         isEmpty: _favoriteEntries.isEmpty,
@@ -553,7 +605,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 7,
+                      delay: AtlasMotion.staggerDelay * 8,
                       child: HomeOptionalSection(
                         title: 'Recommandations',
                         isEmpty: _recommendedPlaces.isEmpty,
@@ -564,7 +616,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 8,
+                      delay: AtlasMotion.staggerDelay * 9,
                       child: HomeOptionalSection(
                         title: 'Démarches utiles',
                         isEmpty: _curatedProcedures.isEmpty,
@@ -575,7 +627,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 9,
+                      delay: AtlasMotion.staggerDelay * 10,
                       child: HomeOptionalSection(
                         title: 'Repères de prix',
                         isEmpty: _priceIndicators.isEmpty,
