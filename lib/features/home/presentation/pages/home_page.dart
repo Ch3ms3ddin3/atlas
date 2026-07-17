@@ -13,6 +13,9 @@ import '../../../admission_temporaire/domain/models/at_vehicle.dart';
 import '../../../admission_temporaire/presentation/at_scope.dart';
 import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
 import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.dart';
+import '../../../events/domain/event_repository.dart';
+import '../../../events/domain/models/atlas_event.dart';
+import '../../../events/presentation/widgets/home_events_sections.dart';
 import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
@@ -79,6 +82,7 @@ class _HomePageState extends State<HomePage> {
   final ProcedureRepository _procedureRepository = ProcedureRepository();
   final PlaceRepository _placeRepository = PlaceRepository();
   final PriceRepository _priceRepository = PriceRepository();
+  final EventRepository _eventRepository = EventRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -108,8 +112,11 @@ class _HomePageState extends State<HomePage> {
   FavoritesRepository? _favoritesRepository;
   AtRepository? _atRepository;
   AtVehicle? _urgentVehicle;
+  List<AtlasEvent> _todayEvents = const [];
+  List<AtlasEvent> _upcomingEvents = const [];
   VoidCallback? _placeCatalogListener;
   VoidCallback? _priceCatalogListener;
+  VoidCallback? _eventCatalogListener;
 
   @override
   void initState() {
@@ -117,6 +124,7 @@ class _HomePageState extends State<HomePage> {
     _attachCatalogListeners();
     _refreshDerivedDashboardData();
     _loadCatalogSections();
+    _refreshEvents();
     _loadWeather();
     _loadPrayerTimes();
     _loadExchangeRate();
@@ -182,6 +190,11 @@ class _HomePageState extends State<HomePage> {
       _priceCatalogListener = _onEditorialCatalogChanged;
       (prices as Listenable).addListener(_priceCatalogListener!);
     }
+    final events = _eventRepository;
+    if (events is Listenable) {
+      _eventCatalogListener = _onEventCatalogChanged;
+      (events as Listenable).addListener(_eventCatalogListener!);
+    }
   }
 
   void _detachCatalogListeners() {
@@ -193,11 +206,20 @@ class _HomePageState extends State<HomePage> {
     if (prices is Listenable && _priceCatalogListener != null) {
       (prices as Listenable).removeListener(_priceCatalogListener!);
     }
+    final events = _eventRepository;
+    if (events is Listenable && _eventCatalogListener != null) {
+      (events as Listenable).removeListener(_eventCatalogListener!);
+    }
   }
 
   void _onEditorialCatalogChanged() {
     if (!mounted) return;
     setState(_loadCatalogSections);
+  }
+
+  void _onEventCatalogChanged() {
+    if (!mounted) return;
+    setState(_refreshEvents);
   }
 
   void _onProfileChanged() {
@@ -226,6 +248,12 @@ class _HomePageState extends State<HomePage> {
     _urgentVehicle = AtCalculator.mostUrgent(repo.activeVehicles);
   }
 
+  void _refreshEvents() {
+    final city = _location.cityName;
+    _todayEvents = _eventRepository.today(cityName: city);
+    _upcomingEvents = _eventRepository.upcoming(cityName: city, limit: 4);
+  }
+
   void _scheduleDateRollTimer() {
     final now = PrayerMapper.casablancaNow();
     final midnight = DateTime(now.year, now.month, now.day).add(
@@ -241,6 +269,7 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _refreshDerivedDashboardData();
           _refreshUrgentVehicle();
+          _refreshEvents();
         });
         unawaited(_loadPrayerTimes());
       }
@@ -360,6 +389,7 @@ class _HomePageState extends State<HomePage> {
       _location = location;
       _refreshDerivedDashboardData();
       _loadCatalogSections();
+      _refreshEvents();
     });
 
     if (locationChanged) {
@@ -565,6 +595,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 5,
+                      child: HomeEventsSections(
+                        todayEvents: _todayEvents,
+                        upcomingEvents: _upcomingEvents,
+                        cityName: _location.cityName,
+                      ),
+                    ),
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 6,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -582,7 +620,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 6,
+                      delay: AtlasMotion.staggerDelay * 7,
                       child: HomeOptionalSection(
                         title: 'Actions rapides',
                         isEmpty: HomeDashboardCatalog.quickActions.isEmpty,
@@ -594,7 +632,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 7,
+                      delay: AtlasMotion.staggerDelay * 8,
                       child: HomeOptionalSection(
                         title: 'Mes favoris',
                         isEmpty: _favoriteEntries.isEmpty,
@@ -605,7 +643,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 8,
+                      delay: AtlasMotion.staggerDelay * 9,
                       child: HomeOptionalSection(
                         title: 'Recommandations',
                         isEmpty: _recommendedPlaces.isEmpty,
@@ -616,7 +654,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 9,
+                      delay: AtlasMotion.staggerDelay * 10,
                       child: HomeOptionalSection(
                         title: 'Démarches utiles',
                         isEmpty: _curatedProcedures.isEmpty,
@@ -627,7 +665,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 10,
+                      delay: AtlasMotion.staggerDelay * 11,
                       child: HomeOptionalSection(
                         title: 'Repères de prix',
                         isEmpty: _priceIndicators.isEmpty,

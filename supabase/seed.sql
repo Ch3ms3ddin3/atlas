@@ -4,6 +4,7 @@ BEGIN;
 TRUNCATE TABLE procedures RESTART IDENTITY CASCADE;
 TRUNCATE TABLE places RESTART IDENTITY CASCADE;
 TRUNCATE TABLE prices RESTART IDENTITY CASCADE;
+TRUNCATE TABLE events RESTART IDENTITY CASCADE;
 INSERT INTO procedures (
   slug, title, summary, category, category_label, estimated_duration,
   documents, steps, icon_key, official_url
@@ -1175,6 +1176,407 @@ INSERT INTO prices (
   'Prix réglementé, 2025',
   false,
   '2025-07-11T23:00:00.000Z'
+) ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'jour-de-lan-2026',
+  'Jour de l''an',
+  'Fête nationale — administrations et banques fermées.',
+  'publicHoliday',
+  '2026-01-01',
+  '2026-01-01',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'manifeste-independance-2026',
+  'Manifeste de l''indépendance',
+  'Commémoration du Manifeste de l''indépendance — fête nationale.',
+  'publicHoliday',
+  '2026-01-11',
+  '2026-01-11',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'yennayer-2026',
+  'Yennayer',
+  'Nouvel An amazigh — fête nationale fixe au 14 janvier.',
+  'publicHoliday',
+  '2026-01-14',
+  '2026-01-14',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-du-travail-2026',
+  'Fête du travail',
+  'Fête du travail — administrations et banques fermées.',
+  'publicHoliday',
+  '2026-05-01',
+  '2026-05-01',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-du-trone-2026',
+  'Fête du Trône',
+  'Fête du Trône — fête nationale marocaine.',
+  'publicHoliday',
+  '2026-07-30',
+  '2026-07-30',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'oued-ed-dahab-2026',
+  'Fête de Oued Ed-Dahab',
+  'Commémoration du retour d''Oued Ed-Dahab — fête nationale.',
+  'publicHoliday',
+  '2026-08-14',
+  '2026-08-14',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'revolution-roi-peuple-2026',
+  'Révolution du Roi et du Peuple',
+  'Commémoration de la Révolution du Roi et du Peuple.',
+  'publicHoliday',
+  '2026-08-20',
+  '2026-08-20',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-de-la-jeunesse-2026',
+  'Fête de la Jeunesse',
+  'Fête de la Jeunesse — fête nationale.',
+  'publicHoliday',
+  '2026-08-21',
+  '2026-08-21',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'marche-verte-2026',
+  'Marche Verte',
+  'Anniversaire de la Marche Verte — fête nationale.',
+  'publicHoliday',
+  '2026-11-06',
+  '2026-11-06',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-independance-2026',
+  'Fête de l''Indépendance',
+  'Fête de l''Indépendance — fête nationale.',
+  'publicHoliday',
+  '2026-11-18',
+  '2026-11-18',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'jour-de-lan-2027',
+  'Jour de l''an',
+  'Fête nationale — administrations et banques fermées.',
+  'publicHoliday',
+  '2027-01-01',
+  '2027-01-01',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'manifeste-independance-2027',
+  'Manifeste de l''indépendance',
+  'Commémoration du Manifeste de l''indépendance — fête nationale.',
+  'publicHoliday',
+  '2027-01-11',
+  '2027-01-11',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'yennayer-2027',
+  'Yennayer',
+  'Nouvel An amazigh — fête nationale fixe au 14 janvier.',
+  'publicHoliday',
+  '2027-01-14',
+  '2027-01-14',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-du-travail-2027',
+  'Fête du travail',
+  'Fête du travail — administrations et banques fermées.',
+  'publicHoliday',
+  '2027-05-01',
+  '2027-05-01',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-du-trone-2027',
+  'Fête du Trône',
+  'Fête du Trône — fête nationale marocaine.',
+  'publicHoliday',
+  '2027-07-30',
+  '2027-07-30',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'oued-ed-dahab-2027',
+  'Fête de Oued Ed-Dahab',
+  'Commémoration du retour d''Oued Ed-Dahab — fête nationale.',
+  'publicHoliday',
+  '2027-08-14',
+  '2027-08-14',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'revolution-roi-peuple-2027',
+  'Révolution du Roi et du Peuple',
+  'Commémoration de la Révolution du Roi et du Peuple.',
+  'publicHoliday',
+  '2027-08-20',
+  '2027-08-20',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-de-la-jeunesse-2027',
+  'Fête de la Jeunesse',
+  'Fête de la Jeunesse — fête nationale.',
+  'publicHoliday',
+  '2027-08-21',
+  '2027-08-21',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'marche-verte-2027',
+  'Marche Verte',
+  'Anniversaire de la Marche Verte — fête nationale.',
+  'publicHoliday',
+  '2027-11-06',
+  '2027-11-06',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
+) ON CONFLICT (slug) DO NOTHING;
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  'fete-independance-2027',
+  'Fête de l''Indépendance',
+  'Fête de l''Indépendance — fête nationale.',
+  'publicHoliday',
+  '2027-11-18',
+  '2027-11-18',
+  true,
+  NULL,
+  'Calendrier officiel des fêtes nationales',
+  'https://www.maroc.ma/',
+  '2026-01-15T00:00:00.000Z',
+  'confirmed',
+  10,
+  ARRAY['resident', 'mre', 'visitor', 'expat']
 ) ON CONFLICT (slug) DO NOTHING;
 
 COMMIT;

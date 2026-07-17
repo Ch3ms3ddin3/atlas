@@ -1,3 +1,6 @@
+import '../../features/events/data/local_event_repository.dart';
+import '../../features/events/data/resilient_event_repository.dart';
+import '../../features/events/domain/event_repository.dart';
 import '../../features/explorer/data/local_place_repository.dart';
 import '../../features/explorer/data/resilient_place_repository.dart';
 import '../../features/explorer/domain/place_repository.dart';
@@ -25,6 +28,11 @@ abstract final class EditorialRepositoryBootstrap {
     PriceRepository.registerFactory(
       () => ResilientPriceRepository(
         local: LocalPriceRepository(),
+      ),
+    );
+    EventRepository.registerFactory(
+      () => ResilientEventRepository(
+        local: LocalEventRepository(),
       ),
     );
   }

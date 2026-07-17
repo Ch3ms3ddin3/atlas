@@ -295,6 +295,24 @@ Admin step-by-step guides. Arrays: `documents`, `steps`.
 
 Curated places. `image_color` as `#RRGGBB` hex.
 
+### `events`
+
+Calendrier éditorial Maroc (`supabase/migrations/00007_events.sql`).
+
+| Column | Type | Notes |
+|---|---|---|
+| `slug` | `text` UNIQUE | Dart `AtlasEvent.id` |
+| `category` | `text` | `publicHoliday` \| `religious` \| `schoolHoliday` \| `nationalEvent` \| `culturalFestival` \| `sports` \| `travelPeak` |
+| `start_at` / `end_at` | `date` | Civil dates |
+| `city_name` | `text` nullable | `null` = national |
+| `reliability` | `text` | `confirmed` \| `provisional` \| `estimated` |
+| `source` / `source_url` | text | Attribution obligatoire |
+| `last_verified_at` | `timestamptz` | |
+| `audience_tags` | `text[]` | optional |
+| `is_published` | `boolean` | RLS SELECT when true |
+
+Local Flutter fallback (`EventCatalog`) contains **only** fixed civil public holidays. Festivals, sports, school holidays, travel peaks and religious dates are Supabase-only when an editor publishes them.
+
 ### `favorites`
 
 | Column | Type | Notes |
@@ -327,7 +345,7 @@ Unique: `(user_id, entity_type, entity_slug)`.
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |---|---|---|---|---|
-| Editorial (`prices`, `procedures`, `places`) | published rows, all users | service role only | service role only | service role only |
+| Editorial (`prices`, `procedures`, `places`, `events`) | published rows, all users | service role only | service role only | service role only |
 | `profiles` | own row | own row | own row | deny |
 | `favorites` | own rows | own rows | own rows | own rows |
 | `content_reports` | own rows | own rows | service role | deny |

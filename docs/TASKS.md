@@ -29,3 +29,5 @@
 ✅ Notifications
 
 ✅ AT Vehicle Tracker
+
+✅ Morocco Events & Calendar

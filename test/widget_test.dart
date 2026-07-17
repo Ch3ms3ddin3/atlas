@@ -121,6 +121,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
+    expect(find.text('À venir'), findsOneWidget);
     expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
     expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);

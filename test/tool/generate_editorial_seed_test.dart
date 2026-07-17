@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:atlas/core/icons/atlas_material_icons.dart';
+import 'package:atlas/features/events/data/event_catalog.dart';
+import 'package:atlas/features/events/domain/models/atlas_event.dart';
 import 'package:atlas/features/explorer/data/place_catalog.dart';
 import 'package:atlas/features/explorer/domain/models/place_models.dart';
 import 'package:atlas/features/prices/data/price_catalog.dart';
@@ -20,7 +22,8 @@ void main() {
       ..writeln()
       ..writeln(_truncate('procedures'))
       ..writeln(_truncate('places'))
-      ..writeln(_truncate('prices'));
+      ..writeln(_truncate('prices'))
+      ..writeln(_truncate('events'));
 
     for (final guide in ProcedureCatalog.guides) {
       buffer.writeln(_procedureInsert(guide));
@@ -34,6 +37,12 @@ void main() {
     buffer.writeln();
     for (final guide in PriceCatalog.guides) {
       buffer.writeln(_priceInsert(guide));
+    }
+
+    buffer.writeln();
+    // Fériés civils fixes uniquement (2026–2027) — pas de dates inventées.
+    for (final event in EventCatalog.fixedPublicHolidaysForYears([2026, 2027])) {
+      buffer.writeln(_eventInsert(event));
     }
 
     buffer.writeln();
@@ -142,6 +151,38 @@ INSERT INTO prices (
   ${guide.isTouristTrap},
   ${_text(guide.lastUpdatedAt.toUtc().toIso8601String())}
 ) ON CONFLICT (slug) DO NOTHING;''';
+}
+
+String _eventInsert(AtlasEvent event) {
+  final end = event.effectiveEnd;
+  final verified = event.lastVerifiedAt?.toUtc().toIso8601String();
+  return '''
+INSERT INTO events (
+  slug, title, description, category, start_at, end_at, is_all_day,
+  city_name, source, source_url, last_verified_at, reliability, priority,
+  audience_tags
+) VALUES (
+  ${_text(event.id)},
+  ${_text(event.title)},
+  ${_text(event.description)},
+  ${_text(event.category.name)},
+  ${_text(_dateKey(event.startAt))},
+  ${_text(_dateKey(end))},
+  ${event.isAllDay},
+  ${event.cityName == null ? 'NULL' : _text(event.cityName!)},
+  ${_text(event.source)},
+  ${event.sourceUrl == null ? 'NULL' : _text(event.sourceUrl!)},
+  ${verified == null ? 'NULL' : _text(verified)},
+  ${_text(event.reliability.name)},
+  ${event.priority ?? 'NULL'},
+  ${_textArray([for (final tag in event.audienceTags) tag.name])}
+) ON CONFLICT (slug) DO NOTHING;''';
+}
+
+String _dateKey(DateTime date) {
+  return '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
 }
 
 String _text(String value) => "'${_escape(value)}'";

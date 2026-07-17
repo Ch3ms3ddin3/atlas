@@ -98,6 +98,7 @@ void main() {
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
     expect(find.text('Briefing du jour'), findsOneWidget);
+    expect(find.text('À venir'), findsOneWidget);
     expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
     expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
