@@ -6,15 +6,21 @@ import 'package:flutter/scheduler.dart';
 
 import 'app/atlas_app.dart';
 import 'core/editorial/editorial_repository_bootstrap.dart';
+import 'core/errors/atlas_error_ui.dart';
 import 'core/notifications/prayer_notification_bootstrap.dart';
 import 'core/observability/sentry_bootstrap.dart';
+import 'core/performance/atlas_performance.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 import 'core/supabase/supabase_health_repository.dart';
 import 'features/admission_temporaire/data/at_bootstrap.dart';
 
 Future<void> main() async {
   await SentryBootstrap.run(() async {
+    AtlasPerformance.markStartupBegin();
     WidgetsFlutterBinding.ensureInitialized();
+    ErrorWidget.builder = (details) {
+      return AtlasErrorFallback(details: details.exceptionAsString());
+    };
     EditorialRepositoryBootstrap.registerDefaults();
 
     final bootstrapResult = await SupabaseBootstrap.initialize();
@@ -27,8 +33,8 @@ Future<void> main() async {
 
     runApp(const AtlasApp());
 
-    // Prayer + AT notifications after first frame — never block cold start.
     SchedulerBinding.instance.addPostFrameCallback((_) {
+      AtlasPerformance.markFirstFrame();
       unawaited(_bootstrapDeferredNotifications());
     });
   });

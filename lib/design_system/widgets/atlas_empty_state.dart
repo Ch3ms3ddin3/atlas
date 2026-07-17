@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/atlas_spacing.dart';
+import 'atlas_primary_button.dart';
 
 /// État vide calme — message centré sans bruit visuel.
 class AtlasEmptyState extends StatelessWidget {
@@ -8,10 +9,14 @@ class AtlasEmptyState extends StatelessWidget {
     super.key,
     required this.message,
     this.icon = Icons.search_off_outlined,
+    this.retryLabel,
+    this.onRetry,
   });
 
   final String message;
   final IconData icon;
+  final String? retryLabel;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +40,13 @@ class AtlasEmptyState extends StatelessWidget {
               height: 1.45,
             ),
           ),
+          if (onRetry != null) ...[
+            const SizedBox(height: AtlasSpacing.xl),
+            AtlasSecondaryButton(
+              label: retryLabel ?? 'Réessayer',
+              onPressed: onRetry,
+            ),
+          ],
         ],
       ),
     );

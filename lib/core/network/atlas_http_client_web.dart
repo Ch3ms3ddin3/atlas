@@ -4,20 +4,27 @@ import 'dart:async';
 import 'dart:html' as html;
 
 import 'atlas_http_timeouts.dart';
+import '../performance/atlas_performance.dart';
 
 /// Implémentation web via dart:html.
 Future<String> platformGet(
   String url, {
   Duration timeout = AtlasHttpTimeouts.defaultTimeout,
 }) async {
-  final request = await html.HttpRequest.request(
-    url,
-    method: 'GET',
-  ).timeout(timeout);
-  if (request.status != 200) {
-    throw Exception('HTTP ${request.status}');
+  final sw = Stopwatch()..start();
+  try {
+    final request = await html.HttpRequest.request(
+      url,
+      method: 'GET',
+    ).timeout(timeout);
+    if (request.status != 200) {
+      throw Exception('HTTP ${request.status}');
+    }
+    return request.responseText ?? '';
+  } finally {
+    sw.stop();
+    AtlasPerformance.recordHttp(url: url, elapsed: sw.elapsed);
   }
-  return request.responseText ?? '';
 }
 
 /// POST JSON streaming — lit la réponse progressivement quand possible.
@@ -31,6 +38,7 @@ Stream<String> platformPostJsonStream({
   final request = html.HttpRequest();
   var lastLength = 0;
   Timer? connectTimer;
+  final sw = Stopwatch()..start();
 
   void fail(Object error) {
     if (!controller.isClosed) {
@@ -58,6 +66,8 @@ Stream<String> platformPostJsonStream({
   });
   request.onLoad.listen((_) {
     connectTimer?.cancel();
+    sw.stop();
+    AtlasPerformance.recordHttp(url: url, elapsed: sw.elapsed);
     final text = request.responseText ?? '';
     if (text.length > lastLength) {
       controller.add(text.substring(lastLength));
@@ -70,6 +80,8 @@ Stream<String> platformPostJsonStream({
   });
   request.onError.listen((_) {
     connectTimer?.cancel();
+    sw.stop();
+    AtlasPerformance.recordHttp(url: url, elapsed: sw.elapsed);
     fail(Exception('HTTP request failed'));
   });
   request.send(body);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:atlas/design_system/theme/atlas_theme.dart';
+import 'package:atlas/design_system/widgets/atlas_skeleton.dart';
 import 'package:atlas/features/home/domain/models/home_models.dart';
 import 'package:atlas/features/home/domain/models/weather_snapshot.dart';
 import 'package:atlas/features/home/presentation/widgets/weather_card.dart';
@@ -19,7 +20,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Chargement de la météo…'), findsOneWidget);
+    expect(find.byType(AtlasSkeleton), findsWidgets);
     expect(find.textContaining('°'), findsNothing);
     expect(find.text('38°'), findsNothing);
   });

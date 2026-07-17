@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
+import '../../../core/errors/atlas_error_ui.dart';
+import '../../../core/performance/atlas_performance.dart';
+import '../../../core/platform/atlas_build_info.dart';
 import '../../assistant/data/local_assistant_repository.dart';
 import '../../assistant/domain/assistant_repository.dart';
 import '../../assistant/presentation/assistant_scope.dart';
@@ -9,6 +13,14 @@ import '../../auth/presentation/auth_scope.dart';
 import '../../admission_temporaire/data/at_bootstrap.dart';
 import '../../admission_temporaire/domain/at_repository.dart';
 import '../../admission_temporaire/presentation/at_scope.dart';
+import '../../beta/data/beta_feedback_repository.dart';
+import '../../beta/data/beta_preferences_store.dart';
+import '../../beta/domain/changelog_entry.dart';
+import '../../beta/presentation/beta_feedback_scope.dart';
+import '../../beta/presentation/pages/beta_diagnostics_page.dart';
+import '../../beta/presentation/widgets/atlas_beta_banner.dart';
+import '../../beta/presentation/widgets/beta_feedback_sheet.dart';
+import '../../beta/presentation/widgets/whats_new_dialog.dart';
 import '../../content_reports/data/syncing_content_reports_repository.dart';
 import '../../content_reports/domain/content_reports_repository.dart';
 import '../../content_reports/presentation/content_reports_scope.dart';
@@ -29,6 +41,7 @@ import '../../prices/presentation/pages/prices_page.dart';
 import '../../procedures/presentation/pages/procedures_page.dart';
 import '../../profile/presentation/pages/profile_page.dart';
 import '../../sync/data/syncing_user_preferences_repository.dart';
+import '../../sync/domain/cloud_sync_status.dart';
 import '../../sync/presentation/sync_scope.dart';
 import 'atlas_bottom_nav.dart';
 import 'shell_navigation_scope.dart';
@@ -53,7 +66,21 @@ class _AppShellState extends State<AppShell> {
   late final AtRepository _atRepository;
   late final AssistantRepository _assistantRepository;
   late final ItineraryRepository _itineraryRepository;
+  late final BetaFeedbackRepository _feedbackRepository;
+  final GlobalKey _screenshotKey = GlobalKey();
   int _currentIndex = 0;
+  int _bannerTapCount = 0;
+  DateTime? _bannerTapWindowStart;
+  AtlasBuildInfo? _buildInfo;
+
+  static const _tabNames = {
+    AtlasShellTab.home: 'home',
+    AtlasShellTab.explorer: 'explorer',
+    AtlasShellTab.map: 'map',
+    AtlasShellTab.procedures: 'procedures',
+    AtlasShellTab.prices: 'prices',
+    AtlasShellTab.profile: 'profile',
+  };
 
   @override
   void initState() {
@@ -68,6 +95,9 @@ class _AppShellState extends State<AppShell> {
     _itineraryRepository = SyncingItineraryRepository(
       favoritesRepository: _favoritesRepository,
     );
+    _feedbackRepository = BetaFeedbackRepository(
+      authRepository: _authRepository,
+    );
     _authRepository.addListener(_onAuthSessionChanged);
     PlaceBrowseFilters.instance.addListener(_onExplorerFiltersChanged);
     _authRepository.load();
@@ -80,6 +110,34 @@ class _AppShellState extends State<AppShell> {
     }
     _assistantRepository.load();
     _itineraryRepository.load();
+    _feedbackRepository.load();
+    _loadBuildInfoAndWhatsNew();
+  }
+
+  Future<void> _loadBuildInfoAndWhatsNew() async {
+    final info = await AtlasBuildInfo.load();
+    if (!mounted) return;
+    setState(() => _buildInfo = info);
+
+    // Skip What's New during automated tests.
+    if (const bool.fromEnvironment('FLUTTER_TEST')) return;
+
+    final store = const BetaPreferencesStore();
+    final lastSeen = await store.loadLastSeenBuild();
+    final build = int.tryParse(info.buildNumber) ?? 0;
+    if (build <= lastSeen) return;
+
+    final entries = ChangelogCatalog.sinceBuild(lastSeen);
+    if (entries.isEmpty) {
+      await store.saveLastSeenBuild(build);
+      return;
+    }
+
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showWhatsNewDialog(context: context, entries: entries);
+      await store.saveLastSeenBuild(build);
+    });
   }
 
   @override
@@ -93,12 +151,24 @@ class _AppShellState extends State<AppShell> {
     _preferencesRepository.dispose();
     _assistantRepository.dispose();
     _itineraryRepository.dispose();
+    _feedbackRepository.dispose();
     super.dispose();
   }
 
   void _navigateToTab(int index) {
     if (index == _currentIndex) return;
+    final from = _tabNames[_currentIndex] ?? '$_currentIndex';
+    final to = _tabNames[index] ?? '$index';
+    final sw = Stopwatch()..start();
     setState(() => _currentIndex = index);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      sw.stop();
+      AtlasPerformance.recordTabTransition(
+        from: from,
+        to: to,
+        elapsed: sw.elapsed,
+      );
+    });
   }
 
   void _onAuthSessionChanged() {
@@ -109,15 +179,50 @@ class _AppShellState extends State<AppShell> {
     _atRepository.load();
     _assistantRepository.refreshSuggestions();
     _itineraryRepository.load();
+    _feedbackRepository.flushPending();
   }
 
   void _onExplorerFiltersChanged() {
     _preferencesRepository.persistFromUi();
   }
 
+  void _onBannerTap() {
+    final now = DateTime.now();
+    if (_bannerTapWindowStart == null ||
+        now.difference(_bannerTapWindowStart!) > const Duration(seconds: 3)) {
+      _bannerTapWindowStart = now;
+      _bannerTapCount = 1;
+      return;
+    }
+    _bannerTapCount += 1;
+    if (_bannerTapCount >= 7) {
+      _bannerTapCount = 0;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AuthScope(
+            repository: _authRepository,
+            child: SyncScope(
+              repository: _preferencesRepository,
+              child: BetaFeedbackScope(
+                repository: _feedbackRepository,
+                child: const BetaDiagnosticsPage(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  String get _currentScreenName =>
+      _tabNames[_currentIndex] ?? 'tab_$_currentIndex';
+
   @override
   Widget build(BuildContext context) {
     final mapActive = _currentIndex == AtlasShellTab.map;
+    final syncStatus = _preferencesRepository.status;
+    final showOffline = syncStatus.phase == CloudSyncPhase.offline ||
+        syncStatus.phase == CloudSyncPhase.error;
 
     return AuthScope(
       repository: _authRepository,
@@ -135,42 +240,73 @@ class _AppShellState extends State<AppShell> {
                   repository: _assistantRepository,
                   child: ItineraryScope(
                     repository: _itineraryRepository,
-                    child: ShellNavigationScope(
-                      navigateToTab: _navigateToTab,
-                      child: Scaffold(
-                        body: IndexedStack(
-                          index: _currentIndex,
-                          children: [
-                            ShellTabTransition(
-                              isActive: _currentIndex == AtlasShellTab.home,
-                              child: const HomePage(),
+                    child: BetaFeedbackScope(
+                      repository: _feedbackRepository,
+                      child: ShellNavigationScope(
+                        navigateToTab: _navigateToTab,
+                        child: Scaffold(
+                          floatingActionButton: FloatingActionButton.extended(
+                            onPressed: () => showBetaFeedbackSheet(
+                              context: context,
+                              screenName: _currentScreenName,
+                              screenshotKey: _screenshotKey,
                             ),
-                            ShellTabTransition(
-                              isActive: _currentIndex == AtlasShellTab.explorer,
-                              child: const ExplorerPage(),
-                            ),
-                            ShellTabTransition(
-                              isActive: mapActive,
-                              child: AtlasMapPage(isActive: mapActive),
-                            ),
-                            ShellTabTransition(
-                              isActive:
-                                  _currentIndex == AtlasShellTab.procedures,
-                              child: const ProceduresPage(),
-                            ),
-                            ShellTabTransition(
-                              isActive: _currentIndex == AtlasShellTab.prices,
-                              child: const PricesPage(),
-                            ),
-                            ShellTabTransition(
-                              isActive: _currentIndex == AtlasShellTab.profile,
-                              child: const ProfilePage(),
-                            ),
-                          ],
-                        ),
-                        bottomNavigationBar: AtlasBottomNav(
-                          currentIndex: _currentIndex,
-                          onDestinationSelected: _navigateToTab,
+                            icon: const Icon(Icons.flag_outlined),
+                            label: const Text('Signaler un problème'),
+                          ),
+                          body: Column(
+                            children: [
+                              if (_buildInfo != null)
+                                AtlasBetaBanner(
+                                  buildInfo: _buildInfo!,
+                                  onSecretTap: _onBannerTap,
+                                ),
+                              if (showOffline) const AtlasOfflineNotice(),
+                              Expanded(
+                                child: RepaintBoundary(
+                                  key: _screenshotKey,
+                                  child: IndexedStack(
+                                    index: _currentIndex,
+                                    children: [
+                                      ShellTabTransition(
+                                        isActive:
+                                            _currentIndex == AtlasShellTab.home,
+                                        child: const HomePage(),
+                                      ),
+                                      ShellTabTransition(
+                                        isActive: _currentIndex ==
+                                            AtlasShellTab.explorer,
+                                        child: const ExplorerPage(),
+                                      ),
+                                      ShellTabTransition(
+                                        isActive: mapActive,
+                                        child: AtlasMapPage(isActive: mapActive),
+                                      ),
+                                      ShellTabTransition(
+                                        isActive: _currentIndex ==
+                                            AtlasShellTab.procedures,
+                                        child: const ProceduresPage(),
+                                      ),
+                                      ShellTabTransition(
+                                        isActive: _currentIndex ==
+                                            AtlasShellTab.prices,
+                                        child: const PricesPage(),
+                                      ),
+                                      ShellTabTransition(
+                                        isActive: _currentIndex ==
+                                            AtlasShellTab.profile,
+                                        child: const ProfilePage(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          bottomNavigationBar: AtlasBottomNav(
+                            currentIndex: _currentIndex,
+                            onDestinationSelected: _navigateToTab,
+                          ),
                         ),
                       ),
                     ),

@@ -4,6 +4,7 @@ import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
+import '../../../../design_system/widgets/atlas_skeleton.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/weather_snapshot.dart';
 
@@ -45,24 +46,14 @@ class _LoadingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Météo',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: AtlasTextStyles.cardLabel(theme.colorScheme),
-            letterSpacing: 0.3,
-          ),
-        ),
-        const SizedBox(height: AtlasSpacing.xl),
-        Text(
-          'Chargement de la météo…',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AtlasTextStyles.helper(theme.colorScheme),
-          ),
-        ),
+        AtlasSkeleton(height: 14, width: 90),
+        SizedBox(height: AtlasSpacing.md),
+        AtlasSkeleton(height: 36, width: 120),
+        SizedBox(height: AtlasSpacing.sm),
+        AtlasSkeleton(height: 12, width: 160),
       ],
     );
   }
@@ -99,7 +90,7 @@ class _UnavailableBody extends StatelessWidget {
         ),
         const SizedBox(height: AtlasSpacing.sm),
         Text(
-          'Impossible de charger la météo pour cette ville. '
+          'Météo indisponible pour cette ville. '
           'Tirez pour actualiser lorsque vous êtes en ligne.',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: AtlasTextStyles.helper(theme.colorScheme),

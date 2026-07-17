@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../performance/atlas_performance.dart';
 import 'atlas_http_timeouts.dart';
 
 /// Implémentation native (Android, iOS, desktop) via dart:io.
@@ -11,6 +12,7 @@ Future<String> platformGet(
 }) async {
   final client = HttpClient();
   client.connectionTimeout = timeout;
+  final sw = Stopwatch()..start();
   try {
     final request = await client.getUrl(Uri.parse(url)).timeout(timeout);
     final response = await request.close().timeout(timeout);
@@ -20,6 +22,8 @@ Future<String> platformGet(
     final body = await response.transform(utf8.decoder).join().timeout(timeout);
     return body;
   } finally {
+    sw.stop();
+    AtlasPerformance.recordHttp(url: url, elapsed: sw.elapsed);
     client.close();
   }
 }
@@ -33,6 +37,7 @@ Stream<String> platformPostJsonStream({
 }) async* {
   final client = HttpClient();
   client.connectionTimeout = timeout;
+  final sw = Stopwatch()..start();
   try {
     final request = await client.postUrl(Uri.parse(url)).timeout(timeout);
     headers.forEach(request.headers.set);
@@ -47,6 +52,8 @@ Stream<String> platformPostJsonStream({
     }
     yield* response.transform(utf8.decoder);
   } finally {
+    sw.stop();
+    AtlasPerformance.recordHttp(url: url, elapsed: sw.elapsed);
     client.close(force: true);
   }
 }
