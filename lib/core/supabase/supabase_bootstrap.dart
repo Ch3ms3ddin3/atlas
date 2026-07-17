@@ -56,9 +56,14 @@ abstract final class SupabaseBootstrap {
     }
 
     try {
+      // detectSessionInUri: true (défaut) — observe les deep links OAuth /
+      // reset password via app_links (schéma io.supabase.atlas).
       await Supabase.initialize(
         url: config.supabaseUrl,
         publishableKey: config.supabaseAnonKey,
+        authOptions: const FlutterAuthClientOptions(
+          detectSessionInUri: true,
+        ),
       );
       _initialized = true;
 

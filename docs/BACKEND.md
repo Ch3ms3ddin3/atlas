@@ -388,9 +388,11 @@ Unique: `(user_id, entity_type, entity_slug)`.
 | **M3** ✓ | Favorites (anonymous) | None |
 | **M4** ✓ | Content reports (anonymous) | None |
 | **M5** ✓ | Email/password + anonymous upgrade | Profile account section |
-| Post-MVP | Google / Apple OAuth | Sign-in screens |
+| Private beta | Google / Apple OAuth (browser + deep link) | Profile auth sheet |
 
 Anonymous sessions are created in `SupabaseBootstrap` when Supabase is configured and auth is enabled on the project.
+
+**Mobile redirect (iOS / Android):** register `io.supabase.atlas://login-callback/` in Supabase → Authentication → Additional Redirect URLs. See `docs/IOS_APPLE_PORTAL_SETUP.md`.
 
 ---
 

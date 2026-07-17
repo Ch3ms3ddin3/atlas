@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
+import 'atlas_auth_redirect.dart';
 import '../domain/auth_action_result.dart';
 import '../domain/auth_repository.dart';
 import '../domain/auth_session.dart';
@@ -174,7 +175,7 @@ class SupabaseAuthRepository extends AuthRepository {
     try {
       final launched = await auth.signInWithOAuth(
         provider,
-        redirectTo: kIsWeb ? null : 'io.supabase.atlas://login-callback/',
+        redirectTo: kIsWeb ? null : AtlasAuthRedirect.url,
       );
       if (!launched) {
         return AuthActionResult.failure(
@@ -206,7 +207,7 @@ class SupabaseAuthRepository extends AuthRepository {
     try {
       await auth.resetPasswordForEmail(
         sanitized,
-        redirectTo: kIsWeb ? null : 'io.supabase.atlas://login-callback/',
+        redirectTo: kIsWeb ? null : AtlasAuthRedirect.url,
       );
       return AuthActionResult.success();
     } on AuthException catch (error) {
