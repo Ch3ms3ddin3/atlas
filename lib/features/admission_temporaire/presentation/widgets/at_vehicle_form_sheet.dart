@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/uuid/atlas_uuid.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
@@ -33,7 +34,7 @@ class AtVehicleFormSheet extends StatefulWidget {
     BuildContext context, {
     AtVehicle? initial,
   }) {
-    return showModalBottomSheet<AtVehicle>(
+    return showAtlasBottomSheet<AtVehicle>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,

@@ -4,6 +4,7 @@ import '../../../content_reports/domain/content_report_entity_type.dart';
 import '../../../content_reports/domain/content_report_type.dart';
 import '../../../content_reports/domain/content_reports_repository.dart';
 import '../../../content_reports/presentation/content_reports_scope.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 
 /// Affiche la feuille de signalement et soumet via [ContentReportsRepository].
@@ -16,7 +17,7 @@ Future<void> showContentReportSheet({
   final reports =
       repository ?? ContentReportsScope.of(context);
 
-  return showModalBottomSheet<void>(
+  return showAtlasBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/auth_credentials_validator.dart';
 import '../../domain/auth_action_result.dart';
@@ -25,7 +26,7 @@ class AuthFormSheet extends StatefulWidget {
     final repository = AuthScope.read(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    return showModalBottomSheet<void>(
+    return showAtlasBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,

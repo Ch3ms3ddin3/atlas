@@ -7,11 +7,13 @@ import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../design_system/navigation/atlas_page_route.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/domain/favorites_repository.dart';
 import '../../../favorites/presentation/favorites_page_wrapper.dart';
@@ -47,6 +49,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final PlaceRepository _repository = PlaceRepository();
   final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   final PlaceBrowseFilters _browseFilters = PlaceBrowseFilters.instance;
 
   String _cityName = LocationConstants.fallbackCity;
@@ -76,6 +79,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _browseFilters.addListener(_onSharedFiltersChanged);
     _applyFilters();
     _searchController.addListener(_onSearchTextChanged);
+    _searchFocus.addListener(() {
+      if (mounted) setState(() {});
+    });
     // La localisation suit l'attachement du profil dans didChangeDependencies.
   }
 
@@ -109,6 +115,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _browseFilters.removeListener(_onSharedFiltersChanged);
     _detachCatalogListener();
     _searchController.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -341,6 +348,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
               final useGrid = constraints.maxWidth >= _wideBreakpoint;
 
               return CustomScrollView(
+                key: const PageStorageKey<String>('explorer_scroll'),
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(
@@ -372,44 +380,88 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ),
                         const SizedBox(height: AtlasSpacing.xl),
                         PlaceCatalogStatusIndicator(loadState: _loadState),
-                        TextField(
-                          controller: _searchController,
-                          textInputAction: TextInputAction.search,
-                          decoration: InputDecoration(
-                            hintText: 'Rechercher un lieu…',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _searchController.text.isEmpty
-                                ? null
-                                : IconButton(
-                                    tooltip: 'Effacer',
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _applyFilters();
-                                    },
-                                    icon: const Icon(Icons.close, size: 20),
-                                  ),
+                        AnimatedScale(
+                          scale: _searchFocus.hasFocus ? 1.015 : 1,
+                          duration: AtlasMotion.navAnimationDuration,
+                          curve: AtlasMotion.curveDefault,
+                          alignment: Alignment.centerLeft,
+                          child: AnimatedContainer(
+                            duration: AtlasMotion.navAnimationDuration,
+                            curve: AtlasMotion.curveDefault,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                _searchFocus.hasFocus ? 16 : 12,
+                              ),
+                              boxShadow: _searchFocus.hasFocus
+                                  ? [
+                                      BoxShadow(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.12),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : const [],
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocus,
+                              textInputAction: TextInputAction.search,
+                              decoration: InputDecoration(
+                                hintText: 'Rechercher un lieu…',
+                                prefixIcon: const Icon(Icons.search),
+                                filled: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: AtlasSpacing.lg,
+                                  vertical: _searchFocus.hasFocus
+                                      ? AtlasSpacing.lg
+                                      : AtlasSpacing.md,
+                                ),
+                                suffixIcon: _searchController.text.isEmpty
+                                    ? null
+                                    : IconButton(
+                                        tooltip: 'Effacer',
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _applyFilters();
+                                        },
+                                        icon: const Icon(Icons.close, size: 20),
+                                      ),
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: AtlasSpacing.lg),
-                        PlaceCityFilter(
-                          selectedCity: _cityName,
-                          onCitySelected: _onCitySelected,
+                        AtlasReveal(
+                          delay: AtlasMotion.staggerDelay,
+                          child: PlaceCityFilter(
+                            selectedCity: _cityName,
+                            onCitySelected: _onCitySelected,
+                          ),
                         ),
                         const SizedBox(height: AtlasSpacing.md),
-                        PlaceCategoryFilter(
-                          selectedCategory: _selectedCategory,
-                          onCategorySelected: _onCategorySelected,
+                        AtlasReveal(
+                          delay: AtlasMotion.staggerDelay * 2,
+                          child: PlaceCategoryFilter(
+                            selectedCategory: _selectedCategory,
+                            onCategorySelected: _onCategorySelected,
+                          ),
                         ),
                         const SizedBox(height: AtlasSpacing.md),
-                        AtlasFilterChip(
-                          label: 'Favoris',
-                          isSelected: _browseFilters.favoritesOnly,
-                          onTap: () {
-                            _browseFilters.setFavoritesOnly(
-                              !_browseFilters.favoritesOnly,
-                            );
-                            _applyFilters();
-                          },
+                        AtlasReveal(
+                          delay: AtlasMotion.staggerDelay * 3,
+                          child: AtlasFilterChip(
+                            label: 'Favoris',
+                            isSelected: _browseFilters.favoritesOnly,
+                            onTap: () {
+                              _browseFilters.setFavoritesOnly(
+                                !_browseFilters.favoritesOnly,
+                              );
+                              _applyFilters();
+                            },
+                          ),
                         ),
                         const SizedBox(height: AtlasSpacing.xl),
                         Row(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/atlas_spacing.dart';
 
-/// Conteneur centré avec largeur maximale pour le responsive web.
+/// Conteneur centré avec largeur maximale — mobile-first, confortable sur web.
 class AtlasContentContainer extends StatelessWidget {
   const AtlasContentContainer({
     super.key,
@@ -15,17 +15,22 @@ class AtlasContentContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 720;
-        final horizontalPadding = isWide
-            ? AtlasSpacing.pageHorizontalWide
-            : AtlasSpacing.pageHorizontal;
+        final width = constraints.maxWidth;
+        final isExtraWide = width >= 1100;
+        final isWide = width >= 720;
+        final horizontalPadding = isExtraWide
+            ? AtlasSpacing.pageHorizontalExtraWide
+            : isWide
+                ? AtlasSpacing.pageHorizontalWide
+                : AtlasSpacing.pageHorizontal;
+        final maxWidth = isExtraWide
+            ? AtlasSpacing.maxContentWidthWide
+            : AtlasSpacing.maxContentWidth;
 
         return Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: AtlasSpacing.maxContentWidth,
-            ),
+            constraints: BoxConstraints(maxWidth: maxWidth),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               child: child,

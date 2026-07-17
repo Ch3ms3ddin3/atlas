@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../../../core/errors/atlas_error_ui.dart';
 import '../../../../core/platform/atlas_build_info.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_primary_button.dart';
 import '../../data/beta_feedback_repository.dart';
@@ -18,7 +19,7 @@ Future<void> showBetaFeedbackSheet({
   GlobalKey? screenshotKey,
 }) {
   final repo = BetaFeedbackScope.of(context);
-  return showModalBottomSheet<void>(
+  return showAtlasBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,

@@ -31,8 +31,9 @@ abstract final class AtlasColors {
 
   static const Color sandMuted = Color(0xFFE8E0D4);
   static const Color terracottaMuted = Color(0xFFE8B5A5);
-  static const Color midnightBlueMuted = Color(0xFF5A6472);
-  static const Color midnightBlueFaint = Color(0xFF8A939F);
+  /// Texte secondaire — légèrement renforcé pour la lisibilité WCAG AA.
+  static const Color midnightBlueMuted = Color(0xFF4A5568);
+  static const Color midnightBlueFaint = Color(0xFF6B7585);
   static const Color terracottaDeep = Color(0xFFA8503A);
   static const Color terracottaGhost = Color(0xFFF5E8E4);
   static const Color subtleGoldMuted = Color(0xFFF0E6CE);

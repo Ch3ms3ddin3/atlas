@@ -4,6 +4,7 @@ import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
+import '../../../../design_system/widgets/atlas_fade_switcher.dart';
 import '../../../../design_system/widgets/atlas_skeleton.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/weather_snapshot.dart';
@@ -27,16 +28,21 @@ class WeatherCard extends StatelessWidget {
       emphasis: AtlasCardEmphasis.primary,
       animateEntrance: animateEntrance,
       entranceDelay: entranceDelay,
-      child: switch (snapshot.state) {
-        WeatherLoadState.loading => const _LoadingBody(),
-        WeatherLoadState.unavailable => const _UnavailableBody(),
-        WeatherLoadState.success ||
-        WeatherLoadState.stale =>
-          _ReadyBody(
-            data: snapshot.data!,
-            statusLabel: snapshot.statusLabel,
-          ),
-      },
+      child: AtlasFadeSwitcher(
+        child: KeyedSubtree(
+          key: ValueKey(snapshot.state),
+          child: switch (snapshot.state) {
+            WeatherLoadState.loading => const _LoadingBody(),
+            WeatherLoadState.unavailable => const _UnavailableBody(),
+            WeatherLoadState.success ||
+            WeatherLoadState.stale =>
+              _ReadyBody(
+                data: snapshot.data!,
+                statusLabel: snapshot.statusLabel,
+              ),
+          },
+        ),
+      ),
     );
   }
 }
@@ -46,15 +52,18 @@ class _LoadingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AtlasSkeleton(height: 14, width: 90),
-        SizedBox(height: AtlasSpacing.md),
-        AtlasSkeleton(height: 36, width: 120),
-        SizedBox(height: AtlasSpacing.sm),
-        AtlasSkeleton(height: 12, width: 160),
-      ],
+    return Semantics(
+      label: 'Chargement de la météo…',
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AtlasSkeleton(height: 14, width: 90),
+          SizedBox(height: AtlasSpacing.md),
+          AtlasSkeleton(height: 36, width: 120),
+          SizedBox(height: AtlasSpacing.sm),
+          AtlasSkeleton(height: 12, width: 160),
+        ],
+      ),
     );
   }
 }

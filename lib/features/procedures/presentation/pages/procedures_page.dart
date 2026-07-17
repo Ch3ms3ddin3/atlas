@@ -71,6 +71,7 @@ class _ProceduresPageState extends State<ProceduresPage> {
     return SafeArea(
       child: AtlasContentContainer(
         child: CustomScrollView(
+          key: const PageStorageKey<String>('procedures_scroll'),
           slivers: [
             SliverToBoxAdapter(
               child: Column(

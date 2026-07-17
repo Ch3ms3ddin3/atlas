@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:atlas/design_system/theme/atlas_theme.dart';
+import 'package:atlas/design_system/widgets/atlas_skeleton.dart';
 import 'package:atlas/features/home/domain/models/home_models.dart';
 import 'package:atlas/features/home/domain/models/prayer_times_snapshot.dart';
 import 'package:atlas/features/home/presentation/widgets/prayer_time_card.dart';
@@ -19,7 +20,11 @@ void main() {
       ),
     );
 
-    expect(find.text('Chargement des horaires…'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Chargement des horaires…'),
+      findsOneWidget,
+    );
+    expect(find.byType(AtlasSkeleton), findsWidgets);
     expect(find.text('Asr'), findsNothing);
     expect(find.text('05:08'), findsNothing);
   });

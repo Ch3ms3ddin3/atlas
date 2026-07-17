@@ -57,6 +57,7 @@ import '../widgets/prayer_notification_settings_sheet.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/recommended_places_card.dart';
 import '../widgets/today_essentials_section.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
@@ -491,7 +492,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onPrayerCardTap() {
-    showModalBottomSheet<void>(
+    showAtlasBottomSheet<void>(
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => PrayerNotificationSettingsSheet(
@@ -570,6 +571,7 @@ class _HomePageState extends State<HomePage> {
       child: RefreshIndicator(
         onRefresh: _refreshAll,
         child: CustomScrollView(
+          key: const PageStorageKey<String>('home_scroll'),
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(

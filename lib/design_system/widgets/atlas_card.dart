@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../motion/atlas_haptics.dart';
 import '../theme/atlas_colors.dart';
 import '../theme/atlas_motion.dart';
 import '../theme/atlas_spacing.dart';
@@ -18,7 +20,7 @@ enum AtlasCardEmphasis {
   compact,
 }
 
-/// Carte de base Atlas — papier premium, ombre légère, bordure adoucie.
+/// Carte de base Atlas — papier premium, hover web, press elevation.
 class AtlasCard extends StatefulWidget {
   const AtlasCard({
     super.key,
@@ -35,7 +37,7 @@ class AtlasCard extends StatefulWidget {
   final VoidCallback? onTap;
   final AtlasCardEmphasis emphasis;
 
-  /// Fade + translateY à l'apparition — une seule fois au montage.
+  /// Fade + scale à l'apparition — une seule fois au montage.
   final bool animateEntrance;
   final Duration entranceDelay;
 
@@ -47,8 +49,10 @@ class _AtlasCardState extends State<AtlasCard>
     with SingleTickerProviderStateMixin {
   AnimationController? _entranceController;
   Animation<double>? _entranceOpacity;
-  Animation<Offset>? _entranceSlide;
+  Animation<double>? _entranceScale;
   Timer? _entranceDelayTimer;
+  bool _hovered = false;
+  bool _pressed = false;
 
   @override
   void initState() {
@@ -63,9 +67,9 @@ class _AtlasCardState extends State<AtlasCard>
         curve: AtlasMotion.curveDefault,
       );
       _entranceOpacity = curve;
-      _entranceSlide = Tween<Offset>(
-        begin: const Offset(0, 0.03),
-        end: Offset.zero,
+      _entranceScale = Tween<double>(
+        begin: AtlasMotion.cardEnterScale,
+        end: 1,
       ).animate(curve);
 
       if (widget.entranceDelay == Duration.zero) {
@@ -75,6 +79,17 @@ class _AtlasCardState extends State<AtlasCard>
           if (mounted) _entranceController!.forward();
         });
       }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.animateEntrance &&
+        _entranceController != null &&
+        AtlasMotion.reduceMotionOf(context)) {
+      _entranceDelayTimer?.cancel();
+      _entranceController!.value = 1;
     }
   }
 
@@ -94,6 +109,34 @@ class _AtlasCardState extends State<AtlasCard>
           const EdgeInsets.all(AtlasSpacing.cardPaddingCompact),
       };
 
+  List<BoxShadow> get _shadows {
+    if (_pressed) {
+      return const [
+        BoxShadow(
+          color: Color(0x141A2332),
+          blurRadius: 6,
+          offset: Offset(0, 1),
+        ),
+      ];
+    }
+    if (_hovered) {
+      return const [
+        BoxShadow(
+          color: Color(0x141A2332),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
+      ];
+    }
+    return const [
+      BoxShadow(
+        color: Color(0x0C1A2332),
+        blurRadius: 10,
+        offset: Offset(0, 2),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final borderColor = switch (widget.emphasis) {
@@ -101,50 +144,68 @@ class _AtlasCardState extends State<AtlasCard>
       _ => AtlasColors.sandMuted.withValues(alpha: 0.65),
     };
 
-    Widget card = DecoratedBox(
-      decoration: BoxDecoration(
-        color: AtlasColors.surfaceWhite,
-        borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
-        border: Border.all(color: borderColor, width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A1A2332),
-            blurRadius: 12,
-            offset: Offset(0, 2),
+    Widget card = MouseRegion(
+      onEnter: (_) {
+        if (kIsWeb ||
+            defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux) {
+          setState(() => _hovered = true);
+        }
+      },
+      onExit: (_) => setState(() => _hovered = false),
+      child: Listener(
+        onPointerDown: widget.onTap != null
+            ? (_) => setState(() => _pressed = true)
+            : null,
+        onPointerUp: (_) => setState(() => _pressed = false),
+        onPointerCancel: (_) => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed && widget.onTap != null ? AtlasMotion.pressScale : 1,
+          duration: AtlasMotion.pressDuration,
+          curve: AtlasMotion.curveDefault,
+          child: AnimatedContainer(
+            duration: AtlasMotion.hoverDuration,
+            curve: AtlasMotion.curveDefault,
+            decoration: BoxDecoration(
+              color: AtlasColors.surfaceWhite,
+              borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
+              border: Border.all(color: borderColor, width: 1),
+              boxShadow: _shadows,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
+              child: Material(
+                color: Colors.transparent,
+                child: widget.onTap == null
+                    ? Padding(
+                        padding: widget.padding ?? _defaultPadding,
+                        child: widget.child,
+                      )
+                    : InkWell(
+                        onTap: () {
+                          AtlasHaptics.selection();
+                          widget.onTap!();
+                        },
+                        child: Padding(
+                          padding: widget.padding ?? _defaultPadding,
+                          child: widget.child,
+                        ),
+                      ),
+              ),
+            ),
           ),
-          BoxShadow(
-            color: Color(0x051A2332),
-            blurRadius: 4,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
-        child: Material(
-          color: Colors.transparent,
-          child: widget.onTap == null
-              ? Padding(
-                  padding: widget.padding ?? _defaultPadding,
-                  child: widget.child,
-                )
-              : InkWell(
-                  onTap: widget.onTap,
-                  child: Padding(
-                    padding: widget.padding ?? _defaultPadding,
-                    child: widget.child,
-                  ),
-                ),
         ),
       ),
     );
 
     if (widget.animateEntrance &&
         _entranceOpacity != null &&
-        _entranceSlide != null) {
+        _entranceScale != null &&
+        !AtlasMotion.reduceMotionOf(context)) {
       card = FadeTransition(
         opacity: _entranceOpacity!,
-        child: SlideTransition(position: _entranceSlide!, child: card),
+        child: ScaleTransition(scale: _entranceScale!, child: card),
       );
     }
 

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/datetime/casablanca_date_formatter.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
@@ -148,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _deleteAccount() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAtlasDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -217,6 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Form(
         key: _formKey,
         child: ListView(
+          key: const PageStorageKey<String>('profile_scroll'),
           padding: const EdgeInsets.only(bottom: AtlasSpacing.sectionLarge),
           children: [
             AtlasContentContainer(

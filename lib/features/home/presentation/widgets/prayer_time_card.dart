@@ -5,6 +5,8 @@ import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
+import '../../../../design_system/widgets/atlas_fade_switcher.dart';
+import '../../../../design_system/widgets/atlas_skeleton.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 
@@ -32,42 +34,42 @@ class PrayerTimeCard extends StatelessWidget {
       emphasis: AtlasCardEmphasis.standard,
       animateEntrance: animateEntrance,
       entranceDelay: entranceDelay,
-      child: switch (snapshot.state) {
-        PrayerLoadState.loading => _LoadingBody(theme: theme),
-        PrayerLoadState.unavailable => _UnavailableBody(theme: theme),
-        PrayerLoadState.success ||
-        PrayerLoadState.stale =>
-          _ReadyBody(data: snapshot.data!, statusLabel: snapshot.statusLabel),
-      },
+      child: AtlasFadeSwitcher(
+        child: KeyedSubtree(
+          key: ValueKey(snapshot.state),
+          child: switch (snapshot.state) {
+            PrayerLoadState.loading => const _LoadingBody(),
+            PrayerLoadState.unavailable => _UnavailableBody(theme: theme),
+            PrayerLoadState.success ||
+            PrayerLoadState.stale =>
+              _ReadyBody(
+                data: snapshot.data!,
+                statusLabel: snapshot.statusLabel,
+              ),
+          },
+        ),
+      ),
     );
   }
 }
 
 class _LoadingBody extends StatelessWidget {
-  const _LoadingBody({required this.theme});
-
-  final ThemeData theme;
+  const _LoadingBody();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Prière',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: AtlasTextStyles.cardLabel(theme.colorScheme),
-            letterSpacing: 0.3,
-          ),
-        ),
-        const SizedBox(height: AtlasSpacing.xl),
-        Text(
-          'Chargement des horaires…',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AtlasTextStyles.metadata(theme.colorScheme),
-          ),
-        ),
-      ],
+    return Semantics(
+      label: 'Chargement des horaires…',
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AtlasSkeleton(height: 12, width: 72),
+          SizedBox(height: AtlasSpacing.md),
+          AtlasSkeleton(height: 16, width: 140),
+          SizedBox(height: AtlasSpacing.sm),
+          AtlasSkeleton(height: 12, width: 100),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'atlas_colors.dart';
+import 'atlas_motion.dart';
 import 'atlas_spacing.dart';
 import 'atlas_typography.dart';
 
@@ -55,6 +56,15 @@ abstract final class AtlasTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AtlasColors.warmOffWhite,
       textTheme: textTheme,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _AtlasFadeSlideTransitionsBuilder(),
+          TargetPlatform.iOS: _AtlasFadeSlideTransitionsBuilder(),
+          TargetPlatform.macOS: _AtlasFadeSlideTransitionsBuilder(),
+          TargetPlatform.windows: _AtlasFadeSlideTransitionsBuilder(),
+          TargetPlatform.linux: _AtlasFadeSlideTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AtlasColors.warmOffWhite,
         foregroundColor: AtlasColors.midnightBlue,
@@ -67,7 +77,7 @@ abstract final class AtlasTheme {
         backgroundColor: AtlasColors.warmOffWhite,
         indicatorColor: AtlasColors.sandMuted,
         elevation: 0,
-        height: 72,
+        height: AtlasSpacing.navBarHeight,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final base = textTheme.labelMedium;
           if (states.contains(WidgetState.selected)) {
@@ -124,7 +134,7 @@ abstract final class AtlasTheme {
           borderSide: const BorderSide(color: AtlasColors.error, width: 1.5),
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(
-          color: AtlasColors.midnightBlueMuted.withValues(alpha: 0.68),
+          color: AtlasColors.midnightBlueFaint,
         ),
       ),
       chipTheme: ChipThemeData(
@@ -165,16 +175,57 @@ abstract final class AtlasTheme {
             }
             return AtlasColors.warmOffWhite;
           }),
-          minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),
+          minimumSize: const WidgetStatePropertyAll(
+            Size(double.infinity, AtlasSpacing.buttonHeight),
+          ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(
-              horizontal: AtlasSpacing.xl,
+              horizontal: AtlasSpacing.lg,
               vertical: AtlasSpacing.md,
             ),
           ),
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AtlasSpacing.buttonRadius),
+            ),
+          ),
+          textStyle: WidgetStatePropertyAll(
+            textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          elevation: const WidgetStatePropertyAll(0),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return AtlasColors.midnightBlueMuted.withValues(alpha: 0.45);
+            }
+            return AtlasColors.midnightBlue;
+          }),
+          side: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return BorderSide(
+                color: AtlasColors.sandMuted.withValues(alpha: 0.7),
+              );
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return const BorderSide(color: AtlasColors.terracotta, width: 1.5);
+            }
+            return const BorderSide(color: AtlasColors.sand);
+          }),
+          minimumSize: const WidgetStatePropertyAll(
+            Size(double.infinity, AtlasSpacing.buttonHeight),
+          ),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(
+              horizontal: AtlasSpacing.lg,
+              vertical: AtlasSpacing.md,
+            ),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AtlasSpacing.buttonRadius),
             ),
           ),
           textStyle: WidgetStatePropertyAll(
@@ -185,8 +236,21 @@ abstract final class AtlasTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AtlasColors.terracotta,
-          textStyle: textTheme.labelLarge,
+          textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+          minimumSize: const Size(48, 40),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AtlasSpacing.md,
+            vertical: AtlasSpacing.sm,
+          ),
         ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AtlasColors.terracotta,
+        foregroundColor: AtlasColors.warmOffWhite,
+        elevation: 2,
+        focusElevation: 3,
+        hoverElevation: 3,
+        extendedPadding: EdgeInsets.symmetric(horizontal: AtlasSpacing.lg),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -195,8 +259,40 @@ abstract final class AtlasTheme {
           color: AtlasColors.warmOffWhite,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AtlasSpacing.buttonRadius),
         ),
+      ),
+    );
+  }
+}
+
+class _AtlasFadeSlideTransitionsBuilder extends PageTransitionsBuilder {
+  const _AtlasFadeSlideTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (AtlasMotion.reduceMotionOf(context)) {
+      return child;
+    }
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: AtlasMotion.curveDefault,
+      reverseCurve: AtlasMotion.curveExit,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.02),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
       ),
     );
   }

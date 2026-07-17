@@ -4,6 +4,8 @@ import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
+import '../../../../design_system/widgets/atlas_fade_switcher.dart';
+import '../../../../design_system/widgets/atlas_skeleton.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/home_models.dart';
 
@@ -22,17 +24,23 @@ class ExchangeRateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AtlasCard(
       emphasis: compact ? AtlasCardEmphasis.compact : AtlasCardEmphasis.standard,
-      child: switch (snapshot.state) {
-        ExchangeRateLoadState.loading => _LoadingBody(compact: compact),
-        ExchangeRateLoadState.unavailable => _UnavailableBody(compact: compact),
-        ExchangeRateLoadState.success ||
-        ExchangeRateLoadState.stale =>
-          _ReadyBody(
-            data: snapshot.data!,
-            statusLabel: snapshot.statusLabel,
-            compact: compact,
-          ),
-      },
+      child: AtlasFadeSwitcher(
+        child: KeyedSubtree(
+          key: ValueKey(snapshot.state),
+          child: switch (snapshot.state) {
+            ExchangeRateLoadState.loading => _LoadingBody(compact: compact),
+            ExchangeRateLoadState.unavailable =>
+              _UnavailableBody(compact: compact),
+            ExchangeRateLoadState.success ||
+            ExchangeRateLoadState.stale =>
+              _ReadyBody(
+                data: snapshot.data!,
+                statusLabel: snapshot.statusLabel,
+                compact: compact,
+              ),
+          },
+        ),
+      ),
     );
   }
 }
@@ -44,25 +52,18 @@ class _LoadingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Change',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            letterSpacing: 0.3,
-          ),
-        ),
-        SizedBox(height: compact ? AtlasSpacing.md : AtlasSpacing.lg),
-        Text(
-          'Chargement du taux…',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: AtlasTextStyles.metadata(theme.colorScheme),
-          ),
-        ),
-      ],
+    return Semantics(
+      label: 'Chargement du taux…',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AtlasSkeleton(height: 12, width: 64),
+          SizedBox(height: compact ? AtlasSpacing.md : AtlasSpacing.lg),
+          const AtlasSkeleton(height: 18, width: 120),
+          const SizedBox(height: AtlasSpacing.sm),
+          const AtlasSkeleton(height: 12, width: 80),
+        ],
+      ),
     );
   }
 }

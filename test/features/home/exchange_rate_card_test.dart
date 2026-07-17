@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:atlas/design_system/theme/atlas_theme.dart';
+import 'package:atlas/design_system/widgets/atlas_skeleton.dart';
 import 'package:atlas/features/home/domain/models/exchange_rate_snapshot.dart';
 import 'package:atlas/features/home/domain/models/home_models.dart';
 import 'package:atlas/features/home/presentation/widgets/exchange_rate_card.dart';
@@ -19,7 +20,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Chargement du taux…'), findsOneWidget);
+    expect(find.bySemanticsLabel('Chargement du taux…'), findsOneWidget);
+    expect(find.byType(AtlasSkeleton), findsWidgets);
     expect(find.textContaining('10.'), findsNothing);
     expect(find.byIcon(Icons.trending_up), findsNothing);
   });

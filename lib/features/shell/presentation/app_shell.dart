@@ -4,6 +4,8 @@ import 'package:flutter/scheduler.dart';
 import '../../../core/errors/atlas_error_ui.dart';
 import '../../../core/performance/atlas_performance.dart';
 import '../../../core/platform/atlas_build_info.dart';
+import '../../../design_system/motion/atlas_haptics.dart';
+import '../../../design_system/theme/atlas_spacing.dart';
 import '../../assistant/data/local_assistant_repository.dart';
 import '../../assistant/domain/assistant_repository.dart';
 import '../../assistant/presentation/assistant_scope.dart';
@@ -245,14 +247,19 @@ class _AppShellState extends State<AppShell> {
                       child: ShellNavigationScope(
                         navigateToTab: _navigateToTab,
                         child: Scaffold(
+                          floatingActionButtonLocation:
+                              FloatingActionButtonLocation.endFloat,
                           floatingActionButton: FloatingActionButton.extended(
-                            onPressed: () => showBetaFeedbackSheet(
-                              context: context,
-                              screenName: _currentScreenName,
-                              screenshotKey: _screenshotKey,
-                            ),
-                            icon: const Icon(Icons.flag_outlined),
-                            label: const Text('Signaler un problème'),
+                            onPressed: () {
+                              AtlasHaptics.primaryAction();
+                              showBetaFeedbackSheet(
+                                context: context,
+                                screenName: _currentScreenName,
+                                screenshotKey: _screenshotKey,
+                              );
+                            },
+                            icon: const Icon(Icons.flag_outlined, size: 20),
+                            label: const Text('Signaler'),
                           ),
                           body: Column(
                             children: [
@@ -263,41 +270,48 @@ class _AppShellState extends State<AppShell> {
                                 ),
                               if (showOffline) const AtlasOfflineNotice(),
                               Expanded(
-                                child: RepaintBoundary(
-                                  key: _screenshotKey,
-                                  child: IndexedStack(
-                                    index: _currentIndex,
-                                    children: [
-                                      ShellTabTransition(
-                                        isActive:
-                                            _currentIndex == AtlasShellTab.home,
-                                        child: const HomePage(),
-                                      ),
-                                      ShellTabTransition(
-                                        isActive: _currentIndex ==
-                                            AtlasShellTab.explorer,
-                                        child: const ExplorerPage(),
-                                      ),
-                                      ShellTabTransition(
-                                        isActive: mapActive,
-                                        child: AtlasMapPage(isActive: mapActive),
-                                      ),
-                                      ShellTabTransition(
-                                        isActive: _currentIndex ==
-                                            AtlasShellTab.procedures,
-                                        child: const ProceduresPage(),
-                                      ),
-                                      ShellTabTransition(
-                                        isActive: _currentIndex ==
-                                            AtlasShellTab.prices,
-                                        child: const PricesPage(),
-                                      ),
-                                      ShellTabTransition(
-                                        isActive: _currentIndex ==
-                                            AtlasShellTab.profile,
-                                        child: const ProfilePage(),
-                                      ),
-                                    ],
+                                child: Padding(
+                                  // Évite que le FAB masque le bas des listes.
+                                  padding: const EdgeInsets.only(
+                                    bottom: AtlasSpacing.fabClearance,
+                                  ),
+                                  child: RepaintBoundary(
+                                    key: _screenshotKey,
+                                    child: IndexedStack(
+                                      index: _currentIndex,
+                                      children: [
+                                        ShellTabTransition(
+                                          isActive: _currentIndex ==
+                                              AtlasShellTab.home,
+                                          child: const HomePage(),
+                                        ),
+                                        ShellTabTransition(
+                                          isActive: _currentIndex ==
+                                              AtlasShellTab.explorer,
+                                          child: const ExplorerPage(),
+                                        ),
+                                        ShellTabTransition(
+                                          isActive: mapActive,
+                                          child:
+                                              AtlasMapPage(isActive: mapActive),
+                                        ),
+                                        ShellTabTransition(
+                                          isActive: _currentIndex ==
+                                              AtlasShellTab.procedures,
+                                          child: const ProceduresPage(),
+                                        ),
+                                        ShellTabTransition(
+                                          isActive: _currentIndex ==
+                                              AtlasShellTab.prices,
+                                          child: const PricesPage(),
+                                        ),
+                                        ShellTabTransition(
+                                          isActive: _currentIndex ==
+                                              AtlasShellTab.profile,
+                                          child: const ProfilePage(),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

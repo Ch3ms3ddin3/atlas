@@ -4,7 +4,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../../design_system/motion/atlas_haptics.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/atlas_map_models.dart';
 
@@ -17,6 +19,7 @@ class AtlasFlutterMapView extends StatelessWidget {
     required this.tileProvider,
     required this.mapController,
     required this.onMarkerTap,
+    this.selectedPlaceId,
     this.userLatitude,
     this.userLongitude,
   });
@@ -26,6 +29,7 @@ class AtlasFlutterMapView extends StatelessWidget {
   final AtlasMapTileProvider tileProvider;
   final MapController mapController;
   final ValueChanged<AtlasMapMarker> onMarkerTap;
+  final String? selectedPlaceId;
   final double? userLatitude;
   final double? userLongitude;
 
@@ -43,16 +47,20 @@ class AtlasFlutterMapView extends StatelessWidget {
         Marker(
           key: ValueKey(marker.placeId),
           point: LatLng(marker.latitude, marker.longitude),
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           child: Semantics(
             button: true,
             label: marker.isFavorite
                 ? '${marker.name}, favori'
                 : marker.name,
-            child: GestureDetector(
-              onTap: () => onMarkerTap(marker),
-              child: _PlaceMarkerPin(isFavorite: marker.isFavorite),
+            child: _PlaceMarkerPin(
+              isFavorite: marker.isFavorite,
+              isSelected: marker.placeId == selectedPlaceId,
+              onTap: () {
+                AtlasHaptics.selection();
+                onMarkerTap(marker);
+              },
             ),
           ),
         ),
@@ -77,7 +85,6 @@ class AtlasFlutterMapView extends StatelessWidget {
             tileProvider:
                 useSilentTiles ? _SilentTileProvider() : NetworkTileProvider(),
             errorTileCallback: (_, error, _) {
-              // Tuiles optionnelles — marqueurs restent disponibles hors ligne.
               assert(() {
                 debugPrint('Atlas map tile error: $error');
                 return true;
@@ -91,7 +98,8 @@ class AtlasFlutterMapView extends StatelessWidget {
             size: const Size(40, 40),
             markers: flutterMarkers,
             builder: (context, clusterMarkers) {
-              return Container(
+              return AnimatedContainer(
+                duration: AtlasMotion.navAnimationDuration,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: AtlasColors.terracotta,
@@ -125,7 +133,8 @@ class AtlasFlutterMapView extends StatelessWidget {
                       border: Border.all(color: Colors.white, width: 3),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.35),
+                          color:
+                              theme.colorScheme.primary.withValues(alpha: 0.35),
                           blurRadius: 8,
                         ),
                       ],
@@ -145,7 +154,6 @@ class AtlasFlutterMapView extends StatelessWidget {
   }
 }
 
-/// Tuile transparente — utilisée en tests pour éviter les HTTP 400.
 class _SilentTileProvider extends TileProvider {
   static final _transparent = MemoryImage(
     Uint8List.fromList(<int>[
@@ -164,31 +172,62 @@ class _SilentTileProvider extends TileProvider {
   }
 }
 
-class _PlaceMarkerPin extends StatelessWidget {
-  const _PlaceMarkerPin({required this.isFavorite});
+class _PlaceMarkerPin extends StatefulWidget {
+  const _PlaceMarkerPin({
+    required this.isFavorite,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   final bool isFavorite;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  State<_PlaceMarkerPin> createState() => _PlaceMarkerPinState();
+}
+
+class _PlaceMarkerPinState extends State<_PlaceMarkerPin> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final color = isFavorite ? AtlasColors.terracotta : AtlasColors.midnightBlue;
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    final color =
+        widget.isFavorite ? AtlasColors.terracotta : AtlasColors.midnightBlue;
+    final selected = widget.isSelected || _pressed;
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: selected ? 1.18 : 1,
+        duration: AtlasMotion.navAnimationDuration,
+        curve: AtlasMotion.curveSpring,
+        child: AnimatedContainer(
+          duration: AtlasMotion.navAnimationDuration,
+          curve: AtlasMotion.curveDefault,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: selected ? 3 : 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: selected ? 0.28 : 0.2),
+                blurRadius: selected ? 8 : 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Icon(
-        isFavorite ? Icons.favorite : Icons.place,
-        color: Colors.white,
-        size: AtlasSpacing.xl,
+          child: Icon(
+            widget.isFavorite ? Icons.favorite : Icons.place,
+            color: Colors.white,
+            size: AtlasSpacing.xl,
+          ),
+        ),
       ),
     );
   }

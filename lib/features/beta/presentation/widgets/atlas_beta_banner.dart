@@ -26,7 +26,7 @@ class AtlasBetaBanner extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AtlasSpacing.lg,
-              vertical: AtlasSpacing.sm,
+              vertical: AtlasSpacing.xs,
             ),
             child: Row(
               children: [

@@ -44,11 +44,20 @@ class _AtlasRevealState extends State<AtlasReveal>
     ).animate(
       CurvedAnimation(parent: _controller, curve: AtlasMotion.curveDefault),
     );
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_controller.isCompleted || _controller.isAnimating) return;
+    if (AtlasMotion.reduceMotionOf(context)) {
+      _controller.value = 1;
+      return;
+    }
     if (widget.delay == Duration.zero) {
       _controller.forward();
     } else {
-      _delayTimer = Timer(widget.delay, () {
+      _delayTimer ??= Timer(widget.delay, () {
         if (mounted) _controller.forward();
       });
     }
@@ -63,6 +72,9 @@ class _AtlasRevealState extends State<AtlasReveal>
 
   @override
   Widget build(BuildContext context) {
+    if (AtlasMotion.reduceMotionOf(context)) {
+      return widget.child;
+    }
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(position: _slide, child: widget.child),

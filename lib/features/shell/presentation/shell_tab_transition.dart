@@ -49,7 +49,11 @@ class _ShellTabTransitionState extends State<ShellTabTransition>
   void didUpdateWidget(ShellTabTransition oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isActive && !oldWidget.isActive) {
-      _controller.forward(from: 0);
+      if (AtlasMotion.reduceMotionOf(context)) {
+        _controller.value = 1;
+      } else {
+        _controller.forward(from: 0);
+      }
     }
   }
 
@@ -61,6 +65,9 @@ class _ShellTabTransitionState extends State<ShellTabTransition>
 
   @override
   Widget build(BuildContext context) {
+    if (AtlasMotion.reduceMotionOf(context)) {
+      return widget.child;
+    }
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(

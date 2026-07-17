@@ -9,6 +9,7 @@ import '../../../../core/location/geolocator_service.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/morocco_cities.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
@@ -63,6 +64,8 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   double? _userLng;
   bool _tilesUnavailable = false;
   bool _mapEngineReady = false;
+  String? _selectedPlaceId;
+  Timer? _cameraAnimTimer;
 
   @override
   void initState() {
@@ -125,6 +128,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   @override
   void dispose() {
     _searchDebounce?.cancel();
+    _cameraAnimTimer?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _filters.removeListener(_onFiltersChanged);
@@ -237,6 +241,33 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     setState(() => _hasLocationPermission = permission);
   }
 
+  void _animateCameraTo(double latitude, double longitude, double zoom) {
+    _cameraAnimTimer?.cancel();
+    if (AtlasMotion.reduceMotionOf(context)) {
+      _mapController.move(LatLng(latitude, longitude), zoom);
+      return;
+    }
+    final start = _mapController.camera.center;
+    final startZoom = _mapController.camera.zoom;
+    const steps = 14;
+    var step = 0;
+    _cameraAnimTimer = Timer.periodic(const Duration(milliseconds: 18), (timer) {
+      step += 1;
+      final t = Curves.easeOutCubic.transform(step / steps);
+      _mapController.move(
+        LatLng(
+          start.latitude + (latitude - start.latitude) * t,
+          start.longitude + (longitude - start.longitude) * t,
+        ),
+        startZoom + (zoom - startZoom) * t,
+      );
+      if (step >= steps) {
+        timer.cancel();
+        _cameraAnimTimer = null;
+      }
+    });
+  }
+
   Future<void> _onNearMe() async {
     final preferred = _profileRepository?.profile.preferredCity ??
         UserProfile.defaultPreferredCity;
@@ -258,10 +289,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
       _userLng = location.longitude;
       _hasLocationPermission = true;
     });
-    _mapController.move(
-      LatLng(location.latitude, location.longitude),
-      14,
-    );
+    _animateCameraTo(location.latitude, location.longitude, 14);
   }
 
   Future<void> _onRefresh() async {
@@ -278,7 +306,15 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   void _onMarkerTap(AtlasMapMarker marker) {
     final place = _repository.findById(marker.placeId);
     if (place == null) return;
-    unawaited(showPlaceMapPreviewSheet(context, place: place));
+    setState(() => _selectedPlaceId = marker.placeId);
+    final targetZoom =
+        _mapController.camera.zoom < 14 ? 14.0 : _mapController.camera.zoom;
+    _animateCameraTo(marker.latitude, marker.longitude, targetZoom);
+    unawaited(
+      showPlaceMapPreviewSheet(context, place: place).whenComplete(() {
+        if (mounted) setState(() => _selectedPlaceId = null);
+      }),
+    );
   }
 
   AtlasMapCamera get _camera {
@@ -408,6 +444,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                                   tileProvider: _tileProvider,
                                   mapController: _mapController,
                                   onMarkerTap: _onMarkerTap,
+                                  selectedPlaceId: _selectedPlaceId,
                                   userLatitude: _userLat,
                                   userLongitude: _userLng,
                                 ),

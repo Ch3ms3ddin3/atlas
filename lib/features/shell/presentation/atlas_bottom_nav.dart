@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/motion/atlas_haptics.dart';
 import '../../../design_system/theme/atlas_colors.dart';
 import '../../../design_system/theme/atlas_motion.dart';
 import '../../../design_system/theme/atlas_spacing.dart';
@@ -71,12 +72,12 @@ class AtlasBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 72,
+          height: AtlasSpacing.navBarHeight,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final itemWidth = constraints.maxWidth / destinations.length;
-              const indicatorWidth = 56.0;
-              const indicatorHeight = 32.0;
+              const indicatorWidth = 52.0;
+              const indicatorHeight = 28.0;
 
               return Stack(
                 alignment: Alignment.topCenter,
@@ -85,7 +86,7 @@ class AtlasBottomNav extends StatelessWidget {
                     duration: AtlasMotion.navAnimationDuration,
                     curve: AtlasMotion.curveDefault,
                     left: itemWidth * currentIndex + (itemWidth - indicatorWidth) / 2,
-                    top: 8,
+                    top: 6,
                     width: indicatorWidth,
                     height: indicatorHeight,
                     child: DecoratedBox(
@@ -142,7 +143,10 @@ class _AtlasNavItem extends StatelessWidget {
       selected: isSelected,
       label: destination.label,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          AtlasHaptics.selection();
+          onTap();
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AtlasSpacing.sm),
           child: Column(

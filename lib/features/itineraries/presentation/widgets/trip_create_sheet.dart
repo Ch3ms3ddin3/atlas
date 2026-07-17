@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/location/morocco_cities.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../domain/itinerary_repository.dart';
@@ -12,7 +13,7 @@ class TripCreateSheet extends StatefulWidget {
   const TripCreateSheet({super.key});
 
   static Future<String?> show(BuildContext context) {
-    return showModalBottomSheet<String>(
+    return showAtlasBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,

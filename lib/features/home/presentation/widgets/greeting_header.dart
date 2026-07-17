@@ -41,7 +41,7 @@ class GreetingHeader extends StatelessWidget {
             _ProfileAvatarButton(onTap: handleProfileTap),
           ],
         ),
-        const SizedBox(height: AtlasSpacing.md),
+        const SizedBox(height: AtlasSpacing.sm),
         Text(
           'Bonjour, ${data.userName}',
           style: theme.textTheme.headlineLarge?.copyWith(
@@ -51,7 +51,7 @@ class GreetingHeader extends StatelessWidget {
             color: onSurface,
           ),
         ),
-        const SizedBox(height: AtlasSpacing.sm),
+        const SizedBox(height: AtlasSpacing.xs),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,

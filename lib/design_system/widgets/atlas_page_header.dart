@@ -30,16 +30,16 @@ class AtlasPageHeader extends StatelessWidget {
             letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: AtlasSpacing.sm),
+        const SizedBox(height: AtlasSpacing.xs),
         Text(
           subtitle,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: AtlasTextStyles.helper(theme.colorScheme),
-            height: 1.45,
+            height: 1.4,
           ),
         ),
         if (footnote != null) ...[
-          const SizedBox(height: AtlasSpacing.sm),
+          const SizedBox(height: AtlasSpacing.xs),
           Text(
             footnote!,
             style: theme.textTheme.labelSmall?.copyWith(

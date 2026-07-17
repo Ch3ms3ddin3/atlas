@@ -164,6 +164,7 @@ class _PricesPageState extends State<PricesPage> {
         child: RefreshIndicator(
           onRefresh: _onRefresh,
           child: CustomScrollView(
+            key: const PageStorageKey<String>('prices_scroll'),
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(

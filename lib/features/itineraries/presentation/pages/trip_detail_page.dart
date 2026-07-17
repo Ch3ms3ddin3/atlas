@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/uuid/atlas_uuid.dart';
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
@@ -82,7 +83,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       places = null;
     }
 
-    final chosen = await showModalBottomSheet<String>(
+    final chosen = await showAtlasBottomSheet<String>(
       context: context,
       showDragHandle: true,
       builder: (context) {

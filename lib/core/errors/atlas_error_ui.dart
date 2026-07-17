@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system/navigation/atlas_modal.dart';
 import '../../design_system/theme/atlas_spacing.dart';
 
 /// Dialogue d'erreur lisible avec action de réessai optionnelle.
@@ -10,7 +11,7 @@ Future<void> showAtlasErrorDialog({
   String? retryLabel,
   VoidCallback? onRetry,
 }) {
-  return showDialog<void>(
+  return showAtlasDialog<void>(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
@@ -55,7 +56,7 @@ class AtlasOfflineNotice extends StatelessWidget {
         horizontal: AtlasSpacing.lg,
         vertical: AtlasSpacing.md,
       ),
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.85),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.9),
       child: Row(
         children: [
           Icon(
@@ -70,6 +71,7 @@ class AtlasOfflineNotice extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.35,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

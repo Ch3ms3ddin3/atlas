@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_primary_button.dart';
 import '../../domain/changelog_entry.dart';
@@ -9,7 +10,7 @@ Future<void> showWhatsNewDialog({
   required List<ChangelogEntry> entries,
 }) {
   if (entries.isEmpty) return Future.value();
-  return showDialog<void>(
+  return showAtlasDialog<void>(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
