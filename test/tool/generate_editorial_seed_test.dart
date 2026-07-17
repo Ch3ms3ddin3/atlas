@@ -23,7 +23,10 @@ void main() {
       ..writeln(_truncate('procedures'))
       ..writeln(_truncate('places'))
       ..writeln(_truncate('prices'))
-      ..writeln(_truncate('events'));
+      ..writeln(_truncate('events'))
+      // Price Intelligence : pas de prix inventés — table vide jusqu'à édition vérifiée.
+      ..writeln(_truncate('price_history'))
+      ..writeln(_truncate('price_observations'));
 
     for (final guide in ProcedureCatalog.guides) {
       buffer.writeln(_procedureInsert(guide));

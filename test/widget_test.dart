@@ -8,22 +8,31 @@ import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
 import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
-import 'package:atlas/features/prices/presentation/widgets/price_disclaimer_banner.dart';
+import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
+
+import 'features/prices/price_intelligence_test_helpers.dart';
 
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
     EditorialRepositoryBootstrap.registerDefaults();
+    registerPriceIntelligenceFixtures();
     ensurePrayerNotificationCoordinatorForTests();
     ensureAtRepositoryForTests();
   });
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    EditorialRepositoryBootstrap.registerDefaults();
+    registerPriceIntelligenceFixtures();
     resetAtBootstrapForTests();
     ensureAtRepositoryForTests();
+  });
+
+  tearDown(() {
+    PriceIntelligenceRepository.resetForTest();
   });
 
   Future<void> tapBottomNav(WidgetTester tester, String label) async {
@@ -47,7 +56,7 @@ void main() {
 
     expect(find.text('Accueil'), findsWidgets);
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
-    expect(find.text('Marrakech'), findsOneWidget);
+    expect(find.text('Marrakech'), findsWidgets);
     expect(
       find.text(
         CasablancaDateFormatter.formatLongDate(PrayerMapper.casablancaNow()),
@@ -90,11 +99,17 @@ void main() {
     await tapBottomNav(tester, 'Prix');
 
     expect(
-      find.textContaining('Repères de prix à Marrakech'),
+      find.textContaining('Prix vérifiés au Maroc'),
       findsOneWidget,
     );
-    expect(find.text('Course de taxi'), findsOneWidget);
-    expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
+    expect(find.text('SP95 Marrakech'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('Taxi Airport Marrakech'),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Taxi Airport Marrakech'), findsOneWidget);
 
     await tapBottomNav(tester, 'Profil');
 
@@ -129,12 +144,13 @@ void main() {
     expect(find.text('Mes favoris'), findsNothing);
     expect(find.text('Recommandations'), findsOneWidget);
     expect(find.text('Démarches utiles'), findsOneWidget);
-    expect(find.text('Repères de prix'), findsOneWidget);
+    expect(find.text('Prix à la une'), findsOneWidget);
+    expect(find.text('Voir tout'), findsOneWidget);
     expect(find.textContaining('Admission temporaire'), findsOneWidget);
     expect(find.text('42'), findsNothing);
     expect(find.text('Jardin Majorelle'), findsOneWidget);
     expect(find.text('Place Jemaa el-Fna'), findsOneWidget);
-    expect(find.text('Course de taxi'), findsOneWidget);
+    expect(find.text('SP95 Marrakech'), findsOneWidget);
     expect(find.text('Urgences'), findsNothing);
     expect(find.text('Padel'), findsNothing);
     expect(
@@ -200,33 +216,20 @@ void main() {
 
     await tapBottomNav(tester, 'Prix');
 
-    final priceItem = find.text('Course de taxi').first;
+    final priceItem = find.text('SP95 Marrakech').first;
     await tester.ensureVisible(priceItem);
     await tester.pumpAndSettle();
     await tester.tap(priceItem);
     await tester.pumpAndSettle();
 
-    expect(find.text('Fourchette normale'), findsOneWidget);
-    expect(find.text('Ce qui fait varier le prix'), findsOneWidget);
-
-    final alertSection = find.text('Signaux d\'alerte');
-    await tester.scrollUntilVisible(
-      alertSection,
-      120,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(alertSection, findsOneWidget);
-
-    final negotiationSection = find.text('Conseils de négociation');
-    await tester.scrollUntilVisible(
-      negotiationSection,
-      120,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.pumpAndSettle();
-    expect(negotiationSection, findsOneWidget);
-    expect(find.text(PriceDisclaimerBanner.text), findsOneWidget);
+    expect(find.textContaining('Prix actuel'), findsOneWidget);
+    expect(find.text('Fourchette'), findsOneWidget);
+    expect(find.text('Minimum'), findsOneWidget);
+    expect(find.text('Moyenne'), findsOneWidget);
+    expect(find.text('Maximum'), findsOneWidget);
+    expect(find.textContaining('Source :'), findsOneWidget);
+    expect(find.text('Vérifié'), findsWidgets);
+    expect(find.text('Confiance élevée'), findsWidgets);
   });
 
   testWidgets('Les actions rapides naviguent vers les onglets Atlas', (
@@ -260,7 +263,7 @@ void main() {
     await tester.pumpWidget(const AtlasApp());
     await tester.pumpAndSettle();
 
-    final priceSection = find.text('Repères de prix');
+    final priceSection = find.text('Prix à la une');
     await tester.scrollUntilVisible(
       priceSection,
       160,
@@ -268,13 +271,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final taxi = find.text('Course de taxi').first;
-    await tester.ensureVisible(taxi);
+    final fuel = find.text('SP95 Marrakech').first;
+    await tester.ensureVisible(fuel);
     await tester.pumpAndSettle();
-    await tester.tap(taxi);
+    await tester.tap(fuel);
     await tester.pumpAndSettle();
 
-    expect(find.text('Fourchette normale'), findsOneWidget);
+    expect(find.textContaining('Prix actuel'), findsOneWidget);
+    expect(find.text('Fourchette'), findsOneWidget);
+    expect(find.text('Vérifié'), findsWidgets);
   });
 
   testWidgets('Le profil enregistre le prénom et met à jour l\'accueil', (

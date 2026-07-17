@@ -284,8 +284,33 @@ Local `SharedPreferences` remains the immediate read/write path; Supabase is syn
 
 ### `prices`
 
-Editorial price guides. Arrays: `price_factors`, `warning_signs`, `negotiation_tips`.  
+Editorial price guides (legacy Home/catalog). Arrays: `price_factors`, `warning_signs`, `negotiation_tips`.  
 `icon_key` stored as string; mapped to `IconData` in Dart.
+
+### `price_observations`
+
+Morocco Price Intelligence (`supabase/migrations/00008_price_intelligence.sql`).
+
+| Column | Type | Notes |
+|---|---|---|
+| `slug` | `text` UNIQUE | Dart `PriceObservation.id` (favorites) |
+| `category` | `text` | `fuel` \| `supermarkets` \| `restaurants` \| `coffee` \| `fastFood` \| `taxi` \| `publicTransport` \| `parking` \| `realEstate` \| `mobilePlans` \| `internet` \| `healthcare` \| `pharmacy` |
+| `city_name` / `district` | text | district optional |
+| `item_name` / `unit_label` | text | |
+| `current_amount_mad` | numeric | Primary display value |
+| `min_amount_mad` / `avg_amount_mad` / `max_amount_mad` | numeric nullable | Range card |
+| `currency` | text | default `MAD` |
+| `source` / `source_url` | text | Attribution |
+| `confidence` | text | `high` \| `medium` \| `low` |
+| `verification_status` | text | `verified` \| `unverified` \| `pending` |
+| `user_reports_count` | integer | Aggregated only — no reporter PII |
+| `atlas_score` | integer nullable | Recommendation sort |
+| `is_published` | boolean | |
+
+RLS: public SELECT only when `is_published` **and** `verification_status = 'verified'`.  
+Client never invents rows; empty catalog → empty UI. Offline = last successful disk cache.
+
+Companion table `price_history` is reserved for future trends (no public read in v1).
 
 ### `procedures`
 
@@ -345,7 +370,7 @@ Unique: `(user_id, entity_type, entity_slug)`.
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
 |---|---|---|---|---|
-| Editorial (`prices`, `procedures`, `places`, `events`) | published rows, all users | service role only | service role only | service role only |
+| Editorial (`prices`, `procedures`, `places`, `events`, `price_observations`) | published (+ verified for observations), all users | service role only | service role only | service role only |
 | `profiles` | own row | own row | own row | deny |
 | `favorites` | own rows | own rows | own rows | own rows |
 | `content_reports` | own rows | own rows | service role | deny |

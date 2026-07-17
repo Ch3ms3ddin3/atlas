@@ -22,12 +22,16 @@
 
 ⬜ Administration
 
-⬜ Price Guide
+⬜ Administration
 
-⬜ Places
+✅ Price Guide
+
+✅ Places
 
 ✅ Notifications
 
 ✅ AT Vehicle Tracker
 
 ✅ Morocco Events & Calendar
+
+✅ Morocco Price Intelligence

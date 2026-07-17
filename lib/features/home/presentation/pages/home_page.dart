@@ -22,9 +22,10 @@ import '../../../explorer/presentation/pages/explorer_page.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/domain/favorites_repository.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
-import '../../../prices/domain/models/price_models.dart';
-import '../../../prices/domain/price_repository.dart';
+import '../../../prices/domain/models/price_observation.dart';
+import '../../../prices/domain/price_intelligence_repository.dart';
 import '../../../prices/presentation/pages/prices_page.dart';
+import '../../../prices/presentation/widgets/home_price_highlights_section.dart';
 import '../../../procedures/domain/models/procedure_models.dart';
 import '../../../procedures/domain/procedure_repository.dart';
 import '../../../procedures/presentation/pages/procedures_page.dart';
@@ -48,7 +49,6 @@ import '../widgets/daily_briefing_section.dart';
 import '../widgets/greeting_header.dart';
 import '../widgets/home_favorites_section.dart';
 import '../widgets/home_optional_section.dart';
-import '../widgets/home_price_indicators_section.dart';
 import '../widgets/home_procedures_section.dart';
 import '../widgets/home_section_header.dart';
 import '../widgets/prayer_notification_settings_sheet.dart';
@@ -81,7 +81,8 @@ class _HomePageState extends State<HomePage> {
       const TodayEssentialsRepository();
   final ProcedureRepository _procedureRepository = ProcedureRepository();
   final PlaceRepository _placeRepository = PlaceRepository();
-  final PriceRepository _priceRepository = PriceRepository();
+  final PriceIntelligenceRepository _priceIntelligenceRepository =
+      PriceIntelligenceRepository();
   final EventRepository _eventRepository = EventRepository();
 
   UserLocation _location = const UserLocation(
@@ -100,7 +101,7 @@ class _HomePageState extends State<HomePage> {
   String _lastUpdatedLabel = HomeMockData.lastUpdated;
   List<RecommendedPlaceData> _recommendedPlaces = const [];
   List<ProcedureGuide> _curatedProcedures = const [];
-  List<PriceGuide> _priceIndicators = const [];
+  List<PriceObservation> _priceHighlights = const [];
   List<HomeFavoriteEntry> _favoriteEntries = const [];
   DateTime? _weatherFetchedAt;
   DateTime? _prayerFetchedAt;
@@ -185,7 +186,7 @@ class _HomePageState extends State<HomePage> {
       _placeCatalogListener = _onEditorialCatalogChanged;
       (places as Listenable).addListener(_placeCatalogListener!);
     }
-    final prices = _priceRepository;
+    final prices = _priceIntelligenceRepository;
     if (prices is Listenable) {
       _priceCatalogListener = _onEditorialCatalogChanged;
       (prices as Listenable).addListener(_priceCatalogListener!);
@@ -202,7 +203,7 @@ class _HomePageState extends State<HomePage> {
     if (places is Listenable && _placeCatalogListener != null) {
       (places as Listenable).removeListener(_placeCatalogListener!);
     }
-    final prices = _priceRepository;
+    final prices = _priceIntelligenceRepository;
     if (prices is Listenable && _priceCatalogListener != null) {
       (prices as Listenable).removeListener(_priceCatalogListener!);
     }
@@ -308,9 +309,9 @@ class _HomePageState extends State<HomePage> {
       _procedureRepository.getAll,
     );
 
-    final cityPrices = _priceRepository.getAll(cityName: _location.cityName);
-    _priceIndicators = HomeDashboardCatalog.pickUsefulPriceIndicators(
-      cityPrices,
+    _priceHighlights = _priceIntelligenceRepository.highlights(
+      cityName: _location.cityName,
+      limit: 5,
     );
 
     _loadFavoriteEntries();
@@ -351,15 +352,16 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         case FavoriteEntityType.price:
-          final price = _priceRepository.findById(key.entitySlug);
+          final price =
+              _priceIntelligenceRepository.findById(key.entitySlug);
           if (price == null) continue;
           entries.add(
             HomeFavoriteEntry(
               entityType: FavoriteEntityType.price,
               entitySlug: price.id,
-              title: price.name,
-              subtitle: '${price.categoryLabel} · ${price.unitLabel}',
-              icon: price.icon,
+              title: price.itemName,
+              subtitle: '${price.cityName} · ${price.unitLabel}',
+              icon: price.category.icon,
             ),
           );
       }
@@ -518,8 +520,12 @@ class _HomePageState extends State<HomePage> {
     openProcedureGuideById(context, _procedureRepository, guide.id);
   }
 
-  void _onPriceTap(PriceGuide guide) {
-    openPriceGuideById(context, _priceRepository, guide.id);
+  void _onPriceTap(PriceObservation observation) {
+    openPriceObservationById(
+      context,
+      _priceIntelligenceRepository,
+      observation.id,
+    );
   }
 
   void _onFavoriteTap(HomeFavoriteEntry entry) {
@@ -529,7 +535,11 @@ class _HomePageState extends State<HomePage> {
       case FavoriteEntityType.procedure:
         openProcedureGuideById(context, _procedureRepository, entry.entitySlug);
       case FavoriteEntityType.price:
-        openPriceGuideById(context, _priceRepository, entry.entitySlug);
+        openPriceObservationById(
+          context,
+          _priceIntelligenceRepository,
+          entry.entitySlug,
+        );
     }
   }
 
@@ -667,11 +677,14 @@ class _HomePageState extends State<HomePage> {
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 11,
                       child: HomeOptionalSection(
-                        title: 'Repères de prix',
-                        isEmpty: _priceIndicators.isEmpty,
-                        child: HomePriceIndicatorsSection(
-                          guides: _priceIndicators,
-                          onGuideTap: _onPriceTap,
+                        title: 'Prix à la une',
+                        isEmpty: _priceHighlights.isEmpty,
+                        actionLabel: 'Voir tout',
+                        onActionTap: () =>
+                            ShellNavigationScope.goToPrices(context),
+                        child: HomePriceHighlightsSection(
+                          observations: _priceHighlights,
+                          onObservationTap: _onPriceTap,
                         ),
                       ),
                     ),

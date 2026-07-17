@@ -18,7 +18,9 @@ import 'package:atlas/features/favorites/domain/favorites_repository.dart';
 import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
 import 'package:atlas/features/home/presentation/pages/home_page.dart';
 import 'package:atlas/features/prices/data/local_price_repository.dart';
+import 'package:atlas/features/prices/data/resilient_price_intelligence_repository.dart';
 import 'package:atlas/features/prices/data/resilient_price_repository.dart';
+import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
 import 'package:atlas/features/prices/domain/price_repository.dart';
 import 'package:atlas/features/procedures/data/local_procedure_repository.dart';
 import 'package:atlas/features/procedures/data/resilient_procedure_repository.dart';
@@ -30,6 +32,8 @@ import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
 import 'package:atlas/app/atlas_app.dart';
 
+import '../prices/price_intelligence_test_helpers.dart';
+
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,14 +44,17 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     PlaceRepository.resetForTest();
     PriceRepository.resetForTest();
+    PriceIntelligenceRepository.resetForTest();
     ProcedureRepository.resetForTest();
     EditorialRepositoryBootstrap.registerDefaults();
+    registerPriceIntelligenceFixtures();
     resetAtBootstrapForTests();
     ensureAtRepositoryForTests();
   });
 
   tearDown(() {
     PlaceRepository.resetForTest();
+    PriceIntelligenceRepository.resetForTest();
     PriceRepository.resetForTest();
     ProcedureRepository.resetForTest();
     resetAtBootstrapForTests();
@@ -103,7 +110,7 @@ void main() {
     expect(find.text('Ajouter un véhicule'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
     expect(find.text('Démarches utiles'), findsOneWidget);
-    expect(find.text('Repères de prix'), findsOneWidget);
+    expect(find.text('Prix à la une'), findsOneWidget);
   });
 
   testWidgets('signed out / local profile: default greeting, no favorites', (
@@ -171,7 +178,7 @@ void main() {
     );
     await favorites.addFavorite(
       entityType: FavoriteEntityType.price,
-      entitySlug: 'price-taxi-marrakech',
+      entitySlug: 'taxi-airport-marrakech',
     );
 
     await pumpHomeDashboard(
@@ -183,7 +190,7 @@ void main() {
     expect(find.text('Mes favoris'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Renouveler la CIN'), findsWidgets);
-    expect(find.text('Course de taxi'), findsWidgets);
+    expect(find.text('Taxi Airport Marrakech'), findsWidgets);
     expect(find.text('Lieu'), findsOneWidget);
     expect(find.text('Démarche'), findsOneWidget);
     expect(find.text('Prix'), findsWidgets);
@@ -225,7 +232,7 @@ void main() {
     expect(find.text('Forte chaleur prévue'), findsNothing);
     expect(find.textContaining('données estimées'), findsWidgets);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Repères de prix'), findsOneWidget);
+    expect(find.text('Prix à la une'), findsOneWidget);
   });
 
   testWidgets('empty remote catalogs: local fallback keeps Home usable', (
@@ -243,6 +250,11 @@ void main() {
         fetchRemote: () async => const [],
       ),
     );
+    PriceIntelligenceRepository.registerFactory(
+      () => ResilientPriceIntelligenceRepository(
+        fetchRemote: () async => const [],
+      ),
+    );
     ProcedureRepository.registerFactory(
       () => ResilientProcedureRepository(
         local: LocalProcedureRepository(),
@@ -252,10 +264,12 @@ void main() {
 
     final places = PlaceRepository();
     final prices = PriceRepository();
+    final intelligence = PriceIntelligenceRepository();
     final procedures = ProcedureRepository();
     await Future.wait([
       places.warmUp(),
       prices.warmUp(),
+      intelligence.warmUp(),
       procedures.warmUp(),
     ]);
 
@@ -267,8 +281,9 @@ void main() {
 
     expect(find.text('Recommandations'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(find.text('Repères de prix'), findsOneWidget);
-    expect(find.text('Course de taxi'), findsOneWidget);
+    // Intelligence : pas de données vérifiées → section masquée (pas de faux prix).
+    expect(find.text('Prix à la une'), findsNothing);
+    expect(find.text('SP95 Marrakech'), findsNothing);
     expect(find.text('Démarches utiles'), findsOneWidget);
     expect(find.textContaining('Admission temporaire'), findsOneWidget);
   });

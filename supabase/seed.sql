@@ -5,6 +5,8 @@ TRUNCATE TABLE procedures RESTART IDENTITY CASCADE;
 TRUNCATE TABLE places RESTART IDENTITY CASCADE;
 TRUNCATE TABLE prices RESTART IDENTITY CASCADE;
 TRUNCATE TABLE events RESTART IDENTITY CASCADE;
+TRUNCATE TABLE price_history RESTART IDENTITY CASCADE;
+TRUNCATE TABLE price_observations RESTART IDENTITY CASCADE;
 INSERT INTO procedures (
   slug, title, summary, category, category_label, estimated_duration,
   documents, steps, icon_key, official_url
