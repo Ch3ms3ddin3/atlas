@@ -17,7 +17,7 @@ void main() {
       expect(snapshot.profile.firstName, 'Salma');
       expect(snapshot.profile.preferredCity, 'Casablanca');
       expect(snapshot.profile.language, AtlasLanguage.english);
-      expect(snapshot.profile.userType, AtlasUserType.visitor);
+      expect(snapshot.profile.userType, AtlasUserType.tourist);
       expect(snapshot.updatedAt, DateTime.utc(2026, 7, 12, 10));
     });
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
@@ -13,12 +12,13 @@ import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.d
 import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
+import 'features/onboarding/onboarding_test_helpers.dart';
 import 'features/prices/price_intelligence_test_helpers.dart';
 
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    SharedPreferences.setMockInitialValues({});
+    seedCompletedOnboarding();
     EditorialRepositoryBootstrap.registerDefaults();
     registerPriceIntelligenceFixtures();
     ensurePrayerNotificationCoordinatorForTests();
@@ -27,7 +27,7 @@ void main() {
   });
 
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    seedCompletedOnboarding();
     EditorialRepositoryBootstrap.registerDefaults();
     registerPriceIntelligenceFixtures();
     resetAtBootstrapForTests();
@@ -51,13 +51,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pumpAtlasApp(WidgetTester tester) async {
+    await tester.pumpWidget(const AtlasApp());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   testWidgets('Atlas démarre sur Accueil avec 6 onglets', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AtlasApp());
-
-    expect(find.text('Chargement de la météo…'), findsOneWidget);
-
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Accueil'), findsWidgets);
@@ -85,7 +88,7 @@ void main() {
   testWidgets('La navigation bascule entre les onglets', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     await tapBottomNav(tester, 'Explorer');
@@ -142,7 +145,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
@@ -175,7 +178,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     final reminder = find.text('Renouveler la CIN').first;
@@ -199,7 +202,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     final place = find.text('Jardin Majorelle').first;
@@ -221,7 +224,7 @@ void main() {
   testWidgets('Un repère de prix ouvre le détail', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     await tapBottomNav(tester, 'Prix');
@@ -248,7 +251,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     final lieuxAction = find.text('Lieux').first;
@@ -270,7 +273,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     final priceSection = find.text('Prix à la une');
@@ -298,7 +301,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const AtlasApp());
+    await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
     await tapBottomNav(tester, 'Profil');

@@ -118,12 +118,33 @@ abstract final class TodayEssentialsMapper {
               '— CIN, assurance et forfait mobile.',
           icon: Icons.flight_land_outlined,
         ),
-      AtlasUserType.visitor => DailyInfoData(
+      AtlasUserType.tourist => DailyInfoData(
           category: 'Conseil voyage',
           content:
               'Consultez l\'onglet Prix avant de payer — repères utiles pour '
               'éviter les arnaques courantes à $cityName.',
           icon: Icons.payments_outlined,
+        ),
+      AtlasUserType.expatriate => DailyInfoData(
+          category: 'Conseil expat',
+          content:
+              'Gardez sous la main vos démarches utiles à $cityName — '
+              'administratif, santé et budget du quotidien.',
+          icon: Icons.home_work_outlined,
+        ),
+      AtlasUserType.student => DailyInfoData(
+          category: 'Conseil étudiant',
+          content:
+              'Repérez transports, wifi et bons plans locaux à $cityName '
+              'avant vos déplacements de la journée.',
+          icon: Icons.school_outlined,
+        ),
+      AtlasUserType.business => DailyInfoData(
+          category: 'Conseil pro',
+          content:
+              'Vérifiez jours fériés et horaires utiles à $cityName '
+              'avant vos rendez-vous.',
+          icon: Icons.work_outline,
         ),
     };
   }

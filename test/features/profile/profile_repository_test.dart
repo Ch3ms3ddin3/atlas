@@ -58,7 +58,7 @@ void main() {
         firstName: 'Salma',
         preferredCity: 'Casablanca',
         language: AtlasLanguage.english,
-        userType: AtlasUserType.visitor,
+        userType: AtlasUserType.tourist,
       );
       await store.saveProfile(saved, localUpdatedAt: updatedAt);
       await store.setSyncPending(true);
@@ -67,7 +67,7 @@ void main() {
       expect(snapshot.profile.firstName, 'Salma');
       expect(snapshot.profile.preferredCity, 'Casablanca');
       expect(snapshot.profile.language, AtlasLanguage.english);
-      expect(snapshot.profile.userType, AtlasUserType.visitor);
+      expect(snapshot.profile.userType, AtlasUserType.tourist);
       expect(snapshot.localUpdatedAt, updatedAt);
       expect(snapshot.syncPending, isTrue);
     });

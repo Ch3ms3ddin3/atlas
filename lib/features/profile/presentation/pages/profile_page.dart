@@ -9,6 +9,7 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../auth/presentation/widgets/profile_account_section.dart';
+import '../../../onboarding/data/onboarding_preferences_store.dart';
 import '../../data/profile_validator.dart';
 import '../../domain/profile_repository.dart';
 import '../../domain/models/user_profile.dart';
@@ -300,6 +301,25 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             )
                           : const Text('Enregistrer'),
+                    ),
+                    const SizedBox(height: AtlasSpacing.md),
+                    TextButton(
+                      onPressed: () async {
+                        await const OnboardingPreferencesStore().reset();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Introduction réinitialisée. '
+                                'Redémarrez Atlas pour la revoir.',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                      },
+                      child: const Text('Réafficher l\'introduction'),
                     ),
                     const SizedBox(height: AtlasSpacing.sectionLarge),
                   ],

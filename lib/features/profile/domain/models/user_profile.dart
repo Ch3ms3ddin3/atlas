@@ -2,7 +2,10 @@
 enum AtlasUserType {
   resident,
   mre,
-  visitor,
+  tourist,
+  expatriate,
+  student,
+  business,
 }
 
 /// Langue préférée — stockée localement ; seul le français est actif en MVP.
@@ -57,10 +60,17 @@ extension AtlasUserTypeLabels on AtlasUserType {
   String get label => switch (this) {
         AtlasUserType.resident => 'Résident',
         AtlasUserType.mre => 'MRE',
-        AtlasUserType.visitor => 'Visiteur',
+        AtlasUserType.tourist => 'Touriste',
+        AtlasUserType.expatriate => 'Expatrié',
+        AtlasUserType.student => 'Étudiant',
+        AtlasUserType.business => 'Business',
       };
 
   static AtlasUserType fromStorage(String? value) {
+    if (value == 'visitor') {
+      // Ancien libellé « Visiteur » → Touriste.
+      return AtlasUserType.tourist;
+    }
     return AtlasUserType.values.firstWhere(
       (type) => type.name == value,
       orElse: () => UserProfile.defaultUserType,

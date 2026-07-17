@@ -118,7 +118,7 @@ void main() {
         ),
         holidayStatus: workingDay,
         cityName: 'Marrakech',
-        userType: AtlasUserType.visitor,
+        userType: AtlasUserType.tourist,
       );
 
       expect(essentials.tip.category, 'Conseil voyage');

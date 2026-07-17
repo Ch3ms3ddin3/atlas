@@ -10,9 +10,9 @@
 
 ⬜ Design System
 
-⬜ Splash Screen
+✅ Splash Screen
 
-⬜ Onboarding
+✅ Onboarding
 
 ✅ Weather API
 

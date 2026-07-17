@@ -296,158 +296,170 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     final isWide = width >= 900;
 
     return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AtlasSpacing.xl,
-              AtlasSpacing.lg,
-              AtlasSpacing.xl,
-              AtlasSpacing.sm,
-            ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: SizedBox(
+            width: double.infinity,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Carte',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AtlasSpacing.xl,
+                    AtlasSpacing.lg,
+                    AtlasSpacing.xl,
+                    AtlasSpacing.sm,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Carte',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (_hasLocationPermission)
+                            IconButton(
+                              tooltip: 'Près de moi',
+                              onPressed: _onNearMe,
+                              icon: const Icon(Icons.my_location_outlined),
+                            ),
+                        ],
+                      ),
+                      PlaceCatalogStatusIndicator(loadState: _loadState),
+                      if (_tilesUnavailable)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AtlasSpacing.sm),
+                          child: Text(
+                            'Tuiles indisponibles — marqueurs issus du cache.',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher un lieu…',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchController.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: 'Effacer',
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _filters.setSearchText('');
+                                  },
+                                  icon: const Icon(Icons.close, size: 20),
+                                ),
                         ),
                       ),
-                    ),
-                    if (_hasLocationPermission)
-                      IconButton(
-                        tooltip: 'Près de moi',
-                        onPressed: _onNearMe,
-                        icon: const Icon(Icons.my_location_outlined),
+                      const SizedBox(height: AtlasSpacing.md),
+                      PlaceCityFilter(
+                        selectedCity: _filters.cityName.isEmpty
+                            ? LocationConstants.fallbackCity
+                            : _filters.cityName,
+                        onCitySelected: (city) => _filters.setCityName(city),
                       ),
-                  ],
-                ),
-                PlaceCatalogStatusIndicator(loadState: _loadState),
-                if (_tilesUnavailable)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AtlasSpacing.sm),
-                    child: Text(
-                      'Tuiles indisponibles — marqueurs issus du cache.',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      const SizedBox(height: AtlasSpacing.sm),
+                      PlaceCategoryFilter(
+                        selectedCategory: _filters.category,
+                        onCategorySelected: (category) {
+                          if (category == null) {
+                            _filters.update(clearCategory: true);
+                          } else {
+                            _filters.setCategory(category);
+                          }
+                        },
                       ),
-                    ),
+                      const SizedBox(height: AtlasSpacing.sm),
+                      AtlasFilterChip(
+                        label: 'Favoris',
+                        isSelected: _filters.favoritesOnly,
+                        onTap: () =>
+                            _filters.setFavoritesOnly(!_filters.favoritesOnly),
+                      ),
+                    ],
                   ),
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher un lieu…',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isEmpty
-                        ? null
-                        : IconButton(
-                            tooltip: 'Effacer',
-                            onPressed: () {
-                              _searchController.clear();
-                              _filters.setSearchText('');
-                            },
-                            icon: const Icon(Icons.close, size: 20),
+                ),
+                Expanded(
+                  child: !_mapEngineReady
+                      ? Center(
+                          child: Text(
+                            'Ouvrez cet onglet pour charger la carte.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                  ),
-                ),
-                const SizedBox(height: AtlasSpacing.md),
-                PlaceCityFilter(
-                  selectedCity: _filters.cityName.isEmpty
-                      ? LocationConstants.fallbackCity
-                      : _filters.cityName,
-                  onCitySelected: (city) => _filters.setCityName(city),
-                ),
-                const SizedBox(height: AtlasSpacing.sm),
-                PlaceCategoryFilter(
-                  selectedCategory: _filters.category,
-                  onCategorySelected: (category) {
-                    if (category == null) {
-                      _filters.update(clearCategory: true);
-                    } else {
-                      _filters.setCategory(category);
-                    }
-                  },
-                ),
-                const SizedBox(height: AtlasSpacing.sm),
-                AtlasFilterChip(
-                  label: 'Favoris',
-                  isSelected: _filters.favoritesOnly,
-                  onTap: () =>
-                      _filters.setFavoritesOnly(!_filters.favoritesOnly),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _onRefresh,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: AtlasFlutterMapView(
+                                  camera: _camera,
+                                  markers: _markers,
+                                  tileProvider: _tileProvider,
+                                  mapController: _mapController,
+                                  onMarkerTap: _onMarkerTap,
+                                  userLatitude: _userLat,
+                                  userLongitude: _userLng,
+                                ),
+                              ),
+                              if (_loadState ==
+                                      EditorialCatalogLoadState.error &&
+                                  _markers.isEmpty)
+                                const Align(
+                                  alignment: Alignment.center,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: AtlasEmptyState(
+                                      icon: Icons.map_outlined,
+                                      message:
+                                          'Carte indisponible pour le moment. '
+                                          'Tirez pour réessayer.',
+                                    ),
+                                  ),
+                                )
+                              else if (_markers.isEmpty)
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                      isWide
+                                          ? AtlasSpacing.xxl
+                                          : AtlasSpacing.xl,
+                                    ),
+                                    child: Material(
+                                      elevation: 2,
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: theme.colorScheme.surface,
+                                      child: const Padding(
+                                        padding:
+                                            EdgeInsets.all(AtlasSpacing.lg),
+                                        child: Text(
+                                          'Aucun lieu avec coordonnées '
+                                          'vérifiées pour ces filtres.',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: !_mapEngineReady
-                ? Center(
-                    child: Text(
-                      'Ouvrez cet onglet pour charger la carte.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _onRefresh,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: AtlasFlutterMapView(
-                            camera: _camera,
-                            markers: _markers,
-                            tileProvider: _tileProvider,
-                            mapController: _mapController,
-                            onMarkerTap: _onMarkerTap,
-                            userLatitude: _userLat,
-                            userLongitude: _userLng,
-                          ),
-                        ),
-                        if (_loadState == EditorialCatalogLoadState.error &&
-                            _markers.isEmpty)
-                          const Align(
-                            alignment: Alignment.center,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: AtlasEmptyState(
-                                icon: Icons.map_outlined,
-                                message:
-                                    'Carte indisponible pour le moment. '
-                                    'Tirez pour réessayer.',
-                              ),
-                            ),
-                          )
-                        else if (_markers.isEmpty)
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding: EdgeInsets.all(
-                                isWide ? AtlasSpacing.xxl : AtlasSpacing.xl,
-                              ),
-                              child: Material(
-                                elevation: 2,
-                                borderRadius: BorderRadius.circular(12),
-                                color: theme.colorScheme.surface,
-                                child: const Padding(
-                                  padding: EdgeInsets.all(AtlasSpacing.lg),
-                                  child: Text(
-                                    'Aucun lieu avec coordonnées vérifiées '
-                                    'pour ces filtres.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-          ),
-        ],
+        ),
       ),
     );
   }

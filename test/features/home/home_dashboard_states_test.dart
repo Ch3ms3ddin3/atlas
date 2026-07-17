@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
@@ -34,6 +33,7 @@ import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
 
+import '../onboarding/onboarding_test_helpers.dart';
 import '../prices/price_intelligence_test_helpers.dart';
 
 void main() {
@@ -44,7 +44,7 @@ void main() {
   });
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
+    seedCompletedOnboarding();
     PlaceRepository.resetForTest();
     PriceRepository.resetForTest();
     PriceIntelligenceRepository.resetForTest();
@@ -106,7 +106,8 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
-    expect(find.text('Chargement de la météo…'), findsOneWidget);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
     await tester.pumpAndSettle();
 
     expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
