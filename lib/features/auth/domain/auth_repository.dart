@@ -23,5 +23,13 @@ abstract class AuthRepository extends ChangeNotifier {
     required String password,
   });
 
+  Future<AuthActionResult> signInWithApple();
+
+  Future<AuthActionResult> signInWithGoogle();
+
+  Future<AuthActionResult> resetPassword({required String email});
+
   Future<AuthActionResult> signOut();
+
+  Future<AuthActionResult> deleteAccount();
 }

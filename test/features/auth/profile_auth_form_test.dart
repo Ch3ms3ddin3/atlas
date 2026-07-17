@@ -122,4 +122,24 @@ class _RecordingAuthRepository extends AuthRepository {
     notifyListeners();
     return AuthActionResult.success();
   }
+
+  @override
+  Future<AuthActionResult> signInWithApple() async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> signInWithGoogle() async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> resetPassword({required String email}) async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> deleteAccount() async {
+    return AuthActionResult.success();
+  }
 }

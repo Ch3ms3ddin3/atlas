@@ -15,13 +15,15 @@ enum AtlasLanguage {
   arabic,
 }
 
-/// Profil local de l'utilisateur — sans compte ni backend.
+/// Profil local de l'utilisateur — extensible (avatar URL, display name).
 class UserProfile {
   const UserProfile({
     required this.firstName,
     required this.preferredCity,
     required this.language,
     required this.userType,
+    this.displayName,
+    this.avatarUrl,
   });
 
   static const defaultFirstName = 'Chemseddine';
@@ -34,6 +36,12 @@ class UserProfile {
   final AtlasLanguage language;
   final AtlasUserType userType;
 
+  /// Nom affiché optionnel (OAuth / sync) — sinon [firstName].
+  final String? displayName;
+
+  /// Avatar URL uniquement (pas d'upload local pour l'instant).
+  final String? avatarUrl;
+
   static const defaults = UserProfile(
     firstName: defaultFirstName,
     preferredCity: defaultPreferredCity,
@@ -41,17 +49,29 @@ class UserProfile {
     userType: defaultUserType,
   );
 
+  String get resolvedDisplayName {
+    final named = displayName?.trim();
+    if (named != null && named.isNotEmpty) return named;
+    return firstName;
+  }
+
   UserProfile copyWith({
     String? firstName,
     String? preferredCity,
     AtlasLanguage? language,
     AtlasUserType? userType,
+    String? displayName,
+    String? avatarUrl,
+    bool clearDisplayName = false,
+    bool clearAvatarUrl = false,
   }) {
     return UserProfile(
       firstName: firstName ?? this.firstName,
       preferredCity: preferredCity ?? this.preferredCity,
       language: language ?? this.language,
       userType: userType ?? this.userType,
+      displayName: clearDisplayName ? null : (displayName ?? this.displayName),
+      avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
     );
   }
 }

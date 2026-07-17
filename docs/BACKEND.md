@@ -1,7 +1,7 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M5 complete — email/password auth, anonymous upgrade, and profile sign-in UI.  
-**Next:** Post-MVP enhancements (Google/Apple OAuth, moderation tools) — awaiting approval.
+**Status:** M9 Authentication & Cloud Sync — Apple/Google/email, reset, delete account, préférences + AT sync.  
+**Next:** Moderation tools / contributions utilisateurs — awaiting approval.
 
 ---
 

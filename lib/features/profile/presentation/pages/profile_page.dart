@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../../core/datetime/casablanca_date_formatter.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
+import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
+import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
-import '../../../auth/presentation/widgets/profile_account_section.dart';
+import '../../../admission_temporaire/presentation/at_scope.dart';
+import '../../../auth/domain/auth_session.dart';
+import '../../../auth/presentation/auth_scope.dart';
+import '../../../auth/presentation/widgets/auth_form_sheet.dart';
+import '../../../favorites/presentation/favorites_scope.dart';
 import '../../../onboarding/data/onboarding_preferences_store.dart';
+import '../../../sync/data/atlas_data_export.dart';
+import '../../../sync/domain/cloud_sync_status.dart';
+import '../../../sync/presentation/sync_scope.dart';
 import '../../data/profile_validator.dart';
-import '../../domain/profile_repository.dart';
 import '../../domain/models/user_profile.dart';
+import '../../domain/profile_repository.dart';
 import '../profile_scope.dart';
 import '../widgets/profile_prayer_section.dart';
 
-/// Répond à : « Comment personnaliser mon expérience Atlas ? »
+/// Profil premium — identité, sync, compte et données.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -33,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> {
   AtlasLanguage _language = UserProfile.defaultLanguage;
   String? _firstNameError;
   bool _isSaving = false;
+  bool _busy = false;
   ProfileRepository? _profileRepository;
 
   @override
@@ -73,34 +85,31 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _validateFirstName() {
+  Future<void> _saveProfile() async {
     setState(() {
       _firstNameError =
-          ProfileValidator.validateFirstName(_firstNameController.text)?.message;
+          ProfileValidator.validateFirstName(_firstNameController.text)
+              ?.message;
     });
-  }
-
-  Future<void> _saveProfile() async {
-    _validateFirstName();
     if (!_isFormValid) return;
 
     setState(() => _isSaving = true);
-
-    final repository = ProfileScope.of(context);
-    final success = await repository.save(
-      UserProfile(
+    final current = ProfileScope.of(context).profile;
+    final success = await ProfileScope.of(context).save(
+      current.copyWith(
         firstName: _firstNameController.text,
         preferredCity: _preferredCity,
         language: _language,
         userType: _userType,
       ),
     );
-
     if (!mounted) return;
     setState(() => _isSaving = false);
-
     if (!success) return;
 
+    await SyncScope.maybeOf(context)?.persistFromUi();
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -112,17 +121,67 @@ class _ProfilePageState extends State<ProfilePage> {
       );
   }
 
-  void _onPermissionDenied() {
+  Future<void> _exportData() async {
+    setState(() => _busy = true);
+    final json = await AtlasDataExport.buildJson(
+      session: AuthScope.of(context).session,
+      profile: ProfileScope.of(context),
+      favorites: FavoritesScope.of(context),
+      atRepository: AtScope.of(context),
+      syncStatus: SyncScope.maybeOf(context)?.status,
+    );
+    await Clipboard.setData(ClipboardData(text: json));
+    if (!mounted) return;
+    setState(() => _busy = false);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
+          content: Text('Export copié dans le presse-papiers'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Supprimer mon compte ?'),
+          content: const Text(
+            'Cette action est définitive. Vos données cloud seront effacées. '
+            'Les données locales restent sur cet appareil.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    final result = await AuthScope.of(context).deleteAccount();
+    if (!mounted) return;
+    setState(() => _busy = false);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
           content: Text(
-            'Autorisez les notifications dans les réglages de votre '
-            'téléphone pour activer les rappels de prière.',
+            result.success
+                ? 'Compte supprimé — mode local conservé.'
+                : result.errorMessage ?? 'Suppression impossible.',
           ),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 4),
         ),
       );
   }
@@ -130,204 +189,452 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final auth = AuthScope.of(context);
+    final session = auth.session;
+    final sync = SyncScope.maybeOf(context);
+    final syncStatus = sync?.status ?? const CloudSyncStatus.idle();
+
+    if (_profileRepository != null && !_profileRepository!.isLoaded) {
+      return const SafeArea(
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final displayName = session.displayName?.trim().isNotEmpty == true
+        ? session.displayName!
+        : (_profileRepository?.profile.resolvedDisplayName ??
+            (_firstNameController.text.trim().isNotEmpty
+                ? _firstNameController.text.trim()
+                : 'Voyageur Atlas'));
+
+    final avatarUrl = session.avatarUrl ?? _profileRepository?.profile.avatarUrl;
 
     return SafeArea(
-      child: AtlasContentContainer(
-        child: Form(
-          key: _formKey,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: AtlasSpacing.xxl),
-                    const AtlasPageHeader(
-                      title: 'Profil',
-                      subtitle:
-                          'Personnalisez Atlas — vos données restent d\'abord '
-                          'sur cet appareil.',
-                    ),
-                    const SizedBox(height: AtlasSpacing.xl),
-                    AtlasCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Identité',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: AtlasSpacing.sectionLarge),
+          children: [
+            AtlasContentContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AtlasPageHeader(
+                    title: 'Profil',
+                    subtitle:
+                        'Identité, synchronisation et préférences Atlas.',
+                  ),
+                  const SizedBox(height: AtlasSpacing.xl),
+                  _IdentityHero(
+                    displayName: displayName,
+                    email: session.email,
+                    avatarUrl: avatarUrl,
+                    session: session,
+                  ),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  _SyncStatusCard(status: syncStatus),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  AtlasCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Identité',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(height: AtlasSpacing.lg),
-                          Text(
-                            'Prénom',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                        ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        TextFormField(
+                          controller: _firstNameController,
+                          decoration: InputDecoration(
+                            labelText: 'Prénom / nom affiché',
+                            errorText: _firstNameError,
                           ),
-                          const SizedBox(height: AtlasSpacing.sm),
-                          TextField(
-                            controller: _firstNameController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: InputDecoration(
-                              hintText: 'Votre prénom',
-                              errorText: _firstNameError,
-                            ),
-                            onChanged: (_) => _validateFirstName(),
-                          ),
-                          const SizedBox(height: AtlasSpacing.lg),
-                          Text(
-                            'Ville préférée',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: AtlasSpacing.sm),
-                          InputDecorator(
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: AtlasSpacing.md,
-                                vertical: AtlasSpacing.sm,
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        Text(
+                          'Ville principale',
+                          style: theme.textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: AtlasSpacing.sm),
+                        DropdownButtonFormField<String>(
+                          key: ValueKey(_preferredCity),
+                          initialValue: MoroccoCities.supportedNames
+                                  .contains(_preferredCity)
+                              ? _preferredCity
+                              : UserProfile.defaultPreferredCity,
+                          items: [
+                            for (final city in MoroccoCities.supportedNames)
+                              DropdownMenuItem(
+                                value: city,
+                                child: Text(city),
                               ),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _preferredCity,
-                                isExpanded: true,
-                                items: [
-                                  for (final city in MoroccoCities.supportedNames)
-                                    DropdownMenuItem(
-                                      value: city,
-                                      child: Text(city),
-                                    ),
-                                ],
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() => _preferredCity = value);
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AtlasSpacing.xs),
-                          Text(
-                            'Utilisée si la position GPS n\'est pas disponible.',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AtlasTextStyles.metadata(theme.colorScheme),
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: AtlasSpacing.lg),
-                          Text(
-                            'Vous êtes',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: AtlasSpacing.sm),
-                          Wrap(
-                            spacing: AtlasSpacing.sm,
-                            runSpacing: AtlasSpacing.sm,
-                            children: [
-                              for (final type in AtlasUserType.values)
-                                AtlasFilterChip(
-                                  label: type.label,
-                                  isSelected: _userType == type,
-                                  onTap: () => setState(() => _userType = type),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AtlasSpacing.lg),
-                    AtlasCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Langue',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: AtlasSpacing.lg),
-                          Wrap(
-                            spacing: AtlasSpacing.sm,
-                            runSpacing: AtlasSpacing.sm,
-                            children: [
-                              for (final language in AtlasLanguage.values)
-                                AtlasFilterChip(
-                                  label: language.label,
-                                  isSelected: _language == language,
-                                  onTap: () =>
-                                      setState(() => _language = language),
-                                ),
-                            ],
-                          ),
-                          if (_language != AtlasLanguage.french) ...[
-                            const SizedBox(height: AtlasSpacing.sm),
-                            Text(
-                              'Traduction complète bientôt disponible pour '
-                              'English et العربية.',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: AtlasTextStyles.metadata(theme.colorScheme),
-                                height: 1.4,
-                              ),
-                            ),
                           ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AtlasSpacing.lg),
-                    AtlasCard(
-                      child: ProfilePrayerSection(
-                        coordinator: prayerNotificationCoordinator,
-                        onPermissionDenied: _onPermissionDenied,
-                      ),
-                    ),
-                    const SizedBox(height: AtlasSpacing.lg),
-                    const ProfileAccountSection(),
-                    const SizedBox(height: AtlasSpacing.xl),
-                    FilledButton(
-                      onPressed:
-                          _isSaving || !_isFormValid ? null : _saveProfile,
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _preferredCity = value);
+                          },
+                        ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        Text(
+                          'Vous êtes',
+                          style: theme.textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: AtlasSpacing.sm),
+                        Wrap(
+                          spacing: AtlasSpacing.sm,
+                          runSpacing: AtlasSpacing.sm,
+                          children: [
+                            for (final type in AtlasUserType.values)
+                              AtlasFilterChip(
+                                label: type.label,
+                                isSelected: _userType == type,
+                                onTap: () =>
+                                    setState(() => _userType = type),
                               ),
-                            )
-                          : const Text('Enregistrer'),
-                    ),
-                    const SizedBox(height: AtlasSpacing.md),
-                    TextButton(
-                      onPressed: () async {
-                        await const OnboardingPreferencesStore().reset();
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Introduction réinitialisée. '
-                                'Redémarrez Atlas pour la revoir.',
+                          ],
+                        ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        Text(
+                          'Langue',
+                          style: theme.textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: AtlasSpacing.sm),
+                        Wrap(
+                          spacing: AtlasSpacing.sm,
+                          runSpacing: AtlasSpacing.sm,
+                          children: [
+                            for (final language in AtlasLanguage.values)
+                              AtlasFilterChip(
+                                label: language.label,
+                                isSelected: _language == language,
+                                onTap: () =>
+                                    setState(() => _language = language),
                               ),
-                              behavior: SnackBarBehavior.floating,
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  AtlasCard(
+                    child: ProfilePrayerSection(
+                      coordinator: prayerNotificationCoordinator,
+                      onPermissionDenied: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Autorisez les notifications dans les réglages.',
                             ),
-                          );
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       },
-                      child: const Text('Réafficher l\'introduction'),
                     ),
-                    const SizedBox(height: AtlasSpacing.sectionLarge),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  _AccountCard(session: session),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  AtlasCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Données & confidentialité',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AtlasSpacing.md),
+                        Text(
+                          'Aucun mot de passe n’est stocké localement. '
+                          'La session cloud est gérée par Supabase Auth.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AtlasTextStyles.helper(theme.colorScheme),
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        OutlinedButton(
+                          onPressed: _busy ? null : _exportData,
+                          child: const Text('Exporter mes données'),
+                        ),
+                        const SizedBox(height: AtlasSpacing.sm),
+                        TextButton(
+                          onPressed: () async {
+                            await const OnboardingPreferencesStore().reset();
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Introduction réinitialisée. '
+                                  'Redémarrez Atlas pour la revoir.',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: const Text('Réafficher l\'introduction'),
+                        ),
+                        if (session.isSignedIn) ...[
+                          const SizedBox(height: AtlasSpacing.sm),
+                          TextButton(
+                            onPressed: _busy ? null : _deleteAccount,
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.colorScheme.error,
+                            ),
+                            child: const Text('Supprimer mon compte'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AtlasSpacing.xl),
+                  FilledButton(
+                    onPressed:
+                        _isSaving || !_isFormValid ? null : _saveProfile,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Enregistrer'),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _IdentityHero extends StatelessWidget {
+  const _IdentityHero({
+    required this.displayName,
+    required this.email,
+    required this.avatarUrl,
+    required this.session,
+  });
+
+  final String displayName;
+  final String? email;
+  final String? avatarUrl;
+  final AuthSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final initial =
+        displayName.isNotEmpty ? displayName.characters.first.toUpperCase() : 'A';
+
+    return AtlasCard(
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: AtlasColors.terracottaGhost,
+            foregroundColor: AtlasColors.terracotta,
+            backgroundImage:
+                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            child: avatarUrl == null
+                ? Text(
+                    initial,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (email != null) ...[
+                  const SizedBox(height: AtlasSpacing.xs),
+                  Text(
+                    email!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: AtlasSpacing.xs),
+                  Text(
+                    session.isSignedIn
+                        ? 'Compte connecté'
+                        : 'Mode local / invité',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SyncStatusCard extends StatelessWidget {
+  const _SyncStatusCard({required this.status});
+
+  final CloudSyncStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final icon = switch (status.phase) {
+      CloudSyncPhase.synced => Icons.cloud_done_outlined,
+      CloudSyncPhase.syncing => Icons.cloud_sync_outlined,
+      CloudSyncPhase.offline => Icons.cloud_off_outlined,
+      CloudSyncPhase.error => Icons.error_outline,
+      CloudSyncPhase.idle => Icons.cloud_queue_outlined,
+    };
+
+    return AtlasCard(
+      child: Row(
+        children: [
+          Icon(icon, color: AtlasColors.midnightBlueMuted),
+          const SizedBox(width: AtlasSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Synchronisation',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  status.labelFr,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (status.lastSyncedAt != null) ...[
+                  const SizedBox(height: AtlasSpacing.xs),
+                  Text(
+                    'Dernière sync : '
+                    '${CasablancaDateFormatter.formatLongDate(status.lastSyncedAt!)}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AtlasTextStyles.metadata(theme.colorScheme),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountCard extends StatefulWidget {
+  const _AccountCard({required this.session});
+
+  final AuthSession session;
+
+  @override
+  State<_AccountCard> createState() => _AccountCardState();
+}
+
+class _AccountCardState extends State<_AccountCard> {
+  bool _signingOut = false;
+
+  Future<void> _signOut() async {
+    setState(() => _signingOut = true);
+    final result = await AuthScope.of(context).signOut();
+    if (!mounted) return;
+    setState(() => _signingOut = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.success
+              ? 'Déconnecté — données locales conservées.'
+              : result.errorMessage ?? 'Déconnexion impossible.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final session = widget.session;
+
+    return AtlasCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Compte Atlas',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AtlasSpacing.md),
+          if (session.providers.isNotEmpty) ...[
+            Text(
+              'Connecté via : '
+              '${session.providers.map((p) => p.label).join(', ')}',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AtlasSpacing.md),
+          ],
+          if (!session.isCloudAvailable)
+            const AtlasEmptyState(
+              icon: Icons.lock_outline,
+              message:
+                  'Mode hors ligne — créez un compte lorsque le cloud '
+                  'sera disponible.',
+            )
+          else if (session.isAnonymous) ...[
+            FilledButton(
+              onPressed: () => AuthFormSheet.show(
+                context,
+                initialMode: AuthFormMode.signUp,
+              ),
+              child: const Text('Créer un compte'),
+            ),
+            const SizedBox(height: AtlasSpacing.sm),
+            OutlinedButton(
+              onPressed: () => AuthFormSheet.show(
+                context,
+                initialMode: AuthFormMode.signIn,
+              ),
+              child: const Text('Se connecter'),
+            ),
+          ] else ...[
+            OutlinedButton(
+              onPressed: _signingOut ? null : _signOut,
+              child: _signingOut
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Se déconnecter'),
+            ),
+          ],
+        ],
       ),
     );
   }

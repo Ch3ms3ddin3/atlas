@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/atlas_env.dart';
@@ -9,17 +10,22 @@ import '../domain/auth_repository.dart';
 import '../domain/auth_session.dart';
 import 'auth_credentials_validator.dart';
 
-/// Authentification Supabase avec repli local si le backend est indisponible.
+/// Authentification Supabase — e-mail, OAuth, reset, suppression.
+///
+/// Aucun mot de passe n'est stocké localement ; la session est gérée par le SDK.
 class SupabaseAuthRepository extends AuthRepository {
   SupabaseAuthRepository({
     AtlasEnv? env,
     GoTrueClient? Function()? authProvider,
+    SupabaseClient? Function()? clientProvider,
   })  : _env = env ?? AtlasEnv.fromCompileTime(),
         _authProvider = authProvider ?? _defaultAuthProvider,
+        _clientProvider = clientProvider ?? _defaultClientProvider,
         super.base();
 
   final AtlasEnv _env;
   final GoTrueClient? Function()? _authProvider;
+  final SupabaseClient? Function()? _clientProvider;
 
   AuthSession _session = const AuthSession.unavailable();
   bool _isLoaded = false;
@@ -29,6 +35,10 @@ class SupabaseAuthRepository extends AuthRepository {
     return SupabaseBootstrap.clientOrNull()?.auth;
   }
 
+  static SupabaseClient? _defaultClientProvider() {
+    return SupabaseBootstrap.clientOrNull();
+  }
+
   @override
   AuthSession get session => _session;
 
@@ -36,6 +46,8 @@ class SupabaseAuthRepository extends AuthRepository {
   bool get isLoaded => _isLoaded;
 
   GoTrueClient? _auth() => _authProvider?.call();
+
+  SupabaseClient? _client() => _clientProvider?.call();
 
   @override
   Future<void> load() async {
@@ -141,6 +153,72 @@ class SupabaseAuthRepository extends AuthRepository {
   }
 
   @override
+  Future<AuthActionResult> signInWithApple() {
+    return _signInWithOAuth(OAuthProvider.apple, AuthProviderKind.apple);
+  }
+
+  @override
+  Future<AuthActionResult> signInWithGoogle() {
+    return _signInWithOAuth(OAuthProvider.google, AuthProviderKind.google);
+  }
+
+  Future<AuthActionResult> _signInWithOAuth(
+    OAuthProvider provider,
+    AuthProviderKind kind,
+  ) async {
+    final auth = _auth();
+    if (!_isBackendReady || auth == null) {
+      return AuthActionResult.backendUnavailable();
+    }
+
+    try {
+      final launched = await auth.signInWithOAuth(
+        provider,
+        redirectTo: kIsWeb ? null : 'io.supabase.atlas://login-callback/',
+      );
+      if (!launched) {
+        return AuthActionResult.failure(
+          'Connexion ${kind.label} indisponible pour le moment.',
+        );
+      }
+      return AuthActionResult.success();
+    } on AuthException catch (error) {
+      return AuthActionResult.failure(_mapAuthError(error));
+    } catch (_) {
+      return AuthActionResult.failure(
+        'Connexion ${kind.label} impossible. Réessayez plus tard.',
+      );
+    }
+  }
+
+  @override
+  Future<AuthActionResult> resetPassword({required String email}) async {
+    final sanitized = AuthCredentialsValidator.sanitizeEmail(email);
+    if (sanitized.isEmpty || !sanitized.contains('@')) {
+      return AuthActionResult.failure('Saisissez un e-mail valide.');
+    }
+
+    final auth = _auth();
+    if (!_isBackendReady || auth == null) {
+      return AuthActionResult.backendUnavailable();
+    }
+
+    try {
+      await auth.resetPasswordForEmail(
+        sanitized,
+        redirectTo: kIsWeb ? null : 'io.supabase.atlas://login-callback/',
+      );
+      return AuthActionResult.success();
+    } on AuthException catch (error) {
+      return AuthActionResult.failure(_mapAuthError(error));
+    } catch (_) {
+      return AuthActionResult.failure(
+        'Impossible d\'envoyer le lien de réinitialisation.',
+      );
+    }
+  }
+
+  @override
   Future<AuthActionResult> signOut() async {
     final auth = _auth();
     if (!_isBackendReady || auth == null) {
@@ -158,6 +236,34 @@ class SupabaseAuthRepository extends AuthRepository {
     } catch (_) {
       return AuthActionResult.failure(
         'Déconnexion impossible. Réessayez plus tard.',
+      );
+    }
+  }
+
+  @override
+  Future<AuthActionResult> deleteAccount() async {
+    final client = _client();
+    final auth = _auth();
+    if (!_isBackendReady || client == null || auth == null) {
+      return AuthActionResult.backendUnavailable();
+    }
+    if (!_session.isSignedIn) {
+      return AuthActionResult.failure(
+        'Connectez-vous pour supprimer votre compte.',
+      );
+    }
+
+    try {
+      await client.rpc('delete_own_account');
+      await auth.signInAnonymously();
+      _refreshSession();
+      notifyListeners();
+      return AuthActionResult.success();
+    } on AuthException catch (error) {
+      return AuthActionResult.failure(_mapAuthError(error));
+    } catch (_) {
+      return AuthActionResult.failure(
+        'Suppression impossible. Réessayez plus tard.',
       );
     }
   }
@@ -181,9 +287,7 @@ class SupabaseAuthRepository extends AuthRepository {
     final auth = _auth();
     final user = auth?.currentUser;
     if (user == null) {
-      _session = const AuthSession(
-        kind: AuthSessionKind.anonymous,
-      );
+      _session = const AuthSession(kind: AuthSessionKind.anonymous);
       return;
     }
 
@@ -195,10 +299,27 @@ class SupabaseAuthRepository extends AuthRepository {
       return;
     }
 
+    final providers = <AuthProviderKind>{};
+    for (final identity in user.identities ?? const <UserIdentity>[]) {
+      final mapped = AuthProviderKindLabels.fromSupabaseId(identity.provider);
+      if (mapped != null) providers.add(mapped);
+    }
+    if (user.email != null && user.email!.isNotEmpty) {
+      providers.add(AuthProviderKind.email);
+    }
+
+    final meta = user.userMetadata ?? const <String, dynamic>{};
+    final displayName = (meta['full_name'] ?? meta['name'] ?? meta['display_name'])
+        ?.toString();
+    final avatarUrl = (meta['avatar_url'] ?? meta['picture'])?.toString();
+
     _session = AuthSession(
       kind: AuthSessionKind.signedIn,
       userId: user.id,
       email: user.email,
+      displayName: displayName,
+      avatarUrl: avatarUrl,
+      providers: providers.toList(growable: false),
     );
   }
 
@@ -215,6 +336,9 @@ class SupabaseAuthRepository extends AuthRepository {
     }
     if (message.contains('password')) {
       return 'Mot de passe invalide.';
+    }
+    if (message.contains('provider is not enabled')) {
+      return 'Ce mode de connexion n\'est pas encore activé.';
     }
     return 'Authentification impossible. Réessayez.';
   }

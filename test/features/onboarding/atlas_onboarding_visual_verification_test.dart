@@ -6,6 +6,8 @@ import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
+import 'package:atlas/features/admission_temporaire/data/local_at_repository.dart';
+import 'package:atlas/features/admission_temporaire/presentation/at_scope.dart';
 import 'package:atlas/features/auth/domain/auth_action_result.dart';
 import 'package:atlas/features/auth/domain/auth_repository.dart';
 import 'package:atlas/features/auth/domain/auth_session.dart';
@@ -57,6 +59,21 @@ class _FakeAuthRepository extends AuthRepository {
 
   @override
   Future<AuthActionResult> signOut() async => AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signInWithApple() async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signInWithGoogle() async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> resetPassword({required String email}) async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> deleteAccount() async => AuthActionResult.success();
 }
 
 void main() {
@@ -190,8 +207,10 @@ void main() {
     await profile.load();
     final favorites = LocalFavoritesRepository();
     await favorites.load();
+    final at = LocalAtRepository();
+    await at.load();
 
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    await tester.binding.setSurfaceSize(const Size(800, 2400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
@@ -203,7 +222,10 @@ void main() {
             repository: profile,
             child: FavoritesScope(
               repository: favorites,
-              child: const Scaffold(body: ProfilePage()),
+              child: AtScope(
+                repository: at,
+                child: const Scaffold(body: ProfilePage()),
+              ),
             ),
           ),
         ),
@@ -212,9 +234,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await const OnboardingPreferencesStore().isCompleted(), isTrue);
-    final reset = find.text('Réafficher l\'introduction');
-    await tester.ensureVisible(reset);
-    await tester.tap(reset);
+    expect(find.text('Réafficher l\'introduction'), findsOneWidget);
+    await tester.tap(find.text('Réafficher l\'introduction'));
     await tester.pumpAndSettle();
     expect(await const OnboardingPreferencesStore().isCompleted(), isFalse);
     expect(find.textContaining('Introduction réinitialisée'), findsOneWidget);

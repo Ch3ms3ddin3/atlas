@@ -127,7 +127,7 @@ void main() {
     await tapBottomNav(tester, 'Profil');
 
     expect(
-      find.textContaining('Personnalisez Atlas'),
+      find.textContaining('Identité, synchronisation'),
       findsOneWidget,
     );
     expect(find.text('Enregistrer'), findsOneWidget);

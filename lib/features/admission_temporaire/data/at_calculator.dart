@@ -15,13 +15,16 @@ abstract final class AtCalculator {
   }
 
   /// Calcule la date d'expiration à partir de l'entrée + durée.
+  ///
+  /// Uses calendar-day arithmetic (not [Duration]) so DST transitions on the
+  /// host clock never shift the civil date.
   static DateTime expiryFromEntry({
     required DateTime entryDate,
     required int durationDays,
   }) {
     assert(durationDays > 0);
     final entry = calendarDay(entryDate);
-    return entry.add(Duration(days: durationDays));
+    return DateTime(entry.year, entry.month, entry.day + durationDays);
   }
 
   /// Jours restants : négatif si expiré.
@@ -31,7 +34,9 @@ abstract final class AtCalculator {
   }) {
     final today = calendarDay(now ?? casablancaNow());
     final expiry = calendarDay(expiryDate);
-    return expiry.difference(today).inDays;
+    return DateTime.utc(expiry.year, expiry.month, expiry.day)
+        .difference(DateTime.utc(today.year, today.month, today.day))
+        .inDays;
   }
 
   static bool isExpired({

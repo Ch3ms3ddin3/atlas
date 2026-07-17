@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/auth_credentials_validator.dart';
+import '../../domain/auth_action_result.dart';
 import '../auth_scope.dart';
 
-enum AuthFormMode { signUp, signIn }
+enum AuthFormMode { signUp, signIn, resetPassword }
 
-/// Formulaire de connexion / inscription dans une feuille modale.
+/// Formulaire de connexion / inscription / reset dans une feuille modale.
 class AuthFormSheet extends StatefulWidget {
   const AuthFormSheet({
     super.key,
@@ -72,35 +73,44 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
   }
 
   Future<void> _submit() async {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    final validationError = _mode == AuthFormMode.signUp
-        ? AuthCredentialsValidator.validateSignUp(
-            email: email,
-            password: password,
-            confirmPassword: confirmPassword,
-          )
-        : AuthCredentialsValidator.validateSignIn(
-            email: email,
-            password: password,
-          );
-
-    if (validationError != null) {
-      setState(() => _formError = validationError);
-      return;
-    }
-
     setState(() {
       _formError = null;
       _isSubmitting = true;
     });
 
     final repository = AuthScope.of(context);
-    final result = _mode == AuthFormMode.signUp
-        ? await repository.signUp(email: email, password: password)
-        : await repository.signIn(email: email, password: password);
+    late final AuthActionResult result;
+
+    if (_mode == AuthFormMode.resetPassword) {
+      result = await repository.resetPassword(email: _emailController.text);
+    } else {
+      final email = _emailController.text;
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+
+      final validationError = _mode == AuthFormMode.signUp
+          ? AuthCredentialsValidator.validateSignUp(
+              email: email,
+              password: password,
+              confirmPassword: confirmPassword,
+            )
+          : AuthCredentialsValidator.validateSignIn(
+              email: email,
+              password: password,
+            );
+
+      if (validationError != null) {
+        setState(() {
+          _formError = validationError;
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      result = _mode == AuthFormMode.signUp
+          ? await repository.signUp(email: email, password: password)
+          : await repository.signIn(email: email, password: password);
+    }
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -117,34 +127,45 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
       ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            _mode == AuthFormMode.signUp
-                ? 'Compte créé — vos données restent sur cet appareil.'
-                : 'Connexion réussie.',
-          ),
+          content: Text(_successMessage),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
         ),
       );
   }
 
-  void _toggleMode() {
+  String get _successMessage => switch (_mode) {
+        AuthFormMode.signUp =>
+          'Compte créé — vos données restent sur cet appareil.',
+        AuthFormMode.signIn => 'Connexion réussie.',
+        AuthFormMode.resetPassword =>
+          'Lien de réinitialisation envoyé si le compte existe.',
+      };
+
+  Future<void> _oauth(Future<AuthActionResult> Function() action) async {
     setState(() {
-      _mode = _mode == AuthFormMode.signUp
-          ? AuthFormMode.signIn
-          : AuthFormMode.signUp;
       _formError = null;
-      _confirmPasswordController.clear();
+      _isSubmitting = true;
     });
+    final result = await action();
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    if (!result.success) {
+      setState(() => _formError = result.errorMessage);
+      return;
+    }
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isSignUp = _mode == AuthFormMode.signUp;
+    final isReset = _mode == AuthFormMode.resetPassword;
+    final repository = AuthScope.of(context);
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AtlasSpacing.xl,
           AtlasSpacing.sm,
@@ -156,23 +177,65 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              isSignUp ? 'Créer un compte' : 'Se connecter',
+              isReset
+                  ? 'Réinitialiser le mot de passe'
+                  : isSignUp
+                      ? 'Créer un compte'
+                      : 'Se connecter',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: AtlasSpacing.sm),
             Text(
-              isSignUp
-                  ? 'Liez votre session invitée à un e-mail pour retrouver '
-                      'vos favoris sur d\'autres appareils.'
-                  : 'Connectez-vous pour synchroniser vos données Atlas.',
+              isReset
+                  ? 'Nous vous enverrons un lien sécurisé par e-mail.'
+                  : isSignUp
+                      ? 'Liez votre session invitée à un e-mail pour retrouver '
+                          'vos favoris sur d\'autres appareils.'
+                      : 'Connectez-vous pour synchroniser vos données Atlas.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.45,
               ),
             ),
-            const SizedBox(height: AtlasSpacing.xl),
+            if (!isReset) ...[
+              const SizedBox(height: AtlasSpacing.lg),
+              OutlinedButton.icon(
+                onPressed: _isSubmitting
+                    ? null
+                    : () => _oauth(repository.signInWithApple),
+                icon: const Icon(Icons.apple),
+                label: const Text('Continuer avec Apple'),
+              ),
+              const SizedBox(height: AtlasSpacing.sm),
+              OutlinedButton.icon(
+                onPressed: _isSubmitting
+                    ? null
+                    : () => _oauth(repository.signInWithGoogle),
+                icon: const Icon(Icons.g_mobiledata),
+                label: const Text('Continuer avec Google'),
+              ),
+              const SizedBox(height: AtlasSpacing.lg),
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AtlasSpacing.md,
+                    ),
+                    child: Text(
+                      'ou',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+            ],
+            const SizedBox(height: AtlasSpacing.lg),
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -182,15 +245,17 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
                 hintText: 'vous@exemple.com',
               ),
             ),
-            const SizedBox(height: AtlasSpacing.lg),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Mot de passe',
+            if (!isReset) ...[
+              const SizedBox(height: AtlasSpacing.lg),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  labelText: 'Mot de passe',
+                ),
               ),
-            ),
+            ],
             if (isSignUp) ...[
               const SizedBox(height: AtlasSpacing.lg),
               TextField(
@@ -221,15 +286,42 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(isSignUp ? 'Créer mon compte' : 'Se connecter'),
+                  : Text(
+                      isReset
+                          ? 'Envoyer le lien'
+                          : isSignUp
+                              ? 'Créer mon compte'
+                              : 'Se connecter',
+                    ),
             ),
+            if (!isReset && !isSignUp) ...[
+              const SizedBox(height: AtlasSpacing.sm),
+              TextButton(
+                onPressed: _isSubmitting
+                    ? null
+                    : () => setState(() {
+                          _mode = AuthFormMode.resetPassword;
+                          _formError = null;
+                        }),
+                child: const Text('Mot de passe oublié ?'),
+              ),
+            ],
             const SizedBox(height: AtlasSpacing.md),
             TextButton(
-              onPressed: _isSubmitting ? null : _toggleMode,
+              onPressed: _isSubmitting
+                  ? null
+                  : () => setState(() {
+                        _mode = isSignUp || isReset
+                            ? AuthFormMode.signIn
+                            : AuthFormMode.signUp;
+                        _formError = null;
+                      }),
               child: Text(
-                isSignUp
-                    ? 'Déjà un compte ? Se connecter'
-                    : 'Pas de compte ? Créer un compte',
+                isReset
+                    ? 'Retour à la connexion'
+                    : isSignUp
+                        ? 'Déjà un compte ? Se connecter'
+                        : 'Pas de compte ? Créer un compte',
               ),
             ),
           ],

@@ -601,7 +601,7 @@ INSERT INTO prices (
   'local_taxi_outlined',
   'Grille taxi Marrakech 2024',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -625,7 +625,7 @@ INSERT INTO prices (
   'restaurant_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -649,7 +649,7 @@ INSERT INTO prices (
   'coffee_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -673,7 +673,7 @@ INSERT INTO prices (
   'shopping_basket_outlined',
   'Vérifié en Marjane Gueliz, juin 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -697,7 +697,7 @@ INSERT INTO prices (
   'phone_android_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -721,7 +721,7 @@ INSERT INTO prices (
   'account_balance_outlined',
   'Tarif Palais Bahia, 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -745,7 +745,7 @@ INSERT INTO prices (
   'tour_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -769,7 +769,7 @@ INSERT INTO prices (
   'warning_amber_outlined',
   NULL,
   true,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -793,7 +793,7 @@ INSERT INTO prices (
   'apartment_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -817,7 +817,7 @@ INSERT INTO prices (
   'local_taxi_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -841,7 +841,7 @@ INSERT INTO prices (
   'restaurant_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -865,7 +865,7 @@ INSERT INTO prices (
   'coffee_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -889,7 +889,7 @@ INSERT INTO prices (
   'shopping_basket_outlined',
   'Vérifié en Carrefour Maarif, juin 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -913,7 +913,7 @@ INSERT INTO prices (
   'content_cut_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -937,7 +937,7 @@ INSERT INTO prices (
   'museum_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -961,7 +961,7 @@ INSERT INTO prices (
   'apartment_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -985,7 +985,7 @@ INSERT INTO prices (
   'local_taxi_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1009,7 +1009,7 @@ INSERT INTO prices (
   'restaurant_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1033,7 +1033,7 @@ INSERT INTO prices (
   'shopping_basket_outlined',
   'Vérifié en Marjane Agdal, juin 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1057,7 +1057,7 @@ INSERT INTO prices (
   'local_hospital_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1081,7 +1081,7 @@ INSERT INTO prices (
   'apartment_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1105,7 +1105,7 @@ INSERT INTO prices (
   'directions_bus_outlined',
   'Tarifs CTM, juin 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1129,7 +1129,7 @@ INSERT INTO prices (
   'local_laundry_service_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1153,7 +1153,7 @@ INSERT INTO prices (
   'bolt_outlined',
   NULL,
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO prices (
   slug, name, city_name, category, category_label,
@@ -1177,7 +1177,7 @@ INSERT INTO prices (
   'bakery_dining_outlined',
   'Prix réglementé, 2025',
   false,
-  '2025-07-11T23:00:00.000Z'
+  '2025-07-11T22:00:00.000Z'
 ) ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO events (

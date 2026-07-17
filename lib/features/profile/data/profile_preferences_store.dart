@@ -11,6 +11,8 @@ class ProfilePreferencesStore {
   static const preferredCityKey = 'profile_preferred_city';
   static const languageKey = 'profile_language';
   static const userTypeKey = 'profile_user_type';
+  static const displayNameKey = 'profile_display_name';
+  static const avatarUrlKey = 'profile_avatar_url';
   static const localUpdatedAtKey = 'profile_local_updated_at';
   static const syncPendingKey = 'profile_sync_pending';
 
@@ -22,6 +24,8 @@ class ProfilePreferencesStore {
           prefs.getString(preferredCityKey) ?? UserProfile.defaultPreferredCity,
       language: AtlasLanguageLabels.fromStorage(prefs.getString(languageKey)),
       userType: AtlasUserTypeLabels.fromStorage(prefs.getString(userTypeKey)),
+      displayName: prefs.getString(displayNameKey),
+      avatarUrl: prefs.getString(avatarUrlKey),
     );
 
     final localUpdatedAtRaw = prefs.getString(localUpdatedAtKey);
@@ -43,6 +47,16 @@ class ProfilePreferencesStore {
     await prefs.setString(preferredCityKey, profile.preferredCity);
     await prefs.setString(languageKey, profile.language.name);
     await prefs.setString(userTypeKey, profile.userType.name);
+    if (profile.displayName == null || profile.displayName!.trim().isEmpty) {
+      await prefs.remove(displayNameKey);
+    } else {
+      await prefs.setString(displayNameKey, profile.displayName!.trim());
+    }
+    if (profile.avatarUrl == null || profile.avatarUrl!.trim().isEmpty) {
+      await prefs.remove(avatarUrlKey);
+    } else {
+      await prefs.setString(avatarUrlKey, profile.avatarUrl!.trim());
+    }
     await prefs.setString(
       localUpdatedAtKey,
       localUpdatedAt.toUtc().toIso8601String(),

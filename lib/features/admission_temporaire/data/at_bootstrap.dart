@@ -1,13 +1,14 @@
 import '../domain/at_repository.dart';
 import 'at_notification_coordinator.dart';
 import 'local_at_repository.dart';
+import 'syncing_at_repository.dart';
 
 AtNotificationCoordinator? _atNotificationCoordinator;
 AtRepository? _atRepository;
 
-/// Repository partagé (lazy — safe pour tests widget).
+/// Repository partagé (lazy — sync cloud quand Supabase est prêt).
 AtRepository get atRepository {
-  return _atRepository ??= LocalAtRepository();
+  return _atRepository ??= SyncingAtRepository();
 }
 
 AtNotificationCoordinator get atNotificationCoordinator {
@@ -23,7 +24,7 @@ Future<void> ensureAtNotificationCoordinator({
   if (repository != null) {
     _atRepository = repository;
   } else {
-    _atRepository ??= LocalAtRepository();
+    _atRepository ??= SyncingAtRepository();
   }
   if (!_atRepository!.isLoaded) {
     await _atRepository!.load();

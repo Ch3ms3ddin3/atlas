@@ -14,6 +14,8 @@
 
 ✅ Onboarding
 
+✅ Authentication & Cloud Sync
+
 ✅ Weather API
 
 ✅ Prayer API

@@ -90,6 +90,8 @@ abstract final class ProfileSyncCoordinator {
     return a.firstName == b.firstName &&
         a.preferredCity == b.preferredCity &&
         a.language == b.language &&
-        a.userType == b.userType;
+        a.userType == b.userType &&
+        a.displayName == b.displayName &&
+        a.avatarUrl == b.avatarUrl;
   }
 }

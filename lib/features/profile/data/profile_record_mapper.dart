@@ -9,6 +9,8 @@ abstract final class ProfileRecordMapper {
       preferredCity: row['preferred_city'] as String,
       language: AtlasLanguageLabels.fromStorage(row['language'] as String?),
       userType: AtlasUserTypeLabels.fromStorage(row['user_type'] as String?),
+      displayName: row['display_name'] as String?,
+      avatarUrl: row['avatar_url'] as String?,
     );
 
     return ProfileRemoteSnapshot(
@@ -27,6 +29,8 @@ abstract final class ProfileRecordMapper {
       'preferred_city': profile.preferredCity,
       'language': profile.language.name,
       'user_type': profile.userType.name,
+      'display_name': profile.displayName,
+      'avatar_url': profile.avatarUrl,
     };
   }
 }
