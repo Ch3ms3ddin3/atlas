@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 abstract final class AtlasShellTab {
   static const home = 0;
   static const explorer = 1;
-  static const procedures = 2;
-  static const prices = 3;
-  static const profile = 4;
+  static const map = 2;
+  static const procedures = 3;
+  static const prices = 4;
+  static const profile = 5;
 }
 
 /// Accès UI à la navigation par onglets depuis les écrans enfants.
@@ -32,6 +33,9 @@ class ShellNavigationScope extends InheritedWidget {
 
   static void goToExplorer(BuildContext context) =>
       goToTab(context, AtlasShellTab.explorer);
+
+  static void goToMap(BuildContext context) =>
+      goToTab(context, AtlasShellTab.map);
 
   static void goToProcedures(BuildContext context) =>
       goToTab(context, AtlasShellTab.procedures);

@@ -230,6 +230,10 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                 value: place.bestTimeToVisit!,
               ),
             ],
+            if (place.hasPracticalTips) ...[
+              const SizedBox(height: AtlasSpacing.section),
+              PlaceEditorialTips(tips: place.practicalTips),
+            ],
             if (place.hasAddress) ...[
               const SizedBox(height: AtlasSpacing.section),
               const PlaceDetailSectionHeader(title: 'Adresse'),
@@ -267,10 +271,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                 title: 'Équipements',
                 features: place.amenities,
               ),
-            ],
-            if (place.hasPracticalTips) ...[
-              const SizedBox(height: AtlasSpacing.section),
-              PlaceEditorialTips(tips: place.practicalTips),
             ],
           ],
         ),

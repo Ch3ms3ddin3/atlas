@@ -318,7 +318,8 @@ Admin step-by-step guides. Arrays: `documents`, `steps`.
 
 ### `places`
 
-Curated places. `image_color` as `#RRGGBB` hex.
+Curated places. `image_color` as `#RRGGBB` hex.  
+Optional `latitude` / `longitude` — Atlas Map shows markers **only** when both are set (never invents coordinates).
 
 ### `events`
 

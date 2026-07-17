@@ -20,6 +20,8 @@ abstract final class PlaceCatalog {
           'célèbre pour son bleu Majorelle et ses collections de cactus.',
       bestTimeToVisit: 'Tôt le matin, avant 10h',
       mapsUrl: 'https://maps.google.com/?q=Jardin+Majorelle+Marrakech',
+      latitude: 31.6415,
+      longitude: -8.003,
       practicalTips: [
         'Réservez vos billets en ligne pour éviter la file d\'attente.',
         'Portez des chaussures confortables — le jardin se parcourt à pied.',
@@ -41,6 +43,8 @@ abstract final class PlaceCatalog {
           'un des plus beaux exemples d\'architecture andalouse à Marrakech.',
       bestTimeToVisit: 'En matinée, hors week-end si possible',
       mapsUrl: 'https://maps.google.com/?q=Palais+de+la+Bahia+Marrakech',
+      latitude: 31.6214,
+      longitude: -7.9836,
       practicalTips: [
         'Arrivez à l\'ouverture pour profiter de la lumière dans les patios.',
         'Prévoyez 1h à 1h30 pour la visite complète.',
@@ -62,6 +66,8 @@ abstract final class PlaceCatalog {
           'et artisanat dès la tombée du jour.',
       bestTimeToVisit: 'Fin d\'après-midi et soirée',
       mapsUrl: 'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech',
+      latitude: 31.6258,
+      longitude: -7.9891,
       practicalTips: [
         'Négociez les prix dans les souks — c\'est la coutume.',
         'Goûtez les jus d\'orange frais des étals de la place.',
@@ -83,6 +89,8 @@ abstract final class PlaceCatalog {
           'mode, design et héritage culturel.',
       bestTimeToVisit: 'En semaine, milieu de matinée',
       mapsUrl: 'https://maps.google.com/?q=Musée+Yves+Saint+Laurent+Marrakech',
+      latitude: 31.6417,
+      longitude: -8.0025,
       practicalTips: [
         'Le billet combiné Jardin Majorelle + musée est souvent avantageux.',
         'La photographie est interdite dans certaines salles.',
@@ -125,6 +133,8 @@ abstract final class PlaceCatalog {
           'dominant l\'Atlantique.',
       bestTimeToVisit: 'Visite guidée le matin',
       mapsUrl: 'https://maps.google.com/?q=Mosquée+Hassan+II+Casablanca',
+      latitude: 33.6085,
+      longitude: -7.6326,
       practicalTips: [
         'Les visites guidées sont obligatoires pour les non-musulmans.',
         'Retirez vos chaussures et habillez-vous modestement.',
@@ -146,6 +156,8 @@ abstract final class PlaceCatalog {
           'incontournable de Casablanca.',
       bestTimeToVisit: 'Fin d\'après-midi en semaine',
       mapsUrl: 'https://maps.google.com/?q=Corniche+Ain+Diab+Casablanca',
+      latitude: 33.595,
+      longitude: -7.677,
       practicalTips: [
         'Le stationnement est difficile le week-end — privilégiez un taxi.',
         'Les plages publiques sont gratuites, les clubs de plage sont payants.',
@@ -167,6 +179,8 @@ abstract final class PlaceCatalog {
           'fruits de mer, cuisine marocaine et ambiance locale.',
       bestTimeToVisit: 'Déjeuner entre 12h et 14h',
       mapsUrl: 'https://maps.google.com/?q=Marché+Central+Casablanca',
+      latitude: 33.594,
+      longitude: -7.618,
       practicalTips: [
         'Les étals de poisson grillé sont les plus populaires.',
         'Arrivez tôt pour avoir une table aux heures de pointe.',
@@ -188,6 +202,8 @@ abstract final class PlaceCatalog {
           'dans un ancien temple.',
       bestTimeToVisit: 'Matinée en semaine',
       mapsUrl: 'https://maps.google.com/?q=Musée+du+Judaïsme+Casablanca',
+      latitude: 33.601,
+      longitude: -7.631,
       practicalTips: [
         'Fermé le samedi — vérifiez les horaires avant de vous déplacer.',
         'La visite guidée enrichit beaucoup l\'expérience.',
@@ -209,6 +225,8 @@ abstract final class PlaceCatalog {
           'alternative plus calme à la Médina de Marrakech.',
       bestTimeToVisit: 'Matinée',
       mapsUrl: 'https://maps.google.com/?q=Quartier+Habous+Casablanca',
+      latitude: 33.5735,
+      longitude: -7.606,
       practicalTips: [
         'Les pâtisseries orientales du quartier sont réputées.',
         'Moins touristique que la Médina — les prix sont plus doux.',
@@ -230,6 +248,8 @@ abstract final class PlaceCatalog {
           'symbole emblématique de Rabat.',
       bestTimeToVisit: 'Fin d\'après-midi pour la lumière',
       mapsUrl: 'https://maps.google.com/?q=Tour+Hassan+Rabat',
+      latitude: 34.0242,
+      longitude: -6.8227,
       practicalTips: [
         'L\'esplanade est gratuite et ouverte en continu.',
         'Combinez avec la visite du Mausolée Mohammed V juste en face.',
@@ -251,6 +271,8 @@ abstract final class PlaceCatalog {
           'du Bouregreg — le quartier le plus pittoresque de Rabat.',
       bestTimeToVisit: 'Matinée en semaine',
       mapsUrl: 'https://maps.google.com/?q=Kasbah+des+Oudayas+Rabat',
+      latitude: 34.0319,
+      longitude: -6.8369,
       practicalTips: [
         'Les ruelles sont étroites — chaussures confortables recommandées.',
         'Le café Maure offre une vue magnifique sur le fleuve.',
@@ -272,6 +294,8 @@ abstract final class PlaceCatalog {
           'havre de paix en ville.',
       bestTimeToVisit: 'Matinée, surtout au printemps',
       mapsUrl: 'https://maps.google.com/?q=Chellah+Rabat',
+      latitude: 34.0065,
+      longitude: -6.8206,
       practicalTips: [
         'Les nids de storks sur les ruines sont spectaculaires au printemps.',
         'Prévoyez 1h30 pour explorer le site en entier.',
@@ -293,6 +317,8 @@ abstract final class PlaceCatalog {
           'collection remarquable dans une architecture épurée.',
       bestTimeToVisit: 'Après-midi en semaine',
       mapsUrl: 'https://maps.google.com/?q=Musée+Mohammed+VI+Rabat',
+      latitude: 34.0125,
+      longitude: -6.844,
       practicalTips: [
         'Fermé le mardi — vérifiez les horaires.',
         'La collection permanente est accessible avec un seul billet.',
@@ -314,6 +340,8 @@ abstract final class PlaceCatalog {
           'idéale pour une pause fraîcheur en été.',
       bestTimeToVisit: 'Fin d\'après-midi',
       mapsUrl: 'https://maps.google.com/?q=Plage+Rabat',
+      latitude: 34.028,
+      longitude: -6.845,
       practicalTips: [
         'La plage est surveillée en été.',
         'Accessible à pied depuis la Kasbah des Oudayas.',

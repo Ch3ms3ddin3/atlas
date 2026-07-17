@@ -40,6 +40,11 @@ class AtlasBottomNav extends StatelessWidget {
       label: 'Explorer',
     ),
     AtlasNavDestination(
+      icon: Icons.map_outlined,
+      selectedIcon: Icons.map_rounded,
+      label: 'Carte',
+    ),
+    AtlasNavDestination(
       icon: Icons.description_outlined,
       selectedIcon: Icons.description_rounded,
       label: 'Démarches',

@@ -6,6 +6,13 @@ class GeolocatorService {
 
   static const _positionTimeout = Duration(seconds: 10);
 
+  /// `true` si une permission d'utilisation a déjà été accordée (sans demander).
+  Future<bool> hasGrantedPermission() async {
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
+  }
+
   /// Tente d'obtenir la position ; renvoie null si refusé ou indisponible.
   Future<Position?> getCurrentPosition() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();

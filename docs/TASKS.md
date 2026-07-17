@@ -35,3 +35,5 @@
 ✅ Morocco Events & Calendar
 
 ✅ Morocco Price Intelligence
+
+✅ Atlas Interactive Map

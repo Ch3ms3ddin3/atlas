@@ -17,6 +17,7 @@ import '../../profile/domain/profile_repository.dart';
 import '../../profile/presentation/profile_scope.dart';
 import '../../explorer/presentation/pages/explorer_page.dart';
 import '../../home/presentation/pages/home_page.dart';
+import '../../map/presentation/pages/atlas_map_page.dart';
 import '../../prices/presentation/pages/prices_page.dart';
 import '../../procedures/presentation/pages/procedures_page.dart';
 import '../../profile/presentation/pages/profile_page.dart';
@@ -40,14 +41,6 @@ class _AppShellState extends State<AppShell> {
       SyncingContentReportsRepository();
   late final AtRepository _atRepository;
   int _currentIndex = 0;
-
-  static const _pages = <Widget>[
-    HomePage(),
-    ExplorerPage(),
-    ProceduresPage(),
-    PricesPage(),
-    ProfilePage(),
-  ];
 
   @override
   void initState() {
@@ -86,6 +79,8 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final mapActive = _currentIndex == AtlasShellTab.map;
+
     return AuthScope(
       repository: _authRepository,
       child: ProfileScope(
@@ -102,11 +97,30 @@ class _AppShellState extends State<AppShell> {
                   body: IndexedStack(
                     index: _currentIndex,
                     children: [
-                      for (var i = 0; i < _pages.length; i++)
-                        ShellTabTransition(
-                          isActive: _currentIndex == i,
-                          child: _pages[i],
-                        ),
+                      ShellTabTransition(
+                        isActive: _currentIndex == AtlasShellTab.home,
+                        child: const HomePage(),
+                      ),
+                      ShellTabTransition(
+                        isActive: _currentIndex == AtlasShellTab.explorer,
+                        child: const ExplorerPage(),
+                      ),
+                      ShellTabTransition(
+                        isActive: mapActive,
+                        child: AtlasMapPage(isActive: mapActive),
+                      ),
+                      ShellTabTransition(
+                        isActive: _currentIndex == AtlasShellTab.procedures,
+                        child: const ProceduresPage(),
+                      ),
+                      ShellTabTransition(
+                        isActive: _currentIndex == AtlasShellTab.prices,
+                        child: const PricesPage(),
+                      ),
+                      ShellTabTransition(
+                        isActive: _currentIndex == AtlasShellTab.profile,
+                        child: const ProfilePage(),
+                      ),
                     ],
                   ),
                   bottomNavigationBar: AtlasBottomNav(

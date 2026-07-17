@@ -31,6 +31,8 @@ import 'package:atlas/features/profile/domain/profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
 import 'package:atlas/app/atlas_app.dart';
+import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
+import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
 
 import '../prices/price_intelligence_test_helpers.dart';
 
@@ -38,6 +40,7 @@ void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     ensurePrayerNotificationCoordinatorForTests();
+    AtlasFlutterMapView.useSilentTiles = true;
   });
 
   setUp(() async {
@@ -46,10 +49,12 @@ void main() {
     PriceRepository.resetForTest();
     PriceIntelligenceRepository.resetForTest();
     ProcedureRepository.resetForTest();
+    PlaceBrowseFilters.resetForTest();
     EditorialRepositoryBootstrap.registerDefaults();
     registerPriceIntelligenceFixtures();
     resetAtBootstrapForTests();
     ensureAtRepositoryForTests();
+    AtlasFlutterMapView.useSilentTiles = true;
   });
 
   tearDown(() {
@@ -57,6 +62,7 @@ void main() {
     PriceIntelligenceRepository.resetForTest();
     PriceRepository.resetForTest();
     ProcedureRepository.resetForTest();
+    PlaceBrowseFilters.resetForTest();
     resetAtBootstrapForTests();
   });
 

@@ -10,14 +10,20 @@ import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
+import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../favorites/domain/favorite_entity_type.dart';
+import '../../../favorites/domain/favorites_repository.dart';
 import '../../../favorites/presentation/favorites_page_wrapper.dart';
+import '../../../favorites/presentation/favorites_scope.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
+import '../../../shell/presentation/shell_navigation_scope.dart';
 import '../../data/resilient_place_repository.dart';
 import '../../domain/models/place_models.dart';
+import '../../domain/place_browse_filters.dart';
 import '../../domain/place_repository.dart';
 import '../pages/place_detail_page.dart';
 import '../widgets/place_catalog_status_indicator.dart';
@@ -41,6 +47,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final PlaceRepository _repository = PlaceRepository();
   final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
+  final PlaceBrowseFilters _browseFilters = PlaceBrowseFilters.instance;
 
   String _cityName = LocationConstants.fallbackCity;
   bool _isCityCovered = true;
@@ -48,19 +55,25 @@ class _ExplorerPageState extends State<ExplorerPage> {
   PlaceSort _sort = PlaceSort.catalog;
   List<PlaceGuide> _places = const [];
   ProfileRepository? _profileRepository;
+  FavoritesRepository? _favoritesRepository;
   Timer? _searchDebounceTimer;
   VoidCallback? _catalogListener;
   EditorialCatalogLoadState _loadState = EditorialCatalogLoadState.idle;
   int _locationRequestId = 0;
+  bool _syncingFromSharedFilters = false;
 
   @override
   void initState() {
     super.initState();
-    _cityName = _canonicalSupportedCity(
-      _repository.resolveCityName(null),
-    );
+    _cityName = _browseFilters.cityName.isNotEmpty
+        ? _canonicalSupportedCity(_browseFilters.cityName)
+        : _canonicalSupportedCity(_repository.resolveCityName(null));
+    _selectedCategory = _browseFilters.category;
+    _searchController.text = _browseFilters.searchText;
+    _browseFilters.setCityName(_cityName, notify: false);
     _isCityCovered = _repository.isCityCovered(_cityName);
     _attachCatalogListener();
+    _browseFilters.addListener(_onSharedFiltersChanged);
     _applyFilters();
     _searchController.addListener(_onSearchTextChanged);
     // La localisation suit l'attachement du profil dans didChangeDependencies.
@@ -79,15 +92,59 @@ class _ExplorerPageState extends State<ExplorerPage> {
         unawaited(_resolveLocation());
       }
     }
+    final favorites = FavoritesScope.of(context);
+    if (!identical(favorites, _favoritesRepository)) {
+      _favoritesRepository?.removeListener(_onFavoritesChanged);
+      _favoritesRepository = favorites;
+      _favoritesRepository?.addListener(_onFavoritesChanged);
+      _applyFilters();
+    }
   }
 
   @override
   void dispose() {
     _searchDebounceTimer?.cancel();
     _profileRepository?.removeListener(_onProfileChanged);
+    _favoritesRepository?.removeListener(_onFavoritesChanged);
+    _browseFilters.removeListener(_onSharedFiltersChanged);
     _detachCatalogListener();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSharedFiltersChanged() {
+    if (!mounted || _syncingFromSharedFilters) return;
+    setState(() {
+      _cityName = _browseFilters.cityName.isEmpty
+          ? _cityName
+          : _canonicalSupportedCity(_browseFilters.cityName);
+      _selectedCategory = _browseFilters.category;
+      if (_searchController.text != _browseFilters.searchText) {
+        _searchController.value = TextEditingValue(
+          text: _browseFilters.searchText,
+          selection: TextSelection.collapsed(
+            offset: _browseFilters.searchText.length,
+          ),
+        );
+      }
+      _applyFilters(notify: false);
+    });
+  }
+
+  void _onFavoritesChanged() {
+    if (!mounted) return;
+    setState(() => _applyFilters(notify: false));
+  }
+
+  void _pushSharedFilters() {
+    _syncingFromSharedFilters = true;
+    _browseFilters.update(
+      cityName: _cityName,
+      category: _selectedCategory,
+      clearCategory: _selectedCategory == null,
+      searchText: _searchController.text,
+    );
+    _syncingFromSharedFilters = false;
   }
 
   void _attachCatalogListener() {
@@ -134,6 +191,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     setState(() {
       _cityName = preferred;
       _isCityCovered = _repository.isCityCovered(_cityName);
+      _pushSharedFilters();
       _applyFilters(notify: false);
     });
   }
@@ -143,6 +201,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _searchDebounceTimer?.cancel();
     _searchDebounceTimer = Timer(_searchDebounce, () {
       if (!mounted) return;
+      _pushSharedFilters();
       _applyFilters();
     });
   }
@@ -163,6 +222,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     setState(() {
       _cityName = preferred;
       _isCityCovered = _repository.isCityCovered(_cityName);
+      _pushSharedFilters();
       _applyFilters(notify: false);
     });
   }
@@ -175,7 +235,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _applyFilters({bool notify = true}) {
     void update() {
       _isCityCovered = _repository.isCityCovered(_cityName);
-      _places = _repository.search(
+      var places = _repository.search(
         PlaceSearchQuery(
           text: _searchController.text,
           category: _selectedCategory,
@@ -184,6 +244,21 @@ class _ExplorerPageState extends State<ExplorerPage> {
           strictCity: true,
         ),
       );
+      if (_browseFilters.favoritesOnly) {
+        final favorites = _favoritesRepository;
+        places = places
+            .where(
+              (place) =>
+                  favorites != null &&
+                  favorites.isLoaded &&
+                  favorites.isFavorite(
+                    entityType: FavoriteEntityType.place,
+                    entitySlug: place.id,
+                  ),
+            )
+            .toList();
+      }
+      _places = places;
     }
 
     if (notify) {
@@ -196,6 +271,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _onCitySelected(String city) {
     setState(() {
       _cityName = city;
+      _pushSharedFilters();
       _applyFilters(notify: false);
     });
   }
@@ -203,6 +279,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _onCategorySelected(PlaceCategory? category) {
     setState(() {
       _selectedCategory = category;
+      _pushSharedFilters();
       _applyFilters(notify: false);
     });
   }
@@ -219,6 +296,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
     setState(() {
       _selectedCategory = null;
       _sort = PlaceSort.catalog;
+      _browseFilters.setFavoritesOnly(false, notify: false);
+      _pushSharedFilters();
       _applyFilters(notify: false);
     });
   }
@@ -269,13 +348,27 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: AtlasSpacing.xxl),
-                        AtlasPageHeader(
-                          title: 'Explorer',
-                          subtitle:
-                              'Lieux utiles à $_cityName — découvertes curatées par Atlas.',
-                          footnote: _isCityCovered
-                              ? null
-                              : 'Contenu bientôt disponible pour $_cityName.',
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: AtlasPageHeader(
+                                title: 'Explorer',
+                                subtitle:
+                                    'Lieux utiles à $_cityName — découvertes '
+                                    'curatées par Atlas.',
+                                footnote: _isCityCovered
+                                    ? null
+                                    : 'Contenu bientôt disponible pour $_cityName.',
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Ouvrir la carte',
+                              onPressed: () =>
+                                  ShellNavigationScope.goToMap(context),
+                              icon: const Icon(Icons.map_outlined),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: AtlasSpacing.xl),
                         PlaceCatalogStatusIndicator(loadState: _loadState),
@@ -306,6 +399,17 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         PlaceCategoryFilter(
                           selectedCategory: _selectedCategory,
                           onCategorySelected: _onCategorySelected,
+                        ),
+                        const SizedBox(height: AtlasSpacing.md),
+                        AtlasFilterChip(
+                          label: 'Favoris',
+                          isSelected: _browseFilters.favoritesOnly,
+                          onTap: () {
+                            _browseFilters.setFavoritesOnly(
+                              !_browseFilters.favoritesOnly,
+                            );
+                            _applyFilters();
+                          },
                         ),
                         const SizedBox(height: AtlasSpacing.xl),
                         Row(

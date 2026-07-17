@@ -8,6 +8,7 @@ import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
 import 'package:atlas/features/explorer/data/local_place_repository.dart';
 import 'package:atlas/features/explorer/data/resilient_place_repository.dart';
+import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/explorer/domain/place_repository.dart';
 import 'package:atlas/features/explorer/presentation/pages/explorer_page.dart';
 import 'package:atlas/features/explorer/presentation/widgets/place_catalog_status_indicator.dart';
@@ -28,11 +29,13 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     PlaceRepository.resetForTest();
+    PlaceBrowseFilters.resetForTest();
     EditorialRepositoryBootstrap.registerDefaults();
   });
 
   tearDown(() {
     PlaceRepository.resetForTest();
+    PlaceBrowseFilters.resetForTest();
   });
 
   Future<void> pumpExplorer(

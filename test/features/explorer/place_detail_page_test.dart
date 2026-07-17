@@ -116,12 +116,15 @@ void main() {
   testWidgets('affiche hero, description et conseils du catalogue', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final place = LocalPlaceRepository().findById('place-majorelle')!;
     await pumpDetail(tester, place: place);
 
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Jardin'), findsOneWidget);
-    expect(find.text('Marrakech'), findsOneWidget);
+    expect(find.text('Marrakech'), findsWidgets);
     expect(find.textContaining('Jardin botanique'), findsOneWidget);
     expect(find.text('Conseils pratiques'), findsOneWidget);
     expect(find.byTooltip('Ajouter aux favoris'), findsOneWidget);

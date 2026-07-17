@@ -8,6 +8,8 @@ import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
 import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
+import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
+import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
 import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
@@ -21,6 +23,7 @@ void main() {
     registerPriceIntelligenceFixtures();
     ensurePrayerNotificationCoordinatorForTests();
     ensureAtRepositoryForTests();
+    AtlasFlutterMapView.useSilentTiles = true;
   });
 
   setUp(() {
@@ -29,10 +32,13 @@ void main() {
     registerPriceIntelligenceFixtures();
     resetAtBootstrapForTests();
     ensureAtRepositoryForTests();
+    PlaceBrowseFilters.resetForTest();
+    AtlasFlutterMapView.useSilentTiles = true;
   });
 
   tearDown(() {
     PriceIntelligenceRepository.resetForTest();
+    PlaceBrowseFilters.resetForTest();
   });
 
   Future<void> tapBottomNav(WidgetTester tester, String label) async {
@@ -45,7 +51,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Atlas démarre sur Accueil avec 5 onglets', (
+  testWidgets('Atlas démarre sur Accueil avec 6 onglets', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const AtlasApp());
@@ -72,7 +78,7 @@ void main() {
     expect(find.text('Change'), findsOneWidget);
     expect(find.text('Jour ouvré'), findsOneWidget);
 
-    expect(AtlasBottomNav.destinations, hasLength(5));
+    expect(AtlasBottomNav.destinations, hasLength(6));
     expect(find.byType(AtlasBottomNav), findsOneWidget);
   });
 
@@ -89,6 +95,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Jardin Majorelle'), findsWidgets);
+
+    await tapBottomNav(tester, 'Carte');
+    expect(find.text('Carte'), findsWidgets);
+    expect(find.text('Favoris'), findsWidgets);
 
     await tapBottomNav(tester, 'Démarches');
 
