@@ -64,7 +64,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Accueil'), findsWidgets);
-    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
     expect(find.text('Marrakech'), findsWidgets);
     expect(
       find.text(
@@ -134,7 +134,7 @@ void main() {
 
     await tapBottomNav(tester, 'Accueil');
 
-    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
     expect(find.text('Météo indisponible'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsNothing);
   });

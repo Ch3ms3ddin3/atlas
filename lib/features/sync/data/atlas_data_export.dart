@@ -4,6 +4,7 @@ import '../../admission_temporaire/domain/at_repository.dart';
 import '../../auth/domain/auth_session.dart';
 import '../../explorer/domain/place_browse_filters.dart';
 import '../../favorites/domain/favorites_repository.dart';
+import '../../itineraries/domain/itinerary_repository.dart';
 import '../../profile/domain/profile_repository.dart';
 import '../../../core/notifications/notification_preferences_store.dart';
 import '../domain/cloud_sync_status.dart';
@@ -15,10 +16,12 @@ abstract final class AtlasDataExport {
     required ProfileRepository profile,
     required FavoritesRepository favorites,
     required AtRepository atRepository,
+    ItineraryRepository? itineraryRepository,
     CloudSyncStatus? syncStatus,
   }) async {
     final prayer = await const NotificationPreferencesStore().load();
     final filters = PlaceBrowseFilters.instance;
+    final trips = itineraryRepository?.trips ?? const [];
     final payload = <String, dynamic>{
       'exported_at': DateTime.now().toUtc().toIso8601String(),
       'account': {
@@ -65,6 +68,22 @@ abstract final class AtlasDataExport {
             },
           )
           .toList(),
+      'trips': [
+        for (final trip in trips)
+          {
+            'id': trip.id,
+            'title': trip.title,
+            'start_date': trip.startDate.toIso8601String(),
+            'end_date': trip.endDate.toIso8601String(),
+            'primary_city': trip.primaryCity,
+            'cities': trip.cities,
+            'status': trip.status.name,
+            'pace': trip.pace,
+            'is_active': trip.isActive,
+            'day_count': trip.dayCount,
+            'days': trip.days.map((d) => d.toJson()).toList(),
+          },
+      ],
     };
     return const JsonEncoder.withIndent('  ').convert(payload);
   }

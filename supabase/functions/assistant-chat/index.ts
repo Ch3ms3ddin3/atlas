@@ -1,14 +1,14 @@
 // Supabase Edge Function — Atlas Assistant (OpenAI streaming).
 // Deploy: supabase functions deploy assistant-chat
-// Secret: supabase secrets set OPENAI_API_KEY=sk-...
+// Secrets: OPENAI_API_KEY (SUPABASE_URL / SUPABASE_ANON_KEY provided by platform)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, accept",
-};
+import {
+  corsHeaders,
+  jsonError,
+  requireUserAndRateLimit,
+  resolveModel,
+} from "../_shared/ai_guard.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -16,13 +16,16 @@ serve(async (req) => {
   }
 
   try {
+    const gate = await requireUserAndRateLimit(req);
+    if (!gate.ok) return gate.response;
+
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      return jsonError("OPENAI_API_KEY manquante", 503);
+      return jsonError("Service Assistant indisponible.", 503);
     }
 
     const body = await req.json();
-    const model = typeof body.model === "string" ? body.model : "gpt-4o-mini";
+    const model = resolveModel(body.model);
     const system =
       typeof body.system === "string"
         ? body.system
@@ -30,9 +33,14 @@ serve(async (req) => {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const knowledge = Array.isArray(body.knowledge) ? body.knowledge : [];
 
+    if (messages.length > 40) {
+      return jsonError("Conversation trop longue.", 400);
+    }
+
     const knowledgeBlock = knowledge.length
       ? "\n\nExtraits Atlas (RAG stub):\n" +
         knowledge
+          .slice(0, 8)
           .map(
             (k: { title?: string; content?: string }) =>
               `- ${k.title ?? "source"}: ${k.content ?? ""}`,
@@ -51,7 +59,7 @@ serve(async (req) => {
         )
         .map((m: { role: string; content: string }) => ({
           role: m.role,
-          content: m.content,
+          content: m.content.slice(0, 8000),
         })),
     ];
 
@@ -71,8 +79,7 @@ serve(async (req) => {
     });
 
     if (!upstream.ok || !upstream.body) {
-      const errText = await upstream.text();
-      return jsonError(`OpenAI error: ${errText}`, 502);
+      return jsonError("Service Assistant temporairement indisponible.", 502);
     }
 
     const encoder = new TextEncoder();
@@ -95,7 +102,9 @@ serve(async (req) => {
               const data = line.slice(5).trim();
               if (data === "[DONE]") {
                 controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`),
+                  encoder.encode(
+                    `data: ${JSON.stringify({ type: "done" })}\n\n`,
+                  ),
                 );
                 continue;
               }
@@ -105,7 +114,9 @@ serve(async (req) => {
                 if (typeof delta === "string" && delta.length > 0) {
                   controller.enqueue(
                     encoder.encode(
-                      `data: ${JSON.stringify({ type: "delta", text: delta })}\n\n`,
+                      `data: ${
+                        JSON.stringify({ type: "delta", text: delta })
+                      }\n\n`,
                     ),
                   );
                 }
@@ -116,7 +127,8 @@ serve(async (req) => {
                         JSON.stringify({
                           type: "usage",
                           prompt_tokens: parsed.usage.prompt_tokens ?? 0,
-                          completion_tokens: parsed.usage.completion_tokens ?? 0,
+                          completion_tokens:
+                            parsed.usage.completion_tokens ?? 0,
                         })
                       }\n\n`,
                     ),
@@ -131,13 +143,13 @@ serve(async (req) => {
             encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`),
           );
           controller.close();
-        } catch (error) {
+        } catch {
           controller.enqueue(
             encoder.encode(
               `data: ${
                 JSON.stringify({
                   type: "error",
-                  message: String(error),
+                  message: "Flux Assistant interrompu.",
                 })
               }\n\n`,
             ),
@@ -155,14 +167,7 @@ serve(async (req) => {
         Connection: "keep-alive",
       },
     });
-  } catch (error) {
-    return jsonError(String(error), 500);
+  } catch {
+    return jsonError("Erreur Assistant.", 500);
   }
 });
-
-function jsonError(message: string, status: number) {
-  return new Response(JSON.stringify({ type: "error", message }), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}

@@ -8,7 +8,7 @@
 PRODUCT_NAME = atlas
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.atlas
+PRODUCT_BUNDLE_IDENTIFIER = app.atlas.maroc
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.

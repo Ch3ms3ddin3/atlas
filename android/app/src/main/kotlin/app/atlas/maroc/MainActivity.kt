@@ -1,4 +1,4 @@
-package com.example.atlas
+package app.atlas.maroc
 
 import io.flutter.embedding.android.FlutterActivity
 

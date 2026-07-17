@@ -3,12 +3,17 @@
 import 'dart:async';
 import 'dart:html' as html;
 
+import 'atlas_http_timeouts.dart';
+
 /// Implémentation web via dart:html.
-Future<String> platformGet(String url) async {
+Future<String> platformGet(
+  String url, {
+  Duration timeout = AtlasHttpTimeouts.defaultTimeout,
+}) async {
   final request = await html.HttpRequest.request(
     url,
     method: 'GET',
-  );
+  ).timeout(timeout);
   if (request.status != 200) {
     throw Exception('HTTP ${request.status}');
   }
@@ -20,14 +25,31 @@ Stream<String> platformPostJsonStream({
   required String url,
   required Map<String, String> headers,
   required String body,
+  Duration timeout = AtlasHttpTimeouts.streamConnectTimeout,
 }) {
   final controller = StreamController<String>();
   final request = html.HttpRequest();
   var lastLength = 0;
+  Timer? connectTimer;
+
+  void fail(Object error) {
+    if (!controller.isClosed) {
+      controller.addError(error);
+      unawaited(controller.close());
+    }
+  }
+
+  connectTimer = Timer(timeout, () {
+    if (request.readyState < 3) {
+      request.abort();
+      fail(TimeoutException('HTTP connect timeout', timeout));
+    }
+  });
 
   request.open('POST', url);
   headers.forEach(request.setRequestHeader);
   request.onProgress.listen((_) {
+    connectTimer?.cancel();
     final text = request.responseText ?? '';
     if (text.length > lastLength) {
       controller.add(text.substring(lastLength));
@@ -35,6 +57,7 @@ Stream<String> platformPostJsonStream({
     }
   });
   request.onLoad.listen((_) {
+    connectTimer?.cancel();
     final text = request.responseText ?? '';
     if (text.length > lastLength) {
       controller.add(text.substring(lastLength));
@@ -46,8 +69,8 @@ Stream<String> platformPostJsonStream({
     unawaited(controller.close());
   });
   request.onError.listen((_) {
-    controller.addError(Exception('HTTP request failed'));
-    unawaited(controller.close());
+    connectTimer?.cancel();
+    fail(Exception('HTTP request failed'));
   });
   request.send(body);
   return controller.stream;

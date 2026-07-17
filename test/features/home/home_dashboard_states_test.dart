@@ -140,7 +140,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
     expect(find.text('Briefing du jour'), findsOneWidget);
     expect(find.text('À venir'), findsOneWidget);
     expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
@@ -162,7 +162,7 @@ void main() {
       favorites: favorites,
     );
 
-    expect(find.text('Bonjour, Chemseddine'), findsOneWidget);
+    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
     expect(find.text('Mes favoris'), findsNothing);
     expect(find.text('Recommandations'), findsOneWidget);
     expect(find.text('Urgences'), findsNothing);
@@ -185,7 +185,7 @@ void main() {
     );
 
     expect(find.text('Bonjour, Salma'), findsOneWidget);
-    expect(find.text('Bonjour, Chemseddine'), findsNothing);
+    expect(find.text('Bonjour, Voyageur'), findsNothing);
   });
 
   testWidgets('no favorites: Mes favoris section is hidden', (

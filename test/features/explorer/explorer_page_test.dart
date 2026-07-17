@@ -200,7 +200,7 @@ void main() {
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
-      'profile_first_name': 'Chemseddine',
+      'profile_first_name': 'Voyageur',
       'profile_preferred_city': 'Tanger',
     });
     final profile = LocalProfileRepository();

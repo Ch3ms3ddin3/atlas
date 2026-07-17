@@ -13,6 +13,7 @@ class AtlasApp extends StatelessWidget {
       title: 'Atlas',
       debugShowCheckedModeBanner: false,
       theme: AtlasTheme.light,
+      themeMode: ThemeMode.light,
       home: const StartupGate(),
     );
   }

@@ -5,7 +5,7 @@ import '../../domain/models/home_models.dart';
 /// Données fictives pour le tableau de bord — remplacées par les APIs plus tard.
 abstract final class HomeMockData {
   static const greeting = GreetingData(
-    userName: 'Chemseddine',
+    userName: 'Voyageur',
     city: 'Marrakech',
     dateLabel: 'Dimanche 12 juillet 2026',
   );

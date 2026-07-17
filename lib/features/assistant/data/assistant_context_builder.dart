@@ -55,7 +55,7 @@ class AssistantContextBuilder {
     final vehicles = atRepository.activeVehicles;
     final vehicleSummaries = [
       for (final vehicle in vehicles.take(5))
-        '${vehicle.label} (${vehicle.plate}) — '
+        '${vehicle.label} (${_maskPlate(vehicle.plate)}) — '
             '${AtCalculator.remainingLabel(
           remainingDays: AtCalculator.remainingDays(
             expiryDate: vehicle.expiryDate,
@@ -181,5 +181,13 @@ class AssistantContextBuilder {
       for (final event in upcoming)
         '${event.title} (${event.cityName ?? city})',
     ];
+  }
+
+  /// Masque les plaques avant envoi au LLM (PII).
+  static String _maskPlate(String plate) {
+    final trimmed = plate.trim().toUpperCase();
+    if (trimmed.isEmpty) return '•••';
+    if (trimmed.length <= 3) return '•••';
+    return '${trimmed.substring(0, 1)}•••${trimmed.substring(trimmed.length - 1)}';
   }
 }

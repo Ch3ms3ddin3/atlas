@@ -26,7 +26,8 @@ class UserProfile {
     this.avatarUrl,
   });
 
-  static const defaultFirstName = 'Chemseddine';
+  /// Prénom invité neutre (V1 private beta).
+  static const defaultFirstName = 'Voyageur';
   static const defaultPreferredCity = 'Marrakech';
   static const defaultLanguage = AtlasLanguage.french;
   static const defaultUserType = AtlasUserType.resident;
@@ -104,6 +105,10 @@ extension AtlasLanguageLabels on AtlasLanguage {
         AtlasLanguage.english => 'English',
         AtlasLanguage.arabic => 'العربية',
       };
+
+  /// V1: français uniquement dans l'UI — arabe/RTL et anglais masqués
+  /// (enums conservés pour la localisation future).
+  static const List<AtlasLanguage> v1Selectable = [AtlasLanguage.french];
 
   static AtlasLanguage fromStorage(String? value) {
     return AtlasLanguage.values.firstWhere(

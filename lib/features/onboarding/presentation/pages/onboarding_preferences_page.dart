@@ -89,7 +89,8 @@ class OnboardingPreferencesPage extends StatelessWidget {
                         spacing: AtlasSpacing.sm,
                         runSpacing: AtlasSpacing.sm,
                         children: [
-                          for (final option in AtlasLanguage.values)
+                          for (final option
+                              in AtlasLanguageLabels.v1Selectable)
                             AtlasFilterChip(
                               label: option.label,
                               isSelected: language == option,
@@ -97,15 +98,6 @@ class OnboardingPreferencesPage extends StatelessWidget {
                             ),
                         ],
                       ),
-                      if (language != AtlasLanguage.french) ...[
-                        const SizedBox(height: AtlasSpacing.sm),
-                        Text(
-                          'L’interface reste en français pour le moment.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AtlasColors.midnightBlueFaint,
-                          ),
-                        ),
-                      ],
                       const SizedBox(height: AtlasSpacing.xxl),
                       Text(
                         'Vous êtes',

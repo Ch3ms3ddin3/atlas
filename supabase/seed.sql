@@ -1,4 +1,19 @@
 -- Généré par test/tool/generate_editorial_seed_test.dart
+-- =============================================================================
+-- DEV / LOCAL SEED ONLY
+-- Used by `supabase db reset`. Never run against production or staging
+-- databases that already contain real users.
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM auth.users LIMIT 1) THEN
+    RAISE EXCEPTION
+      'seed.sql aborted: auth.users is not empty. '
+      'Destructive seed is local/dev only (run after supabase db reset).';
+  END IF;
+END $$;
+
 BEGIN;
 
 TRUNCATE TABLE procedures RESTART IDENTITY CASCADE;

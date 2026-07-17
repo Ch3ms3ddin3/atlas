@@ -18,6 +18,7 @@ import '../../../auth/domain/auth_session.dart';
 import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
+import '../../../itineraries/presentation/itinerary_scope.dart';
 import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../onboarding/data/onboarding_preferences_store.dart';
 import '../../../sync/data/atlas_data_export.dart';
@@ -130,6 +131,7 @@ class _ProfilePageState extends State<ProfilePage> {
       profile: ProfileScope.of(context),
       favorites: FavoritesScope.of(context),
       atRepository: AtScope.of(context),
+      itineraryRepository: ItineraryScope.maybeOf(context),
       syncStatus: SyncScope.maybeOf(context)?.status,
     );
     await Clipboard.setData(ClipboardData(text: json));
@@ -316,7 +318,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           spacing: AtlasSpacing.sm,
                           runSpacing: AtlasSpacing.sm,
                           children: [
-                            for (final language in AtlasLanguage.values)
+                            for (final language
+                                in AtlasLanguageLabels.v1Selectable)
                               AtlasFilterChip(
                                 label: language.label,
                                 isSelected: _language == language,

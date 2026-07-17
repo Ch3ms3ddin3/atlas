@@ -128,10 +128,10 @@ void main() {
       expect(find.text('Marrakech'), findsWidgets);
       expect(find.text('Résident'), findsOneWidget);
       expect(find.text('Français'), findsOneWidget);
+      expect(find.text('English'), findsNothing);
+      expect(find.text('العربية'), findsNothing);
 
       await tester.tap(find.text('Rabat'));
-      await tester.pump();
-      await tester.tap(find.text('English'));
       await tester.pump();
       await tester.ensureVisible(find.text('Étudiant'));
       await tester.tap(find.text('Étudiant'));
@@ -140,7 +140,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(profile.profile.preferredCity, 'Rabat');
-      expect(profile.profile.language, AtlasLanguage.english);
+      expect(profile.profile.language, AtlasLanguage.french);
       expect(profile.profile.userType, AtlasUserType.student);
       expect(find.text('Continuer sans compte'), findsOneWidget);
     });
@@ -190,7 +190,9 @@ void main() {
       await tester.tap(find.text('Commencer'));
       await tester.pumpAndSettle();
       expect(find.text('Personnalisez Atlas'), findsOneWidget);
-      expect(find.text('العربية'), findsOneWidget);
+      expect(find.text('Français'), findsOneWidget);
+      expect(find.text('العربية'), findsNothing);
+      expect(find.text('English'), findsNothing);
       expect(find.text('Business'), findsOneWidget);
 
       await tester.tap(find.text('Continuer'));
@@ -248,7 +250,7 @@ void main() {
       const UserProfile(
         firstName: 'Salma',
         preferredCity: 'Fès',
-        language: AtlasLanguage.arabic,
+        language: AtlasLanguage.french,
         userType: AtlasUserType.expatriate,
       ),
     );
@@ -277,7 +279,7 @@ void main() {
     expect(find.byType(AppShell), findsOneWidget);
     expect(profile.profile.firstName, 'Salma');
     expect(profile.profile.preferredCity, 'Fès');
-    expect(profile.profile.language, AtlasLanguage.arabic);
+    expect(profile.profile.language, AtlasLanguage.french);
     expect(profile.profile.userType, AtlasUserType.expatriate);
   });
 }

@@ -1,14 +1,13 @@
 // Supabase Edge Function — Atlas Itinerary generation (OpenAI JSON).
 // Deploy: supabase functions deploy itinerary-generate
-// Secret: supabase secrets set OPENAI_API_KEY=sk-...
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, accept",
-};
+import {
+  corsHeaders,
+  jsonError,
+  requireUserAndRateLimit,
+  resolveModel,
+} from "../_shared/ai_guard.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -16,17 +15,20 @@ serve(async (req) => {
   }
 
   try {
+    const gate = await requireUserAndRateLimit(req);
+    if (!gate.ok) return gate.response;
+
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      return jsonError("OPENAI_API_KEY manquante", 503);
+      return jsonError("Service itinéraires indisponible.", 503);
     }
 
     const body = await req.json();
-    const model = typeof body.model === "string" ? body.model : "gpt-4o-mini";
+    const model = resolveModel(body.model);
     const seedTrip = body.seed_trip ?? null;
     const request = body.request ?? {};
     const candidates = Array.isArray(body.candidate_places)
-      ? body.candidate_places
+      ? body.candidate_places.slice(0, 40)
       : [];
 
     const system = `Tu es le planificateur d'itinéraires Atlas pour le Maroc.
@@ -43,7 +45,7 @@ Règles:
       request,
       candidate_places: candidates,
       seed_trip: seedTrip,
-    });
+    }).slice(0, 120000);
 
     const upstream = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -63,8 +65,7 @@ Règles:
     });
 
     if (!upstream.ok) {
-      const errText = await upstream.text();
-      return jsonError(`OpenAI error: ${errText}`, 502);
+      return jsonError("Service itinéraires temporairement indisponible.", 502);
     }
 
     const payload = await upstream.json();
@@ -73,7 +74,7 @@ Règles:
     try {
       parsed = JSON.parse(content);
     } catch {
-      parsed = { trip: seedTrip, warnings: ["JSON AI invalide"] };
+      parsed = { trip: seedTrip, warnings: ["Réponse AI invalide"] };
     }
 
     if (!parsed.trip && seedTrip) {
@@ -83,14 +84,7 @@ Règles:
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    return jsonError(String(error), 500);
+  } catch {
+    return jsonError("Erreur itinéraires.", 500);
   }
 });
-
-function jsonError(message: string, status: number) {
-  return new Response(JSON.stringify({ error: message, warnings: [message] }), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}

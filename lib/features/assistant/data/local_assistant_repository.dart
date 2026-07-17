@@ -22,10 +22,11 @@ import 'assistant_system_prompt.dart';
 import 'assistant_token_usage_store.dart';
 import 'providers/openai_edge_assistant_provider.dart';
 
-/// Soft caps journaliers (messages utilisateur).
+/// Soft caps UX alignés sur l'enforcement serveur (`consume_ai_request`).
+/// Limites autoritatives: 5 anonyme / 20 authentifié (Edge + RPC).
 abstract final class AssistantRateLimits {
-  static const anonymousDaily = 15;
-  static const signedInDaily = 40;
+  static const anonymousDaily = 5;
+  static const signedInDaily = 20;
 }
 
 /// Implémentation locale-first de l'assistant Atlas.
