@@ -15,6 +15,8 @@ import 'package:atlas/features/assistant/data/local_assistant_repository.dart';
 import 'package:atlas/features/assistant/data/providers/mock_assistant_provider.dart';
 import 'package:atlas/features/assistant/domain/models/assistant_context_snapshot.dart';
 import 'package:atlas/features/assistant/presentation/assistant_scope.dart';
+import 'package:atlas/features/itineraries/data/syncing_itinerary_repository.dart';
+import 'package:atlas/features/itineraries/presentation/itinerary_scope.dart';
 import 'package:atlas/features/auth/domain/auth_action_result.dart';
 import 'package:atlas/features/auth/domain/auth_repository.dart';
 import 'package:atlas/features/auth/domain/auth_session.dart';
@@ -111,9 +113,14 @@ void main() {
                     isSignedIn: false,
                   ),
                 ),
-                child: ShellNavigationScope(
-                  navigateToTab: (_) {},
-                  child: const Scaffold(body: HomePage()),
+                child: ItineraryScope(
+                  repository: SyncingItineraryRepository(
+                    favoritesRepository: favorites,
+                  ),
+                  child: ShellNavigationScope(
+                    navigateToTab: (_) {},
+                    child: const Scaffold(body: HomePage()),
+                  ),
                 ),
               ),
             ),

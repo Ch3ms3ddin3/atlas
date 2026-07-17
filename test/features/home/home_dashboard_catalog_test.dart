@@ -11,7 +11,7 @@ void main() {
       expect(HomeDashboardCatalog.quickActions, hasLength(4));
       expect(
         HomeDashboardCatalog.quickActions.map((action) => action.id),
-        ['assistant', 'explorer', 'procedures', 'prices'],
+        ['assistant', 'itineraries', 'explorer', 'prices'],
       );
     });
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../shell/presentation/shell_navigation_scope.dart';
 import '../domain/models/assistant_quick_action.dart';
 
-/// Actions rapides — navigation shell uniquement.
+/// Actions rapides — navigation shell + itinéraires.
 abstract final class AssistantQuickActionsCatalog {
   static const actions = <AssistantQuickAction>[
     AssistantQuickAction(
@@ -19,10 +19,10 @@ abstract final class AssistantQuickActionsCatalog {
       shellTabIndex: AtlasShellTab.map,
     ),
     AssistantQuickAction(
-      id: 'procedures',
-      label: 'Démarches',
-      icon: Icons.description_outlined,
-      shellTabIndex: AtlasShellTab.procedures,
+      id: 'itineraries',
+      label: 'Voyages',
+      icon: Icons.route_outlined,
+      shellTabIndex: -1,
     ),
     AssistantQuickAction(
       id: 'prices',

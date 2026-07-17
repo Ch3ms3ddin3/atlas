@@ -41,3 +41,5 @@
 ✅ Atlas Interactive Map
 
 ✅ Premium Atlas AI Assistant
+
+✅ Atlas Smart Itineraries & Trip Planner

@@ -18,6 +18,7 @@ import '../../../events/domain/event_repository.dart';
 import '../../../events/domain/models/atlas_event.dart';
 import '../../../events/presentation/widgets/home_events_sections.dart';
 import '../../../explorer/data/place_mapper.dart';
+import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/pages/explorer_page.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
@@ -548,6 +549,8 @@ class _HomePageState extends State<HomePage> {
     switch (action.id) {
       case 'assistant':
         AssistantPage.open(context);
+      case 'itineraries':
+        TripListPage.open(context);
       case 'explorer':
         ShellNavigationScope.goToExplorer(context);
       case 'procedures':

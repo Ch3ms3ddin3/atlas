@@ -16,6 +16,9 @@ import '../../explorer/domain/place_browse_filters.dart';
 import '../../favorites/data/syncing_favorites_repository.dart';
 import '../../favorites/domain/favorites_repository.dart';
 import '../../favorites/presentation/favorites_scope.dart';
+import '../../itineraries/data/syncing_itinerary_repository.dart';
+import '../../itineraries/domain/itinerary_repository.dart';
+import '../../itineraries/presentation/itinerary_scope.dart';
 import '../../profile/data/syncing_profile_repository.dart';
 import '../../profile/domain/profile_repository.dart';
 import '../../profile/presentation/profile_scope.dart';
@@ -49,6 +52,7 @@ class _AppShellState extends State<AppShell> {
       SyncingUserPreferencesRepository();
   late final AtRepository _atRepository;
   late final AssistantRepository _assistantRepository;
+  late final ItineraryRepository _itineraryRepository;
   int _currentIndex = 0;
 
   @override
@@ -61,6 +65,9 @@ class _AppShellState extends State<AppShell> {
       favoritesRepository: _favoritesRepository,
       atRepository: _atRepository,
     );
+    _itineraryRepository = SyncingItineraryRepository(
+      favoritesRepository: _favoritesRepository,
+    );
     _authRepository.addListener(_onAuthSessionChanged);
     PlaceBrowseFilters.instance.addListener(_onExplorerFiltersChanged);
     _authRepository.load();
@@ -72,6 +79,7 @@ class _AppShellState extends State<AppShell> {
       _atRepository.load();
     }
     _assistantRepository.load();
+    _itineraryRepository.load();
   }
 
   @override
@@ -84,6 +92,7 @@ class _AppShellState extends State<AppShell> {
     _contentReportsRepository.dispose();
     _preferencesRepository.dispose();
     _assistantRepository.dispose();
+    _itineraryRepository.dispose();
     super.dispose();
   }
 
@@ -99,6 +108,7 @@ class _AppShellState extends State<AppShell> {
     _preferencesRepository.load();
     _atRepository.load();
     _assistantRepository.refreshSuggestions();
+    _itineraryRepository.load();
   }
 
   void _onExplorerFiltersChanged() {
@@ -123,41 +133,45 @@ class _AppShellState extends State<AppShell> {
                 repository: _atRepository,
                 child: AssistantScope(
                   repository: _assistantRepository,
-                  child: ShellNavigationScope(
-                    navigateToTab: _navigateToTab,
-                    child: Scaffold(
-                      body: IndexedStack(
-                        index: _currentIndex,
-                        children: [
-                          ShellTabTransition(
-                            isActive: _currentIndex == AtlasShellTab.home,
-                            child: const HomePage(),
-                          ),
-                          ShellTabTransition(
-                            isActive: _currentIndex == AtlasShellTab.explorer,
-                            child: const ExplorerPage(),
-                          ),
-                          ShellTabTransition(
-                            isActive: mapActive,
-                            child: AtlasMapPage(isActive: mapActive),
-                          ),
-                          ShellTabTransition(
-                            isActive: _currentIndex == AtlasShellTab.procedures,
-                            child: const ProceduresPage(),
-                          ),
-                          ShellTabTransition(
-                            isActive: _currentIndex == AtlasShellTab.prices,
-                            child: const PricesPage(),
-                          ),
-                          ShellTabTransition(
-                            isActive: _currentIndex == AtlasShellTab.profile,
-                            child: const ProfilePage(),
-                          ),
-                        ],
-                      ),
-                      bottomNavigationBar: AtlasBottomNav(
-                        currentIndex: _currentIndex,
-                        onDestinationSelected: _navigateToTab,
+                  child: ItineraryScope(
+                    repository: _itineraryRepository,
+                    child: ShellNavigationScope(
+                      navigateToTab: _navigateToTab,
+                      child: Scaffold(
+                        body: IndexedStack(
+                          index: _currentIndex,
+                          children: [
+                            ShellTabTransition(
+                              isActive: _currentIndex == AtlasShellTab.home,
+                              child: const HomePage(),
+                            ),
+                            ShellTabTransition(
+                              isActive: _currentIndex == AtlasShellTab.explorer,
+                              child: const ExplorerPage(),
+                            ),
+                            ShellTabTransition(
+                              isActive: mapActive,
+                              child: AtlasMapPage(isActive: mapActive),
+                            ),
+                            ShellTabTransition(
+                              isActive:
+                                  _currentIndex == AtlasShellTab.procedures,
+                              child: const ProceduresPage(),
+                            ),
+                            ShellTabTransition(
+                              isActive: _currentIndex == AtlasShellTab.prices,
+                              child: const PricesPage(),
+                            ),
+                            ShellTabTransition(
+                              isActive: _currentIndex == AtlasShellTab.profile,
+                              child: const ProfilePage(),
+                            ),
+                          ],
+                        ),
+                        bottomNavigationBar: AtlasBottomNav(
+                          currentIndex: _currentIndex,
+                          onDestinationSelected: _navigateToTab,
+                        ),
                       ),
                     ),
                   ),

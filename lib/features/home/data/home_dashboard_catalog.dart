@@ -14,14 +14,14 @@ abstract final class HomeDashboardCatalog {
       icon: Icons.auto_awesome_outlined,
     ),
     QuickActionData(
+      id: 'itineraries',
+      label: 'Voyages',
+      icon: Icons.route_outlined,
+    ),
+    QuickActionData(
       id: 'explorer',
       label: 'Lieux',
       icon: Icons.explore_outlined,
-    ),
-    QuickActionData(
-      id: 'procedures',
-      label: 'Démarches',
-      icon: Icons.description_outlined,
     ),
     QuickActionData(
       id: 'prices',

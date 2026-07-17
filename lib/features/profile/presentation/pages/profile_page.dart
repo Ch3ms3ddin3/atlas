@@ -18,6 +18,7 @@ import '../../../auth/domain/auth_session.dart';
 import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
+import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../onboarding/data/onboarding_preferences_store.dart';
 import '../../../sync/data/atlas_data_export.dart';
 import '../../../sync/domain/cloud_sync_status.dart';
@@ -239,6 +240,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     onOpen: () => AssistantPage.open(context),
                   ),
                   const SizedBox(height: AtlasSpacing.lg),
+                  _ItineraryEntryCard(
+                    onOpen: () => TripListPage.open(context),
+                  ),
+                  const SizedBox(height: AtlasSpacing.lg),
                   AtlasCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,6 +418,58 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ItineraryEntryCard extends StatelessWidget {
+  const _ItineraryEntryCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      onTap: onOpen,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AtlasColors.terracottaGhost,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.route_outlined,
+              color: AtlasColors.terracotta,
+            ),
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Itinéraires Atlas',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  'Planifiez un voyage multi-jours, hors ligne et synchronisé.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AtlasColors.midnightBlueMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
       ),
     );
   }

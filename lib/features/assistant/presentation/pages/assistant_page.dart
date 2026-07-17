@@ -7,6 +7,7 @@ import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
@@ -152,6 +153,11 @@ class _AssistantPageState extends State<AssistantPage> {
                         const SizedBox(height: AtlasSpacing.lg),
                         AssistantQuickActionsRow(
                           onAction: (action) {
+                            if (action.id == 'itineraries') {
+                              Navigator.of(context).pop();
+                              TripListPage.open(context);
+                              return;
+                            }
                             Navigator.of(context).pop();
                             ShellNavigationScope.goToTab(
                               context,

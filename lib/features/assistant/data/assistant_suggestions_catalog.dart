@@ -12,6 +12,12 @@ abstract final class AssistantSuggestionsCatalog {
     final type = profile.userType;
     final items = <AssistantSuggestion>[
       AssistantSuggestion(
+        id: 'itinerary',
+        label: 'Planifier un voyage',
+        prompt: 'Aide-moi à préparer un itinéraire de quelques jours à $city. '
+            'Propose ensuite d\'ouvrir Itinéraires Atlas pour le sauvegarder.',
+      ),
+      AssistantSuggestion(
         id: 'weather-city',
         label: 'Météo à $city',
         prompt: 'Quel temps fait-il aujourd\'hui à $city ? '
@@ -99,6 +105,6 @@ abstract final class AssistantSuggestionsCatalog {
       );
     }
 
-    return items.take(6).toList();
+    return items.take(7).toList();
   }
 }

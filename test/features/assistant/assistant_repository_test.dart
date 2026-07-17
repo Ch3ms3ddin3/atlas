@@ -42,7 +42,7 @@ void main() {
       );
       expect(withAt.any((s) => s.id == 'at-vehicles'), isTrue);
       expect(withAt.any((s) => s.id == 'favorites'), isTrue);
-      expect(withAt.length, lessThanOrEqualTo(6));
+      expect(withAt.length, lessThanOrEqualTo(7));
     });
   });
 

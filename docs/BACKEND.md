@@ -1,6 +1,6 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M10 Premium Atlas AI Assistant — OpenAI via Edge Function, contexte Atlas, historique local, streaming.  
+**Status:** M11 Smart Itineraries & Trip Planner — multi-jours, AI, OSRM/haversine, sync `trips`.  
 **Next:** Moderation tools / contributions utilisateurs — awaiting approval.
 
 ---
@@ -475,4 +475,26 @@ supabase functions deploy assistant-chat
 ```
 
 Client: jamais de clé OpenAI. Soft caps : 15 msg/jour (anonymous), 40 (signed-in).
+
+---
+
+## M11 — Smart Itineraries & Trip Planner
+
+| Piece | Role |
+|---|---|
+| `features/itineraries/` | Trips multi-jours, jours, arrêts, budget |
+| `SyncingItineraryRepository` | Offline-first + LWW sync |
+| Migration `00010_itineraries.sql` | Table `trips` (payload JSONB) + RLS |
+| Edge Function `itinerary-generate` | Génération JSON OpenAI |
+| `ItineraryRouteService` | Optimisation + OSRM / haversine |
+| `OpenMeteoDailyForecastClient` | Prévisions multi-jours |
+
+### Deploy itinerary function
+
+```bash
+supabase db push
+supabase functions deploy itinerary-generate
+```
+
+Optional: `--dart-define=OSRM_BASE_URL=https://your-osrm`.
 
