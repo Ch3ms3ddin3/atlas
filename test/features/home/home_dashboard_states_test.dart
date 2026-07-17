@@ -11,6 +11,13 @@ import 'package:atlas/features/explorer/domain/place_repository.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
 import 'package:atlas/features/admission_temporaire/data/local_at_repository.dart';
 import 'package:atlas/features/admission_temporaire/presentation/at_scope.dart';
+import 'package:atlas/features/assistant/data/local_assistant_repository.dart';
+import 'package:atlas/features/assistant/data/providers/mock_assistant_provider.dart';
+import 'package:atlas/features/assistant/domain/models/assistant_context_snapshot.dart';
+import 'package:atlas/features/assistant/presentation/assistant_scope.dart';
+import 'package:atlas/features/auth/domain/auth_action_result.dart';
+import 'package:atlas/features/auth/domain/auth_repository.dart';
+import 'package:atlas/features/auth/domain/auth_session.dart';
 import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
 import 'package:atlas/features/favorites/domain/favorite_entity_type.dart';
 import 'package:atlas/features/favorites/domain/favorites_repository.dart';
@@ -89,9 +96,25 @@ void main() {
             repository: favorites,
             child: AtScope(
               repository: atRepository,
-              child: ShellNavigationScope(
-                navigateToTab: (_) {},
-                child: const Scaffold(body: HomePage()),
+              child: AssistantScope(
+                repository: LocalAssistantRepository(
+                  profileRepository: profile,
+                  authRepository: _HomeTestAuthRepository(),
+                  favoritesRepository: favorites,
+                  atRepository: atRepository,
+                  provider: MockAssistantProvider(chunkDelay: Duration.zero),
+                  contextProvider: () async => const AssistantContextSnapshot(
+                    city: 'Marrakech',
+                    userType: 'resident',
+                    language: 'french',
+                    authKind: 'unavailable',
+                    isSignedIn: false,
+                  ),
+                ),
+                child: ShellNavigationScope(
+                  navigateToTab: (_) {},
+                  child: const Scaffold(body: HomePage()),
+                ),
               ),
             ),
           ),
@@ -294,6 +317,52 @@ void main() {
     expect(find.text('Démarches utiles'), findsOneWidget);
     expect(find.textContaining('Admission temporaire'), findsOneWidget);
   });
+}
+
+class _HomeTestAuthRepository extends AuthRepository {
+  _HomeTestAuthRepository() : super.base();
+
+  @override
+  AuthSession get session => const AuthSession.unavailable();
+
+  @override
+  bool get isLoaded => true;
+
+  @override
+  Future<void> load() async {}
+
+  @override
+  Future<AuthActionResult> signUp({
+    required String email,
+    required String password,
+  }) async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signIn({
+    required String email,
+    required String password,
+  }) async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signInWithApple() async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signInWithGoogle() async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> resetPassword({required String email}) async =>
+      AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> signOut() async => AuthActionResult.success();
+
+  @override
+  Future<AuthActionResult> deleteAccount() async =>
+      AuthActionResult.success();
 }
 
 /// Place repository whose featured list is always empty (section must hide).

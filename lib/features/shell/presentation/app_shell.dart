@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../assistant/data/local_assistant_repository.dart';
+import '../../assistant/domain/assistant_repository.dart';
+import '../../assistant/presentation/assistant_scope.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_scope.dart';
@@ -45,12 +48,19 @@ class _AppShellState extends State<AppShell> {
   final SyncingUserPreferencesRepository _preferencesRepository =
       SyncingUserPreferencesRepository();
   late final AtRepository _atRepository;
+  late final AssistantRepository _assistantRepository;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _atRepository = atRepository;
+    _assistantRepository = LocalAssistantRepository(
+      profileRepository: _profileRepository,
+      authRepository: _authRepository,
+      favoritesRepository: _favoritesRepository,
+      atRepository: _atRepository,
+    );
     _authRepository.addListener(_onAuthSessionChanged);
     PlaceBrowseFilters.instance.addListener(_onExplorerFiltersChanged);
     _authRepository.load();
@@ -61,6 +71,7 @@ class _AppShellState extends State<AppShell> {
     if (!_atRepository.isLoaded) {
       _atRepository.load();
     }
+    _assistantRepository.load();
   }
 
   @override
@@ -72,6 +83,7 @@ class _AppShellState extends State<AppShell> {
     _favoritesRepository.dispose();
     _contentReportsRepository.dispose();
     _preferencesRepository.dispose();
+    _assistantRepository.dispose();
     super.dispose();
   }
 
@@ -86,6 +98,7 @@ class _AppShellState extends State<AppShell> {
     _contentReportsRepository.load();
     _preferencesRepository.load();
     _atRepository.load();
+    _assistantRepository.refreshSuggestions();
   }
 
   void _onExplorerFiltersChanged() {
@@ -108,41 +121,44 @@ class _AppShellState extends State<AppShell> {
               repository: _preferencesRepository,
               child: AtScope(
                 repository: _atRepository,
-                child: ShellNavigationScope(
-                  navigateToTab: _navigateToTab,
-                  child: Scaffold(
-                    body: IndexedStack(
-                      index: _currentIndex,
-                      children: [
-                        ShellTabTransition(
-                          isActive: _currentIndex == AtlasShellTab.home,
-                          child: const HomePage(),
-                        ),
-                        ShellTabTransition(
-                          isActive: _currentIndex == AtlasShellTab.explorer,
-                          child: const ExplorerPage(),
-                        ),
-                        ShellTabTransition(
-                          isActive: mapActive,
-                          child: AtlasMapPage(isActive: mapActive),
-                        ),
-                        ShellTabTransition(
-                          isActive: _currentIndex == AtlasShellTab.procedures,
-                          child: const ProceduresPage(),
-                        ),
-                        ShellTabTransition(
-                          isActive: _currentIndex == AtlasShellTab.prices,
-                          child: const PricesPage(),
-                        ),
-                        ShellTabTransition(
-                          isActive: _currentIndex == AtlasShellTab.profile,
-                          child: const ProfilePage(),
-                        ),
-                      ],
-                    ),
-                    bottomNavigationBar: AtlasBottomNav(
-                      currentIndex: _currentIndex,
-                      onDestinationSelected: _navigateToTab,
+                child: AssistantScope(
+                  repository: _assistantRepository,
+                  child: ShellNavigationScope(
+                    navigateToTab: _navigateToTab,
+                    child: Scaffold(
+                      body: IndexedStack(
+                        index: _currentIndex,
+                        children: [
+                          ShellTabTransition(
+                            isActive: _currentIndex == AtlasShellTab.home,
+                            child: const HomePage(),
+                          ),
+                          ShellTabTransition(
+                            isActive: _currentIndex == AtlasShellTab.explorer,
+                            child: const ExplorerPage(),
+                          ),
+                          ShellTabTransition(
+                            isActive: mapActive,
+                            child: AtlasMapPage(isActive: mapActive),
+                          ),
+                          ShellTabTransition(
+                            isActive: _currentIndex == AtlasShellTab.procedures,
+                            child: const ProceduresPage(),
+                          ),
+                          ShellTabTransition(
+                            isActive: _currentIndex == AtlasShellTab.prices,
+                            child: const PricesPage(),
+                          ),
+                          ShellTabTransition(
+                            isActive: _currentIndex == AtlasShellTab.profile,
+                            child: const ProfilePage(),
+                          ),
+                        ],
+                      ),
+                      bottomNavigationBar: AtlasBottomNav(
+                        currentIndex: _currentIndex,
+                        onDestinationSelected: _navigateToTab,
+                      ),
                     ),
                   ),
                 ),

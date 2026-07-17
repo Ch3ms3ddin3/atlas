@@ -39,3 +39,5 @@
 ✅ Morocco Price Intelligence
 
 ✅ Atlas Interactive Map
+
+✅ Premium Atlas AI Assistant

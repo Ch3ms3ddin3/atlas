@@ -13,6 +13,7 @@ import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../admission_temporaire/presentation/at_scope.dart';
+import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../auth/domain/auth_session.dart';
 import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
@@ -234,6 +235,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: AtlasSpacing.lg),
                   _SyncStatusCard(status: syncStatus),
                   const SizedBox(height: AtlasSpacing.lg),
+                  _AssistantEntryCard(
+                    onOpen: () => AssistantPage.open(context),
+                  ),
+                  const SizedBox(height: AtlasSpacing.lg),
                   AtlasCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,6 +413,58 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AssistantEntryCard extends StatelessWidget {
+  const _AssistantEntryCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      onTap: onOpen,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AtlasColors.subtleGoldMuted,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_outlined,
+              color: AtlasColors.subtleGold,
+            ),
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Assistant Atlas',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  'Conseils contextualisés à partir de vos données Atlas.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AtlasColors.midnightBlueMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
       ),
     );
   }

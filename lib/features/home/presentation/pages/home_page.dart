@@ -13,6 +13,7 @@ import '../../../admission_temporaire/domain/models/at_vehicle.dart';
 import '../../../admission_temporaire/presentation/at_scope.dart';
 import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
 import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.dart';
+import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../events/domain/event_repository.dart';
 import '../../../events/domain/models/atlas_event.dart';
 import '../../../events/presentation/widgets/home_events_sections.dart';
@@ -545,6 +546,8 @@ class _HomePageState extends State<HomePage> {
 
   void _onQuickActionTap(QuickActionData action) {
     switch (action.id) {
+      case 'assistant':
+        AssistantPage.open(context);
       case 'explorer':
         ShellNavigationScope.goToExplorer(context);
       case 'procedures':

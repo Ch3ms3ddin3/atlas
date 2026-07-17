@@ -6,4 +6,12 @@ abstract final class AtlasHttpClient {
   /// Effectue un GET et renvoie le corps de la réponse.
   /// Lance une exception si la requête échoue.
   static Future<String> get(String url) => platformGet(url);
+
+  /// POST JSON et expose le corps en flux de chunks UTF-8 (streaming SSE/NDJSON).
+  static Stream<String> postJsonStream({
+    required String url,
+    required Map<String, String> headers,
+    required String body,
+  }) =>
+      platformPostJsonStream(url: url, headers: headers, body: body);
 }

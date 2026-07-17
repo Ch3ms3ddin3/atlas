@@ -1,6 +1,6 @@
 # Atlas — Backend (Supabase)
 
-**Status:** M9 Authentication & Cloud Sync — Apple/Google/email, reset, delete account, préférences + AT sync.  
+**Status:** M10 Premium Atlas AI Assistant — OpenAI via Edge Function, contexte Atlas, historique local, streaming.  
 **Next:** Moderation tools / contributions utilisateurs — awaiting approval.
 
 ---
@@ -453,3 +453,26 @@ M0 tests cover env parsing, health repository (mocked probe), and app launch wit
 - No UI or navigation changes
 
 M0–M5 migration complete. OAuth providers remain post-MVP.
+
+---
+
+## M10 — Premium Atlas AI Assistant
+
+| Piece | Role |
+|---|---|
+| `features/assistant/` | Domain + data + UI native Atlas |
+| `AssistantLlmProvider` | Abstraction (OpenAI Edge first, mock for tests) |
+| `LocalAssistantRepository` | Historique local, soft caps, streaming, tokens |
+| `AssistantContextBuilder` | Assemble profil, AT, favoris, météo, FX, fériés, events |
+| `AssistantKnowledgeSource` | Stub RAG (`Empty` / `InMemoryAtlasContextSource`) |
+| Edge Function `assistant-chat` | Proxy OpenAI streaming SSE — clé secrète serveur |
+
+### Deploy assistant function
+
+```bash
+supabase secrets set OPENAI_API_KEY=sk-...
+supabase functions deploy assistant-chat
+```
+
+Client: jamais de clé OpenAI. Soft caps : 15 msg/jour (anonymous), 40 (signed-in).
+
