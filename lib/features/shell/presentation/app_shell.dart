@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -51,7 +52,16 @@ import 'shell_tab_transition.dart';
 
 /// Coque principale de l'application — navigation par onglets.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({
+    super.key,
+    this.favoritesRepository,
+    this.contentReportsRepository,
+  });
+
+  /// When set (via [AtlasApp]), shares the app-level repository.
+  /// Otherwise creates a local instance (e.g. StartupGate in isolation).
+  final FavoritesRepository? favoritesRepository;
+  final ContentReportsRepository? contentReportsRepository;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -60,9 +70,10 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   final AuthRepository _authRepository = SupabaseAuthRepository();
   final ProfileRepository _profileRepository = SyncingProfileRepository();
-  final FavoritesRepository _favoritesRepository = SyncingFavoritesRepository();
-  final ContentReportsRepository _contentReportsRepository =
-      SyncingContentReportsRepository();
+  late final FavoritesRepository _favoritesRepository;
+  late final bool _ownsFavoritesRepository;
+  late final ContentReportsRepository _contentReportsRepository;
+  late final bool _ownsContentReportsRepository;
   final SyncingUserPreferencesRepository _preferencesRepository =
       SyncingUserPreferencesRepository();
   late final AtRepository _atRepository;
@@ -87,6 +98,12 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    _ownsFavoritesRepository = widget.favoritesRepository == null;
+    _favoritesRepository =
+        widget.favoritesRepository ?? SyncingFavoritesRepository();
+    _ownsContentReportsRepository = widget.contentReportsRepository == null;
+    _contentReportsRepository =
+        widget.contentReportsRepository ?? SyncingContentReportsRepository();
     _atRepository = atRepository;
     _assistantRepository = LocalAssistantRepository(
       profileRepository: _profileRepository,
@@ -148,8 +165,12 @@ class _AppShellState extends State<AppShell> {
     _authRepository.removeListener(_onAuthSessionChanged);
     _authRepository.dispose();
     _profileRepository.dispose();
-    _favoritesRepository.dispose();
-    _contentReportsRepository.dispose();
+    if (_ownsFavoritesRepository) {
+      _favoritesRepository.dispose();
+    }
+    if (_ownsContentReportsRepository) {
+      _contentReportsRepository.dispose();
+    }
     _preferencesRepository.dispose();
     _assistantRepository.dispose();
     _itineraryRepository.dispose();
@@ -226,110 +247,122 @@ class _AppShellState extends State<AppShell> {
     final showOffline = syncStatus.phase == CloudSyncPhase.offline ||
         syncStatus.phase == CloudSyncPhase.error;
 
-    return AuthScope(
-      repository: _authRepository,
-      child: ProfileScope(
-        repository: _profileRepository,
-        child: FavoritesScope(
-          repository: _favoritesRepository,
-          child: ContentReportsScope(
-            repository: _contentReportsRepository,
-            child: SyncScope(
-              repository: _preferencesRepository,
-              child: AtScope(
-                repository: _atRepository,
-                child: AssistantScope(
-                  repository: _assistantRepository,
-                  child: ItineraryScope(
-                    repository: _itineraryRepository,
-                    child: BetaFeedbackScope(
-                      repository: _feedbackRepository,
-                      child: ShellNavigationScope(
-                        navigateToTab: _navigateToTab,
-                        child: Scaffold(
-                          floatingActionButtonLocation:
-                              FloatingActionButtonLocation.endFloat,
-                          floatingActionButton: FloatingActionButton.extended(
-                            onPressed: () {
-                              AtlasHaptics.primaryAction();
-                              showBetaFeedbackSheet(
-                                context: context,
-                                screenName: _currentScreenName,
-                                screenshotKey: _screenshotKey,
-                              );
-                            },
-                            icon: const Icon(Icons.flag_outlined, size: 20),
-                            label: const Text('Signaler'),
+    Widget shell = SyncScope(
+      repository: _preferencesRepository,
+      child: AtScope(
+        repository: _atRepository,
+        child: AssistantScope(
+          repository: _assistantRepository,
+          child: ItineraryScope(
+            repository: _itineraryRepository,
+            child: BetaFeedbackScope(
+              repository: _feedbackRepository,
+              child: ShellNavigationScope(
+                navigateToTab: _navigateToTab,
+                child: Scaffold(
+                  floatingActionButtonLocation:
+                      FloatingActionButtonLocation.endFloat,
+                  floatingActionButton: kDebugMode
+                      ? FloatingActionButton.extended(
+                          onPressed: () {
+                            AtlasHaptics.primaryAction();
+                            showBetaFeedbackSheet(
+                              context: context,
+                              screenName: _currentScreenName,
+                              screenshotKey: _screenshotKey,
+                            );
+                          },
+                          icon: const Icon(Icons.flag_outlined, size: 20),
+                          label: const Text('Signaler'),
+                        )
+                      : null,
+                  body: Column(
+                    children: [
+                      if (kDebugMode && _buildInfo != null)
+                        AtlasBetaBanner(
+                          buildInfo: _buildInfo!,
+                          onSecretTap: _onBannerTap,
+                        ),
+                      if (showOffline) const AtlasOfflineNotice(),
+                      Expanded(
+                        child: Padding(
+                          // Évite que le FAB masque le bas des listes.
+                          padding: EdgeInsets.only(
+                            bottom: kDebugMode ? AtlasSpacing.fabClearance : 0,
                           ),
-                          body: Column(
-                            children: [
-                              if (_buildInfo != null)
-                                AtlasBetaBanner(
-                                  buildInfo: _buildInfo!,
-                                  onSecretTap: _onBannerTap,
+                          child: RepaintBoundary(
+                            key: _screenshotKey,
+                            child: IndexedStack(
+                              index: _currentIndex,
+                              children: [
+                                ShellTabTransition(
+                                  isActive:
+                                      _currentIndex == AtlasShellTab.home,
+                                  child: const HomePage(),
                                 ),
-                              if (showOffline) const AtlasOfflineNotice(),
-                              Expanded(
-                                child: Padding(
-                                  // Évite que le FAB masque le bas des listes.
-                                  padding: const EdgeInsets.only(
-                                    bottom: AtlasSpacing.fabClearance,
-                                  ),
-                                  child: RepaintBoundary(
-                                    key: _screenshotKey,
-                                    child: IndexedStack(
-                                      index: _currentIndex,
-                                      children: [
-                                        ShellTabTransition(
-                                          isActive: _currentIndex ==
-                                              AtlasShellTab.home,
-                                          child: const HomePage(),
-                                        ),
-                                        ShellTabTransition(
-                                          isActive: _currentIndex ==
-                                              AtlasShellTab.explorer,
-                                          child: const ExplorerPage(),
-                                        ),
-                                        ShellTabTransition(
-                                          isActive: mapActive,
-                                          child:
-                                              AtlasMapPage(isActive: mapActive),
-                                        ),
-                                        ShellTabTransition(
-                                          isActive: _currentIndex ==
-                                              AtlasShellTab.procedures,
-                                          child: const ProceduresPage(),
-                                        ),
-                                        ShellTabTransition(
-                                          isActive: _currentIndex ==
-                                              AtlasShellTab.prices,
-                                          child: const PricesPage(),
-                                        ),
-                                        ShellTabTransition(
-                                          isActive: _currentIndex ==
-                                              AtlasShellTab.profile,
-                                          child: const ProfilePage(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                ShellTabTransition(
+                                  isActive:
+                                      _currentIndex == AtlasShellTab.explorer,
+                                  child: const ExplorerPage(),
                                 ),
-                              ),
-                            ],
-                          ),
-                          bottomNavigationBar: AtlasBottomNav(
-                            currentIndex: _currentIndex,
-                            onDestinationSelected: _navigateToTab,
+                                ShellTabTransition(
+                                  isActive: mapActive,
+                                  child: AtlasMapPage(isActive: mapActive),
+                                ),
+                                ShellTabTransition(
+                                  isActive: _currentIndex ==
+                                      AtlasShellTab.procedures,
+                                  child: const ProceduresPage(),
+                                ),
+                                ShellTabTransition(
+                                  isActive:
+                                      _currentIndex == AtlasShellTab.prices,
+                                  child: const PricesPage(),
+                                ),
+                                ShellTabTransition(
+                                  isActive:
+                                      _currentIndex == AtlasShellTab.profile,
+                                  child: const ProfilePage(),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                  bottomNavigationBar: AtlasBottomNav(
+                    currentIndex: _currentIndex,
+                    onDestinationSelected: _navigateToTab,
                   ),
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+
+    // When AtlasApp injects these, scopes already wrap the navigator
+    // (modals + pushed routes included). Mount locally only for isolated shells.
+    if (_ownsContentReportsRepository) {
+      shell = ContentReportsScope(
+        repository: _contentReportsRepository,
+        child: shell,
+      );
+    }
+    if (_ownsFavoritesRepository) {
+      shell = FavoritesScope(
+        repository: _favoritesRepository,
+        child: shell,
+      );
+    }
+
+    return AuthScope(
+      repository: _authRepository,
+      child: ProfileScope(
+        repository: _profileRepository,
+        child: shell,
       ),
     );
   }

@@ -4,6 +4,8 @@ import 'package:flutter/scheduler.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_scope.dart';
+import '../../content_reports/domain/content_reports_repository.dart';
+import '../../favorites/domain/favorites_repository.dart';
 import '../../profile/data/syncing_profile_repository.dart';
 import '../../profile/domain/profile_repository.dart';
 import '../../profile/presentation/profile_scope.dart';
@@ -20,11 +22,17 @@ class StartupGate extends StatefulWidget {
     super.key,
     this.authRepository,
     this.profileRepository,
+    this.favoritesRepository,
+    this.contentReportsRepository,
     this.onboardingStore = const OnboardingPreferencesStore(),
   });
 
   final AuthRepository? authRepository;
   final ProfileRepository? profileRepository;
+
+  /// Shared with [AtlasApp]'s scopes above the navigator when set.
+  final FavoritesRepository? favoritesRepository;
+  final ContentReportsRepository? contentReportsRepository;
   final OnboardingPreferencesStore onboardingStore;
 
   @override
@@ -101,7 +109,10 @@ class _StartupGateState extends State<StartupGate> {
             ),
           ),
         ),
-      _StartupDestination.home => const AppShell(),
+      _StartupDestination.home => AppShell(
+          favoritesRepository: widget.favoritesRepository,
+          contentReportsRepository: widget.contentReportsRepository,
+        ),
     };
 
     return AnimatedSwitcher(

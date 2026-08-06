@@ -7,7 +7,6 @@ import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../explorer/domain/models/place_models.dart';
 import '../../../explorer/presentation/pages/place_detail_page.dart';
-import '../../../favorites/presentation/favorites_page_wrapper.dart';
 
 /// Aperçu compact — ouvre le Place Details existant.
 Future<void> showPlaceMapPreviewSheet(
@@ -48,11 +47,12 @@ class PlaceMapPreviewSheet extends StatelessWidget {
           child: AtlasCard(
             animateEntrance: true,
             onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(
+              // Capture navigator before pop — sheet context is deactivated after.
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              navigator.push(
                 AtlasPageRoute<void>(
                   page: PlaceDetailPage(place: place, placeId: place.id),
-                  wrapPage: (child) => wrapWithFavoritesScope(context, child),
                 ),
               );
             },

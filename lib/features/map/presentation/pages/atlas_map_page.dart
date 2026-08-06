@@ -504,10 +504,18 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
 
 /// Ouvre la carte en push (depuis Explorer ou ailleurs).
 Future<void> openAtlasMap(BuildContext context) {
+  final profile = ProfileScope.read(context);
+  final favorites = FavoritesScope.read(context);
   return Navigator.of(context).push<void>(
     MaterialPageRoute<void>(
-      builder: (_) => const Scaffold(
-        body: AtlasMapPage(),
+      builder: (_) => ProfileScope(
+        repository: profile,
+        child: FavoritesScope(
+          repository: favorites,
+          child: const Scaffold(
+            body: AtlasMapPage(),
+          ),
+        ),
       ),
     ),
   );
