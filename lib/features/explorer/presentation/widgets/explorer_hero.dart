@@ -5,10 +5,7 @@ import '../../../../design_system/theme/atlas_text_styles.dart';
 
 /// En-tête Explorer V2 — titre élégant et accroche éditoriale.
 class ExplorerHero extends StatelessWidget {
-  const ExplorerHero({
-    super.key,
-    this.onMapTap,
-  });
+  const ExplorerHero({super.key, this.onMapTap});
 
   final VoidCallback? onMapTap;
 
@@ -27,7 +24,7 @@ class ExplorerHero extends StatelessWidget {
                 'Explorer',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  letterSpacing: -0.8,
+                  letterSpacing: -0.9,
                   height: 1.05,
                 ),
               ),
@@ -36,8 +33,8 @@ class ExplorerHero extends StatelessWidget {
                 'Découvrez les meilleurs lieux du Maroc sélectionnés par Atlas.',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: AtlasTextStyles.helper(theme.colorScheme),
-                  height: 1.45,
-                  letterSpacing: -0.1,
+                  height: 1.4,
+                  letterSpacing: -0.15,
                 ),
               ),
             ],
@@ -48,6 +45,7 @@ class ExplorerHero extends StatelessWidget {
           IconButton(
             tooltip: 'Ouvrir la carte',
             onPressed: onMapTap,
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.map_outlined),
           ),
         ],

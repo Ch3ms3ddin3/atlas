@@ -28,7 +28,7 @@ class PlaceGuideCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mediaHeight = compact ? 140.0 : 180.0;
+    final mediaHeight = compact ? 120.0 : 140.0;
     final duration = PlaceDisplayHelpers.visitDuration(place);
     final rating = PlaceDisplayHelpers.ratingLabel(place);
 
@@ -43,10 +43,7 @@ class PlaceGuideCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                PlaceCoverImage(
-                  place: place,
-                  height: mediaHeight,
-                ),
+                PlaceCoverImage(place: place, height: mediaHeight),
                 if (place.isEditorsPick)
                   Positioned(
                     top: AtlasSpacing.md,
@@ -57,14 +54,15 @@ class PlaceGuideCard extends StatelessWidget {
                         vertical: AtlasSpacing.xs,
                       ),
                       decoration: BoxDecoration(
-                        color: AtlasColors.midnightBlue.withValues(alpha: 0.72),
-                        borderRadius: BorderRadius.circular(6),
+                        color: AtlasColors.midnightBlue.withValues(alpha: 0.78),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         'Sélection',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ),
@@ -87,7 +85,12 @@ class PlaceGuideCard extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(AtlasSpacing.lg),
+              padding: const EdgeInsets.fromLTRB(
+                AtlasSpacing.lg,
+                AtlasSpacing.md,
+                AtlasSpacing.lg,
+                AtlasSpacing.md,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -95,32 +98,36 @@ class PlaceGuideCard extends StatelessWidget {
                     place.name,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
+                      letterSpacing: -0.25,
+                      height: 1.2,
                     ),
-                    maxLines: 1,
+                    maxLines: compact ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AtlasSpacing.xs),
                   Text(
-                    '${place.categoryLabel} · ${place.cityName}',
+                    '${place.categoryLabel} · ${place.neighborhood}',
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w500,
+                      letterSpacing: -0.1,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AtlasSpacing.sm),
-                  Text(
-                    place.summary,
-                    maxLines: compact ? 2 : 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AtlasTextStyles.helper(theme.colorScheme),
-                      height: 1.45,
+                  if (!compact) ...[
+                    const SizedBox(height: AtlasSpacing.sm),
+                    Text(
+                      place.summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AtlasTextStyles.helper(theme.colorScheme),
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.md),
+                  ],
+                  const SizedBox(height: AtlasSpacing.sm),
                   Wrap(
                     spacing: AtlasSpacing.md,
                     runSpacing: AtlasSpacing.xs,
@@ -129,19 +136,17 @@ class PlaceGuideCard extends StatelessWidget {
                         icon: Icons.payments_outlined,
                         label: place.priceLevel,
                       ),
-                      _ChipMeta(
-                        icon: Icons.schedule_outlined,
-                        label: duration,
-                      ),
+                      _ChipMeta(icon: Icons.schedule_outlined, label: duration),
                       _ChipMeta(
                         icon: Icons.star_rounded,
                         label: rating,
                         iconColor: AtlasColors.subtleGold,
                       ),
-                      _ChipMeta(
-                        icon: Icons.near_me_outlined,
-                        label: PlaceDisplayHelpers.distanceLabel(place),
-                      ),
+                      if (!compact)
+                        _ChipMeta(
+                          icon: Icons.near_me_outlined,
+                          label: PlaceDisplayHelpers.distanceLabel(place),
+                        ),
                     ],
                   ),
                 ],
@@ -155,11 +160,7 @@ class PlaceGuideCard extends StatelessWidget {
 }
 
 class _ChipMeta extends StatelessWidget {
-  const _ChipMeta({
-    required this.icon,
-    required this.label,
-    this.iconColor,
-  });
+  const _ChipMeta({required this.icon, required this.label, this.iconColor});
 
   final IconData icon;
   final String label;
@@ -182,6 +183,7 @@ class _ChipMeta extends StatelessWidget {
           label,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
+            letterSpacing: -0.05,
           ),
         ),
       ],

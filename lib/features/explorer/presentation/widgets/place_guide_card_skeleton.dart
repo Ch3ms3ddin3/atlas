@@ -12,7 +12,7 @@ class PlaceGuideCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageHeight = compact ? 140.0 : 180.0;
+    final imageHeight = compact ? 120.0 : 140.0;
 
     return AtlasCard(
       padding: EdgeInsets.zero,
@@ -24,17 +24,26 @@ class PlaceGuideCardSkeleton extends StatelessWidget {
             borderRadius: AtlasSpacing.cardRadius,
           ),
           Padding(
-            padding: const EdgeInsets.all(AtlasSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(
+              AtlasSpacing.lg,
+              AtlasSpacing.md,
+              AtlasSpacing.lg,
+              AtlasSpacing.md,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const AtlasSkeleton(height: 18, width: 200),
-                const SizedBox(height: AtlasSpacing.sm),
-                const AtlasSkeleton(height: 12, width: 120),
-                const SizedBox(height: AtlasSpacing.md),
-                const AtlasSkeleton(height: 12),
                 const SizedBox(height: AtlasSpacing.xs),
-                const AtlasSkeleton(height: 12, width: 240),
+                const AtlasSkeleton(height: 12, width: 120),
+                if (!compact) ...[
+                  const SizedBox(height: AtlasSpacing.sm),
+                  const AtlasSkeleton(height: 12),
+                  const SizedBox(height: AtlasSpacing.xs),
+                  const AtlasSkeleton(height: 12, width: 240),
+                ],
+                const SizedBox(height: AtlasSpacing.sm),
+                const AtlasSkeleton(height: 12, width: 160),
               ],
             ),
           ),

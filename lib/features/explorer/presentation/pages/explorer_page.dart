@@ -11,7 +11,6 @@ import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
-import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/domain/favorites_repository.dart';
@@ -220,14 +219,15 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _resolveLocation() async {
     final requestId = ++_locationRequestId;
     final location = await _locationRepository.resolveLocation(
-      preferredCityName: _profileRepository?.profile.preferredCity ??
+      preferredCityName:
+          _profileRepository?.profile.preferredCity ??
           UserProfile.defaultPreferredCity,
     );
     if (!mounted || requestId != _locationRequestId) return;
 
     // Relire le profil après l'await — il peut s'attacher pendant le GPS.
-    final preferredCity = _profileRepository?.profile.preferredCity ??
-        location.cityName;
+    final preferredCity =
+        _profileRepository?.profile.preferredCity ?? location.cityName;
     final preferred = _canonicalSupportedCity(preferredCity);
 
     setState(() {
@@ -352,8 +352,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return _places.where((place) => place.id != featured.id).toList();
   }
 
-  bool get _isLoadingCatalog =>
-      _loadState == EditorialCatalogLoadState.loading;
+  bool get _isLoadingCatalog => _loadState == EditorialCatalogLoadState.loading;
 
   void _showDirectionsSnackBar() {
     if (!mounted) return;
@@ -369,7 +368,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilters = _searchController.text.trim().isNotEmpty ||
+    final hasActiveFilters =
+        _searchController.text.trim().isNotEmpty ||
         _selectedCategory != null ||
         _sort != PlaceSort.catalog ||
         _browseFilters.favoritesOnly;
@@ -405,10 +405,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           const SizedBox(height: AtlasSpacing.sm),
                           Text(
                             'Contenu bientôt disponible pour $_cityName.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         ],
@@ -424,7 +425,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             _applyFilters();
                           },
                         ),
-                        const SizedBox(height: AtlasSpacing.lg),
+                        const SizedBox(height: AtlasSpacing.md),
                         AtlasReveal(
                           delay: AtlasMotion.staggerDelay,
                           child: PlaceCityFilter(
@@ -432,43 +433,32 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             onCitySelected: _onCitySelected,
                           ),
                         ),
-                        const SizedBox(height: AtlasSpacing.sm),
+                        const SizedBox(height: AtlasSpacing.xs),
                         AtlasReveal(
                           delay: AtlasMotion.staggerDelay * 2,
                           child: PlaceCategoryFilter(
                             selectedCategory: _selectedCategory,
                             onCategorySelected: _onCategorySelected,
-                          ),
-                        ),
-                        const SizedBox(height: AtlasSpacing.sm),
-                        AtlasReveal(
-                          delay: AtlasMotion.staggerDelay * 3,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            child: AtlasFilterChip(
-                              label: 'Favoris',
-                              isSelected: _browseFilters.favoritesOnly,
-                              onTap: () {
-                                _browseFilters.setFavoritesOnly(
-                                  !_browseFilters.favoritesOnly,
-                                );
-                                _applyFilters();
-                              },
-                            ),
+                            favoritesOnly: _browseFilters.favoritesOnly,
+                            onFavoritesToggle: () {
+                              _browseFilters.setFavoritesOnly(
+                                !_browseFilters.favoritesOnly,
+                              );
+                              _applyFilters();
+                            },
                           ),
                         ),
                         if (featuredPlace != null && !_isLoadingCatalog) ...[
                           const SizedBox(height: AtlasSpacing.section),
                           AtlasReveal(
-                            delay: AtlasMotion.staggerDelay * 4,
+                            delay: AtlasMotion.staggerDelay * 3,
                             child: const HomeSectionHeader(
                               title: '✨ Sélection Atlas',
                             ),
                           ),
-                          const SizedBox(height: AtlasSpacing.lg),
+                          const SizedBox(height: AtlasSpacing.md),
                           AtlasReveal(
-                            delay: AtlasMotion.staggerDelay * 5,
+                            delay: AtlasMotion.staggerDelay * 4,
                             child: PlaceFeaturedCard(
                               place: featuredPlace,
                               onTap: () => _openPlace(featuredPlace),
@@ -478,6 +468,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         ],
                         const SizedBox(height: AtlasSpacing.section),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
                               child: HomeSectionHeader(
@@ -493,7 +484,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                               ),
                           ],
                         ),
-                        const SizedBox(height: AtlasSpacing.lg),
+                        const SizedBox(height: AtlasSpacing.md),
                       ],
                     ),
                   ),
@@ -518,29 +509,28 @@ class _ExplorerPageState extends State<ExplorerPage> {
                   else if (listPlaces.isEmpty)
                     SliverToBoxAdapter(
                       child: ExplorerEmptyState(
-                        onReset: hasActiveFilters ? _clearSearchAndFilters : null,
+                        onReset: hasActiveFilters
+                            ? _clearSearchAndFilters
+                            : null,
                       ),
                     )
                   else if (useGrid)
                     SliverGrid(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: AtlasSpacing.lg,
-                        crossAxisSpacing: AtlasSpacing.lg,
-                        childAspectRatio: 0.72,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final place = listPlaces[index];
-                          return PlaceGuideCard(
-                            place: place,
-                            compact: true,
-                            onTap: () => _openPlace(place),
-                          );
-                        },
-                        childCount: listPlaces.length,
-                      ),
+                            crossAxisCount: 2,
+                            mainAxisSpacing: AtlasSpacing.lg,
+                            crossAxisSpacing: AtlasSpacing.lg,
+                            childAspectRatio: 0.78,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final place = listPlaces[index];
+                        return PlaceGuideCard(
+                          place: place,
+                          compact: true,
+                          onTap: () => _openPlace(place),
+                        );
+                      }, childCount: listPlaces.length),
                     )
                   else
                     SliverList.separated(
@@ -556,7 +546,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                       },
                     ),
                   const SliverToBoxAdapter(
-                    child: SizedBox(height: AtlasSpacing.sectionLarge),
+                    child: SizedBox(height: AtlasSpacing.lg),
                   ),
                 ],
               );

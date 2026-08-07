@@ -20,7 +20,8 @@ class PlaceCoverImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ??
+    final radius =
+        borderRadius ??
         const BorderRadius.vertical(
           top: Radius.circular(AtlasSpacing.cardRadius),
         );
@@ -36,6 +37,8 @@ class PlaceCoverImage extends StatelessWidget {
       );
     }
 
+    final iconSize = (height * 0.34).clamp(40.0, 64.0);
+
     return Container(
       height: height,
       width: double.infinity,
@@ -46,8 +49,8 @@ class PlaceCoverImage extends StatelessWidget {
       child: Center(
         child: Icon(
           placeCategoryIcon(place.category),
-          size: height * 0.28,
-          color: Colors.white.withValues(alpha: 0.38),
+          size: iconSize,
+          color: Colors.white.withValues(alpha: 0.40),
         ),
       ),
     );
