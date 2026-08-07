@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_colors.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
-import '../../../../design_system/widgets/atlas_mark.dart';
+import '../../../../design_system/widgets/atlas_pressable.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../data/prayer/prayer_mapper.dart';
 import '../../domain/models/home_models.dart';
 
-/// En-tête d'accueil — marque, salutation et accès profil en un regard.
-class GreetingHeader extends StatelessWidget {
+/// En-tête d'accueil — salutation, ville, date et heure en un regard.
+class GreetingHeader extends StatefulWidget {
   const GreetingHeader({
     super.key,
     required this.data,
@@ -19,73 +23,91 @@ class GreetingHeader extends StatelessWidget {
   final VoidCallback? onProfileTap;
 
   @override
+  State<GreetingHeader> createState() => _GreetingHeaderState();
+}
+
+class _GreetingHeaderState extends State<GreetingHeader> {
+  Timer? _clockTimer;
+  late String _timeLabel;
+
+  @override
+  void initState() {
+    super.initState();
+    _timeLabel = _formatTime();
+    _clockTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!mounted) return;
+      setState(() => _timeLabel = _formatTime());
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
+  }
+
+  String _formatTime() {
+    final now = PrayerMapper.casablancaNow();
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final onSurface = theme.colorScheme.onSurface;
 
     void handleProfileTap() {
-      if (onProfileTap != null) {
-        onProfileTap!();
+      if (widget.onProfileTap != null) {
+        widget.onProfileTap!();
         return;
       }
       ShellNavigationScope.goToProfile(context);
     }
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const AtlasMark(size: 28),
-            const Spacer(),
-            _ProfileAvatarButton(onTap: handleProfileTap),
-          ],
-        ),
-        const SizedBox(height: AtlasSpacing.sm),
-        Text(
-          'Bonjour, ${data.userName}',
-          style: theme.textTheme.headlineLarge?.copyWith(
-            fontWeight: FontWeight.w300,
-            letterSpacing: -0.8,
-            height: 1.1,
-            color: onSurface,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Bonjour ${widget.data.userName} 👋',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.7,
+                  height: 1.1,
+                  color: onSurface,
+                ),
+              ),
+              const SizedBox(height: AtlasSpacing.xs),
+              Text(
+                widget.data.city,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.25,
+                  height: 1.2,
+                  color: onSurface,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${widget.data.dateLabel} · $_timeLabel',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w400,
+                  height: 1.3,
+                  color: AtlasTextStyles.metadata(theme.colorScheme),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AtlasSpacing.xs),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              data.city,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.4,
-                height: 1.35,
-                fontFeatures: const [FontFeature.enable('smcp')],
-                color: AtlasTextStyles.subtitle(theme.colorScheme),
-              ),
-            ),
-            Text(
-              ' · Maroc',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.6,
-                height: 1.35,
-                color: AtlasTextStyles.helper(theme.colorScheme),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AtlasSpacing.xs),
-        Text(
-          data.dateLabel,
-          style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.2,
-            height: 1.35,
-            color: AtlasTextStyles.metadata(theme.colorScheme),
-          ),
+        const SizedBox(width: AtlasSpacing.md),
+        _ProfileAvatarButton(
+          displayName: widget.data.userName,
+          onTap: handleProfileTap,
         ),
       ],
     );
@@ -93,9 +115,19 @@ class GreetingHeader extends StatelessWidget {
 }
 
 class _ProfileAvatarButton extends StatelessWidget {
-  const _ProfileAvatarButton({required this.onTap});
+  const _ProfileAvatarButton({
+    required this.displayName,
+    required this.onTap,
+  });
 
+  final String displayName;
   final VoidCallback onTap;
+
+  String get _initial {
+    final trimmed = displayName.trim();
+    if (trimmed.isEmpty) return 'V';
+    return trimmed.characters.first.toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,24 +136,27 @@ class _ProfileAvatarButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Profil',
-      child: Material(
-        color: AtlasColors.surfaceWhite,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(
-            color: AtlasColors.sandMuted.withValues(alpha: 0.8),
+      child: AtlasPressable(
+        onTap: onTap,
+        scale: AtlasMotion.pressScale,
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AtlasColors.terracottaGhost.withValues(alpha: 0.9),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AtlasColors.sandMuted.withValues(alpha: 0.85),
+            ),
           ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            width: 36,
-            height: 36,
-            child: Icon(
-              Icons.person_outline_rounded,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
+          child: Text(
+            _initial,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+              height: 1,
+              color: AtlasColors.terracottaDeep.withValues(alpha: 0.9),
             ),
           ),
         ),

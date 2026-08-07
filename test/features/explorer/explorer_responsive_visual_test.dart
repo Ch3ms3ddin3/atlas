@@ -69,8 +69,18 @@ void main() {
 
     expect(find.text('Explorer'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(find.text('Sélection'), findsWidgets);
+    expect(find.text('✨ Sélection Atlas'), findsOneWidget);
+    expect(find.text('Sélection Atlas'), findsWidgets);
+
+    // Les cartes liste sont sous le hero / featured — scroll pour les matérialiser.
+    await tester.drag(
+      find.byType(CustomScrollView),
+      const Offset(0, -700),
+    );
+    await tester.pumpAndSettle();
+
     expect(find.byType(PlaceGuideCard), findsWidgets);
+    expect(find.text('Palais de la Bahia'), findsOneWidget);
     expect(find.byTooltip('Ajouter aux favoris'), findsWidgets);
     expect(find.byType(SliverGrid), findsNothing);
   });

@@ -75,7 +75,7 @@ void main() {
     expect(find.text('12 km/h'), findsOneWidget);
     expect(find.text('UV 8'), findsOneWidget);
     expect(find.text('Pluie 20%'), findsOneWidget);
-    expect(find.text('Open-Meteo'), findsOneWidget);
+    expect(find.text('Source · Open-Meteo'), findsOneWidget);
     expect(find.textContaining('Mis à jour'), findsOneWidget);
   });
 
@@ -105,6 +105,6 @@ void main() {
     expect(find.textContaining('km/h'), findsNothing);
     expect(find.textContaining('UV'), findsNothing);
     expect(find.textContaining('Pluie'), findsNothing);
-    expect(find.text('Météo enregistrée'), findsOneWidget);
+    expect(find.text('Source · Météo enregistrée'), findsOneWidget);
   });
 }

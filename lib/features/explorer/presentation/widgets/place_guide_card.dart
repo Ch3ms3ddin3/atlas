@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/presentation/widgets/favorite_toggle_button.dart';
 import '../../domain/models/place_models.dart';
+import 'place_cover_image.dart';
+import 'place_display_helpers.dart';
 
-/// Carte lieu premium — découverte scannable, favori intégré.
+/// Carte lieu premium — image dominante, infos scannables.
 class PlaceGuideCard extends StatelessWidget {
   const PlaceGuideCard({
     super.key,
@@ -25,11 +28,13 @@ class PlaceGuideCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mediaHeight = compact ? 96.0 : 112.0;
+    final mediaHeight = compact ? 140.0 : 180.0;
+    final duration = PlaceDisplayHelpers.visitDuration(place);
+    final rating = PlaceDisplayHelpers.ratingLabel(place);
 
     return Semantics(
       button: true,
-      label: '${place.name}, ${place.categoryLabel}, ${place.neighborhood}',
+      label: '${place.name}, ${place.categoryLabel}, ${place.cityName}',
       child: AtlasCard(
         onTap: onTap,
         padding: EdgeInsets.zero,
@@ -38,20 +43,9 @@ class PlaceGuideCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                Container(
+                PlaceCoverImage(
+                  place: place,
                   height: mediaHeight,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: place.imageColor.withValues(alpha: 0.88),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AtlasSpacing.cardRadius),
-                    ),
-                  ),
-                  child: Icon(
-                    _categoryIcon(place.category),
-                    size: compact ? 32 : 40,
-                    color: Colors.white.withValues(alpha: 0.42),
-                  ),
                 ),
                 if (place.isEditorsPick)
                   Positioned(
@@ -76,11 +70,13 @@ class PlaceGuideCard extends StatelessWidget {
                     ),
                   ),
                 Positioned(
-                  top: AtlasSpacing.xs,
-                  right: AtlasSpacing.xs,
+                  top: AtlasSpacing.sm,
+                  right: AtlasSpacing.sm,
                   child: Material(
-                    color: AtlasColors.surfaceWhite.withValues(alpha: 0.92),
-                    shape: const CircleBorder(),
+                    color: AtlasColors.surfaceWhite.withValues(alpha: 0.94),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     clipBehavior: Clip.antiAlias,
                     child: FavoriteToggleButton(
                       entityType: FavoriteEntityType.place,
@@ -97,20 +93,22 @@ class PlaceGuideCard extends StatelessWidget {
                 children: [
                   Text(
                     place.name,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.1,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AtlasSpacing.xs),
                   Text(
-                    '${place.categoryLabel} · ${place.priceLevel}',
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    '${place.categoryLabel} · ${place.cityName}',
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AtlasSpacing.sm),
                   Text(
@@ -118,17 +116,33 @@ class PlaceGuideCard extends StatelessWidget {
                     maxLines: compact ? 2 : 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: AtlasTextStyles.helper(theme.colorScheme),
                       height: 1.45,
                     ),
                   ),
-                  const SizedBox(height: AtlasSpacing.sm),
-                  Text(
-                    place.neighborhood,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.7),
-                    ),
+                  const SizedBox(height: AtlasSpacing.md),
+                  Wrap(
+                    spacing: AtlasSpacing.md,
+                    runSpacing: AtlasSpacing.xs,
+                    children: [
+                      _ChipMeta(
+                        icon: Icons.payments_outlined,
+                        label: place.priceLevel,
+                      ),
+                      _ChipMeta(
+                        icon: Icons.schedule_outlined,
+                        label: duration,
+                      ),
+                      _ChipMeta(
+                        icon: Icons.star_rounded,
+                        label: rating,
+                        iconColor: AtlasColors.subtleGold,
+                      ),
+                      _ChipMeta(
+                        icon: Icons.near_me_outlined,
+                        label: PlaceDisplayHelpers.distanceLabel(place),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -138,17 +152,39 @@ class PlaceGuideCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  IconData _categoryIcon(PlaceCategory category) {
-    return switch (category) {
-      PlaceCategory.jardin => Icons.park_outlined,
-      PlaceCategory.monument => Icons.account_balance_outlined,
-      PlaceCategory.restaurant => Icons.restaurant_outlined,
-      PlaceCategory.cafe => Icons.coffee_outlined,
-      PlaceCategory.musee => Icons.museum_outlined,
-      PlaceCategory.hammam => Icons.spa_outlined,
-      PlaceCategory.plage => Icons.beach_access_outlined,
-      PlaceCategory.souk => Icons.storefront_outlined,
-    };
+class _ChipMeta extends StatelessWidget {
+  const _ChipMeta({
+    required this.icon,
+    required this.label,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: iconColor ?? theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: AtlasSpacing.xs),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
   }
 }

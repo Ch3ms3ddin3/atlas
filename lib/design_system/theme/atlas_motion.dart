@@ -5,7 +5,7 @@ abstract final class AtlasMotion {
   static const Duration durationMicro = Duration(milliseconds: 150);
   static const Duration durationStandard = Duration(milliseconds: 250);
   static const Duration durationEmphasis = Duration(milliseconds: 400);
-  static const Duration staggerDelay = Duration(milliseconds: 60);
+  static const Duration staggerDelay = Duration(milliseconds: 55);
 
   /// Respecte « Réduire les animations » (OS / accessibilité).
   static bool reduceMotionOf(BuildContext context) {
@@ -17,14 +17,14 @@ abstract final class AtlasMotion {
     return reduceMotionOf(context) ? Duration.zero : duration;
   }
 
-  /// Transitions d'onglet et de page (220–260ms).
-  static const Duration pageTransitionDuration = Duration(milliseconds: 240);
+  /// Transitions d'onglet et de page.
+  static const Duration pageTransitionDuration = Duration(milliseconds: 220);
 
   /// Barre de navigation — sélection et pill.
-  static const Duration navAnimationDuration = Duration(milliseconds: 240);
+  static const Duration navAnimationDuration = Duration(milliseconds: 220);
 
   /// Entrée des sections et cartes.
-  static const Duration revealDuration = Duration(milliseconds: 240);
+  static const Duration revealDuration = Duration(milliseconds: 220);
   static const double revealOffset = 8;
 
   /// Dialogues — fade + scale.

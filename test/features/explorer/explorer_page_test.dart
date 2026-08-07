@@ -73,7 +73,9 @@ void main() {
     await pumpExplorer(tester);
 
     expect(find.text('Explorer'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
+    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
+    expect(find.text('✨ Sélection Atlas'), findsOneWidget);
+    expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Tanger'), findsOneWidget);
     expect(find.text('Contenu bientôt disponible pour cette ville.'), findsNothing);
   });
@@ -109,8 +111,19 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
     await tester.pumpAndSettle();
 
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
+    expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Palais de la Bahia'), findsNothing);
+  });
+
+  testWidgets('recherche sans résultat affiche empty state V2', (tester) async {
+    await pumpExplorer(tester);
+
+    await tester.enterText(find.byType(TextField), 'zzzzzzzz');
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Aucun lieu trouvé'), findsOneWidget);
+    expect(find.text('Essayez une autre catégorie.'), findsOneWidget);
   });
 
   testWidgets('favori sur carte sans ouvrir le détail', (tester) async {

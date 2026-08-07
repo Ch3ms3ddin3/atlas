@@ -140,14 +140,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
-    expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.text('À venir'), findsOneWidget);
-    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
-    expect(find.text('Ajouter un véhicule'), findsOneWidget);
+    expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Démarches utiles'), findsOneWidget);
-    expect(find.text('Prix à la une'), findsOneWidget);
+    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Explorer'), findsWidgets);
+    expect(find.text('Carte'), findsWidgets);
+    expect(find.text('Démarches'), findsWidgets);
+    expect(find.text('Briefing du jour'), findsNothing);
+    expect(find.text('Mes véhicules au Maroc'), findsNothing);
   });
 
   testWidgets('signed out / local profile: default greeting, no favorites', (
@@ -162,9 +164,9 @@ void main() {
       favorites: favorites,
     );
 
-    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
+    expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.text('Mes favoris'), findsNothing);
-    expect(find.text('Recommandations'), findsOneWidget);
+    expect(find.text('Pour vous'), findsOneWidget);
     expect(find.text('Urgences'), findsNothing);
   });
 
@@ -184,8 +186,8 @@ void main() {
       favorites: favorites,
     );
 
-    expect(find.text('Bonjour, Salma'), findsOneWidget);
-    expect(find.text('Bonjour, Voyageur'), findsNothing);
+    expect(find.text('Bonjour Salma 👋'), findsOneWidget);
+    expect(find.text('Bonjour Voyageur 👋'), findsNothing);
   });
 
   testWidgets('no favorites: Mes favoris section is hidden', (
@@ -200,7 +202,7 @@ void main() {
     expect(find.text('Mes favoris'), findsNothing);
   });
 
-  testWidgets('with favorites: Mes favoris shows all entity types', (
+  testWidgets('with favorites: Mes favoris section reste masquée sur V5', (
     WidgetTester tester,
   ) async {
     final favorites = LocalFavoritesRepository();
@@ -209,14 +211,6 @@ void main() {
       entityType: FavoriteEntityType.place,
       entitySlug: 'place-majorelle',
     );
-    await favorites.addFavorite(
-      entityType: FavoriteEntityType.procedure,
-      entitySlug: 'cin-renewal',
-    );
-    await favorites.addFavorite(
-      entityType: FavoriteEntityType.price,
-      entitySlug: 'taxi-airport-marrakech',
-    );
 
     await pumpHomeDashboard(
       tester,
@@ -224,13 +218,8 @@ void main() {
       favorites: favorites,
     );
 
-    expect(find.text('Mes favoris'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsWidgets);
-    expect(find.text('Renouveler la CIN'), findsWidgets);
-    expect(find.text('Taxi Airport Marrakech'), findsWidgets);
-    expect(find.text('Lieu'), findsOneWidget);
-    expect(find.text('Démarche'), findsOneWidget);
-    expect(find.text('Prix'), findsWidgets);
+    expect(find.text('Mes favoris'), findsNothing);
+    expect(find.text('Pour vous'), findsOneWidget);
   });
 
   testWidgets('no recommendations: Recommandations section is hidden', (
@@ -247,9 +236,10 @@ void main() {
     );
 
     expect(find.text('Recommandations'), findsNothing);
-    expect(find.text('Jardin Majorelle'), findsNothing);
-    expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.text('Démarches utiles'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
+    expect(find.text('Pour vous'), findsOneWidget);
+    // Contextual Pour vous tip may mention Majorelle — not the old carousel.
+    expect(find.textContaining('Majorelle'), findsWidgets);
   });
 
   testWidgets('offline APIs: Home still renders without invented weather', (
@@ -262,14 +252,14 @@ void main() {
       favorites: LocalFavoritesRepository(),
     );
 
-    expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.text('Météo indisponible'), findsOneWidget);
-    expect(find.text('Horaires indisponibles'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
+    expect(find.text('Météo indisponible'), findsWidgets);
+    expect(find.text('Horaires indisponibles'), findsWidgets);
     expect(find.text('Taux indisponible'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsNothing);
-    expect(find.textContaining('données estimées'), findsWidgets);
+    expect(find.textContaining('données estimées'), findsNothing);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Prix à la une'), findsOneWidget);
+    expect(find.text('Pour vous'), findsOneWidget);
   });
 
   testWidgets('empty remote catalogs: local fallback keeps Home usable', (
@@ -316,13 +306,11 @@ void main() {
       favorites: LocalFavoritesRepository(),
     );
 
-    expect(find.text('Recommandations'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
-    // Intelligence : pas de données vérifiées → section masquée (pas de faux prix).
+    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.textContaining('Majorelle'), findsOneWidget);
     expect(find.text('Prix à la une'), findsNothing);
     expect(find.text('SP95 Marrakech'), findsNothing);
-    expect(find.text('Démarches utiles'), findsOneWidget);
-    expect(find.textContaining('Admission temporaire'), findsOneWidget);
+    expect(find.text('Démarches utiles'), findsNothing);
   });
 }
 

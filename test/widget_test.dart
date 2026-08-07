@@ -4,12 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/app/atlas_app.dart';
-import 'package:atlas/core/datetime/casablanca_date_formatter.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
-import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
 import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
 import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
+import 'package:atlas/features/home/presentation/widgets/quick_actions_grid.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
 import 'features/onboarding/onboarding_test_helpers.dart';
@@ -64,22 +63,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Accueil'), findsWidgets);
-    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
+    expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.text('Marrakech'), findsWidgets);
-    expect(
-      find.text(
-        CasablancaDateFormatter.formatLongDate(PrayerMapper.casablancaNow()),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Briefing du jour'), findsOneWidget);
-    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
-    expect(find.text('Ajouter un véhicule'), findsOneWidget);
-    expect(find.text('Météo indisponible'), findsOneWidget);
-    expect(find.text('Horaires indisponibles'), findsOneWidget);
-    expect(find.text('Taux indisponible'), findsOneWidget);
-    expect(find.text('Change'), findsOneWidget);
-    expect(find.text('Jour ouvré'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
+    expect(find.text('Actions rapides'), findsOneWidget);
+    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Météo indisponible'), findsWidgets);
+    expect(find.text('Horaires indisponibles'), findsWidgets);
+    expect(find.text('Taux indisponible'), findsWidgets);
+    expect(find.text('Briefing du jour'), findsNothing);
+    expect(find.text('Mes véhicules au Maroc'), findsNothing);
 
     expect(AtlasBottomNav.destinations, hasLength(6));
     expect(find.byType(AtlasBottomNav), findsOneWidget);
@@ -94,7 +88,7 @@ void main() {
     await tapBottomNav(tester, 'Explorer');
 
     expect(
-      find.textContaining('Lieux utiles à Marrakech'),
+      find.textContaining('meilleurs lieux du Maroc'),
       findsOneWidget,
     );
     expect(find.text('Jardin Majorelle'), findsWidgets);
@@ -134,12 +128,12 @@ void main() {
 
     await tapBottomNav(tester, 'Accueil');
 
-    expect(find.text('Bonjour, Voyageur'), findsOneWidget);
-    expect(find.text('Météo indisponible'), findsOneWidget);
+    expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
+    expect(find.text('Météo indisponible'), findsWidgets);
     expect(find.text('Forte chaleur prévue'), findsNothing);
   });
 
-  testWidgets('Le tableau de bord affiche les sections principales', (
+  testWidgets('Le tableau de bord V5 affiche les sections principales', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1600));
@@ -148,77 +142,22 @@ void main() {
     await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
-    expect(find.text('À savoir aujourd\'hui'), findsOneWidget);
-    expect(find.text('À venir'), findsOneWidget);
-    expect(find.text('Mes véhicules au Maroc'), findsOneWidget);
-    expect(find.text('Ajouter un véhicule'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Lieux'), findsWidgets);
+    expect(find.text('Démarches'), findsWidgets);
+    expect(find.text('Explorer'), findsWidgets);
+    expect(find.text('Carte'), findsWidgets);
+    expect(find.text('Prix'), findsWidgets);
+    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.textContaining('Majorelle'), findsOneWidget);
+    expect(find.text('Bon à savoir'), findsOneWidget);
     expect(find.text('Mes favoris'), findsNothing);
-    expect(find.text('Recommandations'), findsOneWidget);
-    expect(find.text('Démarches utiles'), findsOneWidget);
-    expect(find.text('Prix à la une'), findsOneWidget);
-    expect(find.text('Voir tout'), findsOneWidget);
-    expect(find.textContaining('Admission temporaire'), findsOneWidget);
-    expect(find.text('42'), findsNothing);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(find.text('Place Jemaa el-Fna'), findsOneWidget);
-    expect(find.text('SP95 Marrakech'), findsOneWidget);
-    expect(find.text('Urgences'), findsNothing);
-    expect(find.text('Padel'), findsNothing);
+    expect(find.text('Démarches utiles'), findsNothing);
+    expect(find.text('Prix à la une'), findsNothing);
     expect(
       find.textContaining('Toutes les données mises à jour'),
       findsWidgets,
     );
-  });
-
-  testWidgets('Une démarche utile ouvre le guide CIN', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    await pumpAtlasApp(tester);
-    await tester.pumpAndSettle();
-
-    final reminder = find.text('Renouveler la CIN').first;
-    await tester.scrollUntilVisible(
-      reminder,
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(reminder);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Documents requis'), findsOneWidget);
-    expect(find.text('Étapes'), findsOneWidget);
-    expect(find.textContaining('cnie.ma'), findsOneWidget);
-  });
-
-  testWidgets('Une recommandation ouvre le détail du lieu', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    await pumpAtlasApp(tester);
-    await tester.pumpAndSettle();
-
-    final place = find.text('Jardin Majorelle').first;
-    await tester.scrollUntilVisible(
-      place,
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(place);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Conseils pratiques'), findsOneWidget);
-    expect(find.text('Meilleur moment'), findsOneWidget);
-    expect(find.byTooltip('Signaler un problème'), findsOneWidget);
-    expect(find.textContaining('maps.google.com'), findsNothing);
   });
 
   testWidgets('Un repère de prix ouvre le détail', (
@@ -254,45 +193,32 @@ void main() {
     await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
-    final lieuxAction = find.text('Lieux').first;
-    await tester.ensureVisible(lieuxAction);
+    final explorerAction = find.descendant(
+      of: find.byType(QuickActionsGrid),
+      matching: find.text('Explorer'),
+    );
+    await tester.ensureVisible(explorerAction);
     await tester.pumpAndSettle();
-    await tester.tap(lieuxAction);
+    await tester.tap(explorerAction);
     await tester.pumpAndSettle();
 
     expect(
-      find.textContaining('Lieux utiles à Marrakech'),
+      find.textContaining('meilleurs lieux du Maroc'),
       findsOneWidget,
     );
-    expect(find.text('Urgences — bientôt disponible'), findsNothing);
-  });
 
-  testWidgets('Un repère de prix de l\'accueil ouvre le détail', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tapBottomNav(tester, 'Accueil');
 
-    await pumpAtlasApp(tester);
-    await tester.pumpAndSettle();
-
-    final priceSection = find.text('Prix à la une');
-    await tester.scrollUntilVisible(
-      priceSection,
-      160,
-      scrollable: find.byType(Scrollable).first,
+    final carteAction = find.descendant(
+      of: find.byType(QuickActionsGrid),
+      matching: find.text('Carte'),
     );
+    await tester.ensureVisible(carteAction);
+    await tester.pumpAndSettle();
+    await tester.tap(carteAction);
     await tester.pumpAndSettle();
 
-    final fuel = find.text('SP95 Marrakech').first;
-    await tester.ensureVisible(fuel);
-    await tester.pumpAndSettle();
-    await tester.tap(fuel);
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Prix actuel'), findsOneWidget);
-    expect(find.text('Fourchette'), findsOneWidget);
-    expect(find.text('Vérifié'), findsWidgets);
+    expect(find.text('Favoris'), findsWidgets);
   });
 
   testWidgets('Le profil enregistre le prénom et met à jour l\'accueil', (
@@ -322,6 +248,6 @@ void main() {
 
     await tapBottomNav(tester, 'Accueil');
 
-    expect(find.text('Bonjour, Salma'), findsOneWidget);
+    expect(find.text('Bonjour Salma 👋'), findsOneWidget);
   });
 }

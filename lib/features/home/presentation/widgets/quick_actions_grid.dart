@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_colors.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../../../design_system/widgets/atlas_pressable.dart';
 import '../../domain/models/home_models.dart';
 
-/// Grille d'actions rapides — accès direct aux intentions fréquentes.
+/// Actions rapides compactes — secondaires, 4 raccourcis égaux.
 class QuickActionsGrid extends StatelessWidget {
   const QuickActionsGrid({
     super.key,
@@ -17,82 +19,80 @@ class QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visible = actions.take(4).toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = _columnCount(constraints.maxWidth);
+        const gap = 6.0;
+        final tileWidth = (constraints.maxWidth - gap * 3) / 4;
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: actions.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisSpacing: AtlasSpacing.xl,
-            crossAxisSpacing: AtlasSpacing.xl,
-            childAspectRatio: columns >= 6 ? 0.9 : 0.95,
-          ),
-          itemBuilder: (context, index) {
-            final action = actions[index];
-            return _QuickActionButton(
-              action: action,
-              onTap: () => onActionTap?.call(action),
-            );
-          },
+        return Row(
+          children: [
+            for (var i = 0; i < visible.length; i++) ...[
+              if (i > 0) const SizedBox(width: gap),
+              SizedBox(
+                width: tileWidth,
+                child: _CompactQuickActionTile(
+                  action: visible[i],
+                  onTap: () => onActionTap?.call(visible[i]),
+                ),
+              ),
+            ],
+          ],
         );
       },
     );
   }
-
-  int _columnCount(double width) {
-    if (width >= 600) return 6;
-    if (width >= 400) return 4;
-    return 3;
-  }
 }
 
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
+class _CompactQuickActionTile extends StatelessWidget {
+  const _CompactQuickActionTile({
     required this.action,
-    this.onTap,
+    required this.onTap,
   });
 
   final QuickActionData action;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
+    return AtlasPressable(
+      onTap: onTap,
+      scale: AtlasMotion.pressScale,
+      child: Container(
+        height: 76,
+        decoration: BoxDecoration(
+          color: AtlasColors.surfaceWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AtlasColors.sandMuted.withValues(alpha: 0.85),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(2, AtlasSpacing.sm, 2, AtlasSpacing.sm),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AtlasColors.sandMuted.withValues(alpha: 0.45),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                action.icon,
-                size: 22,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
-              ),
+            Icon(
+              action.icon,
+              size: 20,
+              color: theme.colorScheme.primary.withValues(alpha: 0.9),
             ),
-            const SizedBox(height: AtlasSpacing.md),
-            Text(
-              action.label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w400,
-                color: theme.colorScheme.onSurfaceVariant,
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                action.label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.4,
+                  fontSize: 11.5,
+                  height: 1.05,
+                ),
               ),
             ),
           ],

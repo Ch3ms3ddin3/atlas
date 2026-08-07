@@ -9,19 +9,19 @@ abstract final class HomeDashboardCatalog {
   /// Actions rapides : navigation vers des surfaces Atlas existantes uniquement.
   static const quickActions = <QuickActionData>[
     QuickActionData(
-      id: 'assistant',
-      label: 'Assistant',
-      icon: Icons.auto_awesome_outlined,
-    ),
-    QuickActionData(
-      id: 'itineraries',
-      label: 'Voyages',
-      icon: Icons.route_outlined,
+      id: 'procedures',
+      label: 'Démarches',
+      icon: Icons.description_outlined,
     ),
     QuickActionData(
       id: 'explorer',
-      label: 'Lieux',
+      label: 'Explorer',
       icon: Icons.explore_outlined,
+    ),
+    QuickActionData(
+      id: 'map',
+      label: 'Carte',
+      icon: Icons.map_outlined,
     ),
     QuickActionData(
       id: 'prices',

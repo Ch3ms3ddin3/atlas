@@ -11,6 +11,7 @@ import 'package:atlas/features/events/domain/event_repository.dart';
 import 'package:atlas/features/events/domain/models/atlas_event.dart';
 import 'package:atlas/features/events/presentation/pages/events_calendar_page.dart';
 import 'package:atlas/features/events/presentation/widgets/event_reliability_chip.dart';
+import 'package:atlas/features/events/presentation/widgets/event_list_tile_card.dart';
 import 'package:atlas/features/events/presentation/widgets/home_events_sections.dart';
 
 void main() {
@@ -103,7 +104,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Agenda Maroc'), findsWidgets);
-    expect(find.text('Fête du Trône'), findsOneWidget);
+    expect(find.byType(EventListTileCard), findsWidgets);
     expect(find.text('Hors ligne'), findsOneWidget);
   });
 

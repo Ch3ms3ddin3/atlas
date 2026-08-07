@@ -5,7 +5,7 @@ import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../data/place_mapper.dart';
 import '../../domain/models/place_models.dart';
 
-/// Filtres par catégorie pour la liste des lieux.
+/// Filtres par catégorie — défilement horizontal fluide.
 class PlaceCategoryFilter extends StatelessWidget {
   const PlaceCategoryFilter({
     super.key,
@@ -20,6 +20,10 @@ class PlaceCategoryFilter extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: AtlasSpacing.xs),
       child: Row(
         children: [
           AtlasFilterChip(
@@ -28,7 +32,7 @@ class PlaceCategoryFilter extends StatelessWidget {
             onTap: () => onCategorySelected(null),
           ),
           for (final category in PlaceCategory.values) ...[
-            const SizedBox(width: AtlasSpacing.sm),
+            const SizedBox(width: AtlasSpacing.md),
             AtlasFilterChip(
               label: PlaceMapper.categoryLabels[category]!,
               isSelected: selectedCategory == category,

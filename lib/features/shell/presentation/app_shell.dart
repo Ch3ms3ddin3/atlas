@@ -6,6 +6,7 @@ import '../../../core/errors/atlas_error_ui.dart';
 import '../../../core/performance/atlas_performance.dart';
 import '../../../core/platform/atlas_build_info.dart';
 import '../../../design_system/motion/atlas_haptics.dart';
+import '../../../design_system/theme/atlas_colors.dart';
 import '../../../design_system/theme/atlas_spacing.dart';
 import '../../assistant/data/local_assistant_repository.dart';
 import '../../assistant/domain/assistant_repository.dart';
@@ -263,7 +264,7 @@ class _AppShellState extends State<AppShell> {
                   floatingActionButtonLocation:
                       FloatingActionButtonLocation.endFloat,
                   floatingActionButton: kDebugMode
-                      ? FloatingActionButton.extended(
+                      ? _DiscreetReportFab(
                           onPressed: () {
                             AtlasHaptics.primaryAction();
                             showBetaFeedbackSheet(
@@ -272,8 +273,6 @@ class _AppShellState extends State<AppShell> {
                               screenshotKey: _screenshotKey,
                             );
                           },
-                          icon: const Icon(Icons.flag_outlined, size: 20),
-                          label: const Text('Signaler'),
                         )
                       : null,
                   body: Column(
@@ -288,6 +287,7 @@ class _AppShellState extends State<AppShell> {
                         child: Padding(
                           // Évite que le FAB masque le bas des listes.
                           padding: EdgeInsets.only(
+                            // Compact circular FAB — keep content clear of the control.
                             bottom: kDebugMode ? AtlasSpacing.fabClearance : 0,
                           ),
                           child: RepaintBoundary(
@@ -363,6 +363,52 @@ class _AppShellState extends State<AppShell> {
       child: ProfileScope(
         repository: _profileRepository,
         child: shell,
+      ),
+    );
+  }
+}
+
+/// FAB bêta discret — icône seule, cible tactile confortable.
+class _DiscreetReportFab extends StatelessWidget {
+  const _DiscreetReportFab({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Tooltip(
+      message: 'Signaler',
+      child: Semantics(
+        button: true,
+        label: 'Signaler un problème',
+        child: Material(
+          color: AtlasColors.surfaceWhite,
+          elevation: 0.8,
+          shadowColor: Colors.black.withValues(alpha: 0.18),
+          shape: CircleBorder(
+            side: BorderSide(
+              color: AtlasColors.sandMuted.withValues(alpha: 0.95),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(
+                Icons.flag_outlined,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.78,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

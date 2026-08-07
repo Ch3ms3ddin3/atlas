@@ -7,64 +7,45 @@ import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
-import '../../../admission_temporaire/data/at_calculator.dart';
-import '../../../admission_temporaire/domain/at_repository.dart';
-import '../../../admission_temporaire/domain/models/at_vehicle.dart';
-import '../../../admission_temporaire/presentation/at_scope.dart';
-import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
-import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.dart';
-import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../events/domain/event_repository.dart';
 import '../../../events/domain/models/atlas_event.dart';
-import '../../../events/presentation/widgets/home_events_sections.dart';
-import '../../../explorer/data/place_mapper.dart';
-import '../../../itineraries/presentation/pages/trip_list_page.dart';
-import '../../../explorer/domain/place_repository.dart';
-import '../../../explorer/presentation/pages/explorer_page.dart';
-import '../../../favorites/domain/favorite_entity_type.dart';
-import '../../../favorites/domain/favorites_repository.dart';
-import '../../../favorites/presentation/favorites_scope.dart';
-import '../../../prices/domain/models/price_observation.dart';
-import '../../../prices/domain/price_intelligence_repository.dart';
-import '../../../prices/presentation/pages/prices_page.dart';
-import '../../../prices/presentation/widgets/home_price_highlights_section.dart';
-import '../../../procedures/domain/models/procedure_models.dart';
-import '../../../procedures/domain/procedure_repository.dart';
-import '../../../procedures/presentation/pages/procedures_page.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../data/daily_insight/daily_insight_builder.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
 import '../../data/holiday/holiday_repository.dart';
 import '../../data/home_dashboard_catalog.dart';
+import '../../data/morning_brief/morning_brief_builder.dart';
+import '../../data/pour_vous/pour_vous_builder.dart';
 import '../../data/mock/home_mock_data.dart';
 import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
+import '../../domain/models/home_models.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 import '../../domain/models/weather_snapshot.dart';
-import '../../data/today_essentials/today_essentials_repository.dart';
 import '../../data/weather/weather_repository.dart';
-import '../widgets/daily_briefing_section.dart';
+import '../widgets/daily_insight_section.dart';
 import '../widgets/greeting_header.dart';
-import '../widgets/home_favorites_section.dart';
-import '../widgets/home_optional_section.dart';
-import '../widgets/home_procedures_section.dart';
 import '../widgets/home_section_header.dart';
+import '../widgets/morning_brief_section.dart';
+import '../widgets/pour_vous_section.dart';
 import '../widgets/prayer_notification_settings_sheet.dart';
+import '../widgets/prayer_time_card.dart';
 import '../widgets/quick_actions_grid.dart';
-import '../widgets/recommended_places_card.dart';
-import '../widgets/today_essentials_section.dart';
+import '../widgets/weather_card.dart';
 import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
-import '../../domain/models/home_models.dart';
 
+/// Home V5 — briefing quotidien premium.
+///
 /// Répond à : « Qu'est-ce que j'ai besoin de savoir maintenant ? »
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,18 +55,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const _morningBriefBuilder = MorningBriefBuilder();
+  static const _pourVousBuilder = PourVousBuilder();
+  static const _dailyInsightBuilder = DailyInsightBuilder();
+
   final LocationRepository _locationRepository = LocationRepository();
   final WeatherRepository _weatherRepository = WeatherRepository();
   final PrayerRepository _prayerRepository = PrayerRepository.instance;
   final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
   final HolidayRepository _holidayRepository = HolidayRepository();
   final GreetingRepository _greetingRepository = const GreetingRepository();
-  final TodayEssentialsRepository _todayEssentialsRepository =
-      const TodayEssentialsRepository();
-  final ProcedureRepository _procedureRepository = ProcedureRepository();
-  final PlaceRepository _placeRepository = PlaceRepository();
-  final PriceIntelligenceRepository _priceIntelligenceRepository =
-      PriceIntelligenceRepository();
   final EventRepository _eventRepository = EventRepository();
 
   UserLocation _location = const UserLocation(
@@ -98,14 +77,8 @@ class _HomePageState extends State<HomePage> {
   PrayerTimesSnapshot _prayerSnapshot = const PrayerTimesSnapshot.loading();
   ExchangeRateSnapshot _exchangeRateSnapshot =
       const ExchangeRateSnapshot.loading();
-  HolidayStatusData _holidayStatus = HomeMockData.holidayStatus;
   GreetingData _greeting = HomeMockData.greeting;
-  TodayEssentialsData _todayEssentials = HomeMockData.todayEssentials;
   String _lastUpdatedLabel = HomeMockData.lastUpdated;
-  List<RecommendedPlaceData> _recommendedPlaces = const [];
-  List<ProcedureGuide> _curatedProcedures = const [];
-  List<PriceObservation> _priceHighlights = const [];
-  List<HomeFavoriteEntry> _favoriteEntries = const [];
   DateTime? _weatherFetchedAt;
   DateTime? _prayerFetchedAt;
   DateTime? _exchangeFetchedAt;
@@ -113,21 +86,14 @@ class _HomePageState extends State<HomePage> {
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
   ProfileRepository? _profileRepository;
-  FavoritesRepository? _favoritesRepository;
-  AtRepository? _atRepository;
-  AtVehicle? _urgentVehicle;
   List<AtlasEvent> _todayEvents = const [];
-  List<AtlasEvent> _upcomingEvents = const [];
-  VoidCallback? _placeCatalogListener;
-  VoidCallback? _priceCatalogListener;
   VoidCallback? _eventCatalogListener;
 
   @override
   void initState() {
     super.initState();
-    _attachCatalogListeners();
+    _attachEventListener();
     _refreshDerivedDashboardData();
-    _loadCatalogSections();
     _refreshEvents();
     _loadWeather();
     _loadPrayerTimes();
@@ -151,49 +117,20 @@ class _HomePageState extends State<HomePage> {
       _profileRepository!.addListener(_onProfileChanged);
       if (profileRepository.isLoaded) {
         _refreshDerivedDashboardData();
-        _loadCatalogSections();
       }
-    }
-
-    final favoritesRepository = FavoritesScope.of(context);
-    if (!identical(favoritesRepository, _favoritesRepository)) {
-      _favoritesRepository?.removeListener(_onFavoritesChanged);
-      _favoritesRepository = favoritesRepository;
-      _favoritesRepository!.addListener(_onFavoritesChanged);
-      _loadFavoriteEntries();
-    }
-
-    final atRepository = AtScope.of(context);
-    if (!identical(atRepository, _atRepository)) {
-      _atRepository?.removeListener(_onAtChanged);
-      _atRepository = atRepository;
-      _atRepository!.addListener(_onAtChanged);
-      _refreshUrgentVehicle();
     }
   }
 
   @override
   void dispose() {
     _profileRepository?.removeListener(_onProfileChanged);
-    _favoritesRepository?.removeListener(_onFavoritesChanged);
-    _atRepository?.removeListener(_onAtChanged);
-    _detachCatalogListeners();
+    _detachEventListener();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
     super.dispose();
   }
 
-  void _attachCatalogListeners() {
-    final places = _placeRepository;
-    if (places is Listenable) {
-      _placeCatalogListener = _onEditorialCatalogChanged;
-      (places as Listenable).addListener(_placeCatalogListener!);
-    }
-    final prices = _priceIntelligenceRepository;
-    if (prices is Listenable) {
-      _priceCatalogListener = _onEditorialCatalogChanged;
-      (prices as Listenable).addListener(_priceCatalogListener!);
-    }
+  void _attachEventListener() {
     final events = _eventRepository;
     if (events is Listenable) {
       _eventCatalogListener = _onEventCatalogChanged;
@@ -201,24 +138,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _detachCatalogListeners() {
-    final places = _placeRepository;
-    if (places is Listenable && _placeCatalogListener != null) {
-      (places as Listenable).removeListener(_placeCatalogListener!);
-    }
-    final prices = _priceIntelligenceRepository;
-    if (prices is Listenable && _priceCatalogListener != null) {
-      (prices as Listenable).removeListener(_priceCatalogListener!);
-    }
+  void _detachEventListener() {
     final events = _eventRepository;
     if (events is Listenable && _eventCatalogListener != null) {
       (events as Listenable).removeListener(_eventCatalogListener!);
     }
-  }
-
-  void _onEditorialCatalogChanged() {
-    if (!mounted) return;
-    setState(_loadCatalogSections);
   }
 
   void _onEventCatalogChanged() {
@@ -229,33 +153,11 @@ class _HomePageState extends State<HomePage> {
   void _onProfileChanged() {
     if (!mounted) return;
     _refreshDerivedDashboardData();
-    _loadCatalogSections();
     unawaited(_resolveLocation());
   }
 
-  void _onFavoritesChanged() {
-    if (!mounted) return;
-    setState(_loadFavoriteEntries);
-  }
-
-  void _onAtChanged() {
-    if (!mounted) return;
-    setState(_refreshUrgentVehicle);
-  }
-
-  void _refreshUrgentVehicle() {
-    final repo = _atRepository;
-    if (repo == null || !repo.isLoaded) {
-      _urgentVehicle = null;
-      return;
-    }
-    _urgentVehicle = AtCalculator.mostUrgent(repo.activeVehicles);
-  }
-
   void _refreshEvents() {
-    final city = _location.cityName;
-    _todayEvents = _eventRepository.today(cityName: city);
-    _upcomingEvents = _eventRepository.upcoming(cityName: city, limit: 4);
+    _todayEvents = _eventRepository.today(cityName: _location.cityName);
   }
 
   void _scheduleDateRollTimer() {
@@ -272,7 +174,6 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           _refreshDerivedDashboardData();
-          _refreshUrgentVehicle();
           _refreshEvents();
         });
         unawaited(_loadPrayerTimes());
@@ -288,94 +189,12 @@ class _HomePageState extends State<HomePage> {
       firstName: profile.firstName,
       city: _location.cityName,
     );
-    _todayEssentials = _todayEssentialsRepository.build(
-      weather: _weatherSnapshot.data,
-      holidayStatus: _holidayStatus,
-      cityName: _location.cityName,
-      userType: profile.userType,
-    );
     _lastUpdatedLabel = LastUpdatedFormatter.format([
       _weatherFetchedAt,
       _prayerFetchedAt,
       _exchangeFetchedAt,
       _holidayFetchedAt,
     ]);
-  }
-
-  void _loadCatalogSections() {
-    final featured = _placeRepository.getFeatured(cityName: _location.cityName);
-    _recommendedPlaces = featured
-        .map(PlaceMapper.toRecommendedPlaceData)
-        .toList();
-
-    _curatedProcedures = HomeDashboardCatalog.resolveCuratedProcedures(
-      _procedureRepository.getAll,
-    );
-
-    _priceHighlights = _priceIntelligenceRepository.highlights(
-      cityName: _location.cityName,
-      limit: 5,
-    );
-
-    _loadFavoriteEntries();
-  }
-
-  void _loadFavoriteEntries() {
-    final favorites = _favoritesRepository;
-    if (favorites == null || !favorites.isLoaded) {
-      _favoriteEntries = const [];
-      return;
-    }
-
-    final entries = <HomeFavoriteEntry>[];
-    for (final key in favorites.activeFavorites) {
-      switch (key.entityType) {
-        case FavoriteEntityType.place:
-          final place = _placeRepository.findById(key.entitySlug);
-          if (place == null) continue;
-          entries.add(
-            HomeFavoriteEntry(
-              entityType: FavoriteEntityType.place,
-              entitySlug: place.id,
-              title: place.name,
-              subtitle: '${place.categoryLabel} · ${place.neighborhood}',
-              icon: Icons.place_outlined,
-            ),
-          );
-        case FavoriteEntityType.procedure:
-          final procedure = _procedureRepository.findById(key.entitySlug);
-          if (procedure == null) continue;
-          entries.add(
-            HomeFavoriteEntry(
-              entityType: FavoriteEntityType.procedure,
-              entitySlug: procedure.id,
-              title: procedure.title,
-              subtitle: procedure.categoryLabel,
-              icon: procedure.icon,
-            ),
-          );
-        case FavoriteEntityType.price:
-          final price =
-              _priceIntelligenceRepository.findById(key.entitySlug);
-          if (price == null) continue;
-          entries.add(
-            HomeFavoriteEntry(
-              entityType: FavoriteEntityType.price,
-              entitySlug: price.id,
-              title: price.itemName,
-              subtitle: '${price.cityName} · ${price.unitLabel}',
-              icon: price.category.icon,
-            ),
-          );
-      }
-    }
-
-    entries.sort((a, b) {
-      final typeCompare = a.entityType.index.compareTo(b.entityType.index);
-      if (typeCompare != 0) return typeCompare;
-      return a.title.compareTo(b.title);
-    });
-    _favoriteEntries = entries;
   }
 
   Future<void> _resolveLocation() async {
@@ -393,7 +212,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _location = location;
       _refreshDerivedDashboardData();
-      _loadCatalogSections();
       _refreshEvents();
     });
 
@@ -463,10 +281,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadHolidayStatus() async {
-    final holidayStatus = await _holidayRepository.getHolidayStatus();
+    await _holidayRepository.getHolidayStatus();
     if (!mounted) return;
     setState(() {
-      _holidayStatus = holidayStatus;
       _holidayFetchedAt = DateTime.now();
       _refreshDerivedDashboardData();
     });
@@ -482,7 +299,7 @@ class _HomePageState extends State<HomePage> {
       _loadHolidayStatus(),
     ]);
     if (!mounted) return;
-    setState(_loadCatalogSections);
+    setState(_refreshEvents);
   }
 
   void _refreshPrayerCountdown() {
@@ -515,57 +332,37 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _onPlaceTap(RecommendedPlaceData place) {
-    openPlaceGuideById(context, _placeRepository, place.id);
-  }
-
-  void _onProcedureTap(ProcedureGuide guide) {
-    openProcedureGuideById(context, _procedureRepository, guide.id);
-  }
-
-  void _onPriceTap(PriceObservation observation) {
-    openPriceObservationById(
-      context,
-      _priceIntelligenceRepository,
-      observation.id,
-    );
-  }
-
-  void _onFavoriteTap(HomeFavoriteEntry entry) {
-    switch (entry.entityType) {
-      case FavoriteEntityType.place:
-        openPlaceGuideById(context, _placeRepository, entry.entitySlug);
-      case FavoriteEntityType.procedure:
-        openProcedureGuideById(context, _procedureRepository, entry.entitySlug);
-      case FavoriteEntityType.price:
-        openPriceObservationById(
-          context,
-          _priceIntelligenceRepository,
-          entry.entitySlug,
-        );
-    }
-  }
-
   void _onQuickActionTap(QuickActionData action) {
     switch (action.id) {
-      case 'assistant':
-        AssistantPage.open(context);
-      case 'itineraries':
-        TripListPage.open(context);
       case 'explorer':
         ShellNavigationScope.goToExplorer(context);
+      case 'map':
+        ShellNavigationScope.goToMap(context);
       case 'procedures':
         ShellNavigationScope.goToProcedures(context);
       case 'prices':
         ShellNavigationScope.goToPrices(context);
-      case 'profile':
-        ShellNavigationScope.goToProfile(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final morningBrief = _morningBriefBuilder.build(
+      cityName: _location.cityName,
+      weatherSnapshot: _weatherSnapshot,
+      prayerSnapshot: _prayerSnapshot,
+      exchangeRateSnapshot: _exchangeRateSnapshot,
+      todayEvents: _todayEvents,
+    );
+    final pourVous = _pourVousBuilder.build(
+      weatherSnapshot: _weatherSnapshot,
+      cityName: _location.cityName,
+    );
+    final insight = _dailyInsightBuilder.build(
+      weatherSnapshot: _weatherSnapshot,
+      cityName: _location.cityName,
+    );
 
     return SafeArea(
       child: RefreshIndicator(
@@ -579,124 +376,61 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AtlasSpacing.xxl),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 1. Header
                     AtlasReveal(
                       child: GreetingHeader(data: _greeting),
                     ),
-                    const SizedBox(height: AtlasSpacing.section),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 2. Aujourd'hui à {ville}
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay,
-                      child: const HomeSectionHeader(title: 'Briefing du jour'),
+                      child: MorningBriefSection(data: morningBrief),
                     ),
-                    const SizedBox(height: AtlasSpacing.xl),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 3. Weather
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 2,
-                      child: DailyBriefingSection(
-                        weatherSnapshot: _weatherSnapshot,
-                        prayerSnapshot: _prayerSnapshot,
-                        exchangeRateSnapshot: _exchangeRateSnapshot,
-                        holidayStatus: _holidayStatus,
-                        onPrayerTap: _onPrayerCardTap,
+                      child: WeatherCard(snapshot: _weatherSnapshot),
+                    ),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 4. Prayer
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 2,
+                      child: PrayerTimeCard(
+                        snapshot: _prayerSnapshot,
+                        onTap: _onPrayerCardTap,
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.section),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 5. Pour vous
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 3,
-                      child: const HomeSectionHeader(title: 'À savoir aujourd\'hui'),
+                      child: PourVousSection(recommendations: pourVous),
                     ),
-                    const SizedBox(height: AtlasSpacing.xl),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 6. Quick actions (secondary)
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 4,
-                      child: TodayEssentialsSection(
-                        data: _todayEssentials,
-                      ),
-                    ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 5,
-                      child: HomeEventsSections(
-                        todayEvents: _todayEvents,
-                        upcomingEvents: _upcomingEvents,
-                        cityName: _location.cityName,
-                      ),
-                    ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 6,
+                      delay: AtlasMotion.staggerDelay * 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: AtlasSpacing.section),
-                          const HomeSectionHeader(
-                            title: 'Mes véhicules au Maroc',
-                          ),
-                          const SizedBox(height: AtlasSpacing.xl),
-                          HomeVehiclesCard(
-                            vehicle: _urgentVehicle,
-                            onTap: () => openVehiclesTracker(context),
-                            onAddTap: () => openVehiclesTracker(context),
+                          const HomeSectionHeader(title: 'Actions rapides'),
+                          const SizedBox(height: AtlasSpacing.sm),
+                          QuickActionsGrid(
+                            actions: HomeDashboardCatalog.quickActions,
+                            onActionTap: _onQuickActionTap,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: AtlasSpacing.md),
+                    // 7. Daily insight
                     AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 7,
-                      child: HomeOptionalSection(
-                        title: 'Actions rapides',
-                        isEmpty: HomeDashboardCatalog.quickActions.isEmpty,
-                        topSpacing: AtlasSpacing.section,
-                        child: QuickActionsGrid(
-                          actions: HomeDashboardCatalog.quickActions,
-                          onActionTap: _onQuickActionTap,
-                        ),
-                      ),
+                      delay: AtlasMotion.staggerDelay * 4,
+                      child: DailyInsightSection(data: insight),
                     ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 8,
-                      child: HomeOptionalSection(
-                        title: 'Mes favoris',
-                        isEmpty: _favoriteEntries.isEmpty,
-                        child: HomeFavoritesSection(
-                          entries: _favoriteEntries,
-                          onEntryTap: _onFavoriteTap,
-                        ),
-                      ),
-                    ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 9,
-                      child: HomeOptionalSection(
-                        title: 'Recommandations',
-                        isEmpty: _recommendedPlaces.isEmpty,
-                        child: RecommendedPlacesSection(
-                          places: _recommendedPlaces,
-                          onPlaceTap: _onPlaceTap,
-                        ),
-                      ),
-                    ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 10,
-                      child: HomeOptionalSection(
-                        title: 'Démarches utiles',
-                        isEmpty: _curatedProcedures.isEmpty,
-                        child: HomeProceduresSection(
-                          guides: _curatedProcedures,
-                          onGuideTap: _onProcedureTap,
-                        ),
-                      ),
-                    ),
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 11,
-                      child: HomeOptionalSection(
-                        title: 'Prix à la une',
-                        isEmpty: _priceHighlights.isEmpty,
-                        actionLabel: 'Voir tout',
-                        onActionTap: () =>
-                            ShellNavigationScope.goToPrices(context),
-                        child: HomePriceHighlightsSection(
-                          observations: _priceHighlights,
-                          onObservationTap: _onPriceTap,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AtlasSpacing.section),
+                    const SizedBox(height: AtlasSpacing.sm),
                     Center(
                       child: Text(
                         _lastUpdatedLabel,
@@ -705,7 +439,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.sectionLarge),
+                    const SizedBox(height: AtlasSpacing.xxxl),
                   ],
                 ),
               ),

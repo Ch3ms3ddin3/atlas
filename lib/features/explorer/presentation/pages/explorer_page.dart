@@ -12,7 +12,6 @@ import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
-import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/domain/favorites_repository.dart';
@@ -28,6 +27,11 @@ import '../../domain/models/place_models.dart';
 import '../../domain/place_browse_filters.dart';
 import '../../domain/place_repository.dart';
 import '../pages/place_detail_page.dart';
+import '../widgets/explorer_empty_state.dart';
+import '../widgets/explorer_hero.dart';
+import '../widgets/explorer_search_field.dart';
+import '../widgets/place_featured_card.dart';
+import '../widgets/place_guide_card_skeleton.dart';
 import '../widgets/place_catalog_status_indicator.dart';
 import '../widgets/place_category_filter.dart';
 import '../widgets/place_city_filter.dart';
@@ -333,11 +337,44 @@ class _ExplorerPageState extends State<ExplorerPage> {
     });
   }
 
+  PlaceGuide? get _featuredPlace {
+    if (!_isCityCovered || _places.isEmpty) return null;
+    final featured = _repository.getFeatured(cityName: _cityName, limit: 1);
+    if (featured.isEmpty) return null;
+    final candidate = featured.first;
+    if (!_places.any((place) => place.id == candidate.id)) return null;
+    return candidate;
+  }
+
+  List<PlaceGuide> get _listPlaces {
+    final featured = _featuredPlace;
+    if (featured == null) return _places;
+    return _places.where((place) => place.id != featured.id).toList();
+  }
+
+  bool get _isLoadingCatalog =>
+      _loadState == EditorialCatalogLoadState.loading;
+
+  void _showDirectionsSnackBar() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Impossible d\'ouvrir l\'itinéraire pour ce lieu.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasActiveFilters = _searchController.text.trim().isNotEmpty ||
         _selectedCategory != null ||
-        _sort != PlaceSort.catalog;
+        _sort != PlaceSort.catalog ||
+        _browseFilters.favoritesOnly;
+    final featuredPlace = _featuredPlace;
+    final listPlaces = _listPlaces;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -349,89 +386,43 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
               return CustomScrollView(
                 key: const PageStorageKey<String>('explorer_scroll'),
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 slivers: [
                   SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: AtlasSpacing.xxl),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: AtlasPageHeader(
-                                title: 'Explorer',
-                                subtitle:
-                                    'Lieux utiles à $_cityName — découvertes '
-                                    'curatées par Atlas.',
-                                footnote: _isCityCovered
-                                    ? null
-                                    : 'Contenu bientôt disponible pour $_cityName.',
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Ouvrir la carte',
-                              onPressed: () =>
-                                  ShellNavigationScope.goToMap(context),
-                              icon: const Icon(Icons.map_outlined),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AtlasSpacing.xl),
-                        PlaceCatalogStatusIndicator(loadState: _loadState),
-                        AnimatedScale(
-                          scale: _searchFocus.hasFocus ? 1.015 : 1,
-                          duration: AtlasMotion.navAnimationDuration,
-                          curve: AtlasMotion.curveDefault,
-                          alignment: Alignment.centerLeft,
-                          child: AnimatedContainer(
-                            duration: AtlasMotion.navAnimationDuration,
-                            curve: AtlasMotion.curveDefault,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                _searchFocus.hasFocus ? 16 : 12,
-                              ),
-                              boxShadow: _searchFocus.hasFocus
-                                  ? [
-                                      BoxShadow(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withValues(alpha: 0.12),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]
-                                  : const [],
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocus,
-                              textInputAction: TextInputAction.search,
-                              decoration: InputDecoration(
-                                hintText: 'Rechercher un lieu…',
-                                prefixIcon: const Icon(Icons.search),
-                                filled: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: AtlasSpacing.lg,
-                                  vertical: _searchFocus.hasFocus
-                                      ? AtlasSpacing.lg
-                                      : AtlasSpacing.md,
-                                ),
-                                suffixIcon: _searchController.text.isEmpty
-                                    ? null
-                                    : IconButton(
-                                        tooltip: 'Effacer',
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _applyFilters();
-                                        },
-                                        icon: const Icon(Icons.close, size: 20),
-                                      ),
-                              ),
-                            ),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        AtlasReveal(
+                          child: ExplorerHero(
+                            onMapTap: () =>
+                                ShellNavigationScope.goToMap(context),
                           ),
+                        ),
+                        if (!_isCityCovered) ...[
+                          const SizedBox(height: AtlasSpacing.sm),
+                          Text(
+                            'Contenu bientôt disponible pour $_cityName.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                        const SizedBox(height: AtlasSpacing.lg),
+                        PlaceCatalogStatusIndicator(loadState: _loadState),
+                        const SizedBox(height: AtlasSpacing.lg),
+                        ExplorerSearchField(
+                          controller: _searchController,
+                          focusNode: _searchFocus,
+                          onChanged: _onSearchTextChanged,
+                          onClear: () {
+                            _searchController.clear();
+                            _applyFilters();
+                          },
                         ),
                         const SizedBox(height: AtlasSpacing.lg),
                         AtlasReveal(
@@ -441,7 +432,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             onCitySelected: _onCitySelected,
                           ),
                         ),
-                        const SizedBox(height: AtlasSpacing.md),
+                        const SizedBox(height: AtlasSpacing.sm),
                         AtlasReveal(
                           delay: AtlasMotion.staggerDelay * 2,
                           child: PlaceCategoryFilter(
@@ -449,27 +440,49 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             onCategorySelected: _onCategorySelected,
                           ),
                         ),
-                        const SizedBox(height: AtlasSpacing.md),
+                        const SizedBox(height: AtlasSpacing.sm),
                         AtlasReveal(
                           delay: AtlasMotion.staggerDelay * 3,
-                          child: AtlasFilterChip(
-                            label: 'Favoris',
-                            isSelected: _browseFilters.favoritesOnly,
-                            onTap: () {
-                              _browseFilters.setFavoritesOnly(
-                                !_browseFilters.favoritesOnly,
-                              );
-                              _applyFilters();
-                            },
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: AtlasFilterChip(
+                              label: 'Favoris',
+                              isSelected: _browseFilters.favoritesOnly,
+                              onTap: () {
+                                _browseFilters.setFavoritesOnly(
+                                  !_browseFilters.favoritesOnly,
+                                );
+                                _applyFilters();
+                              },
+                            ),
                           ),
                         ),
-                        const SizedBox(height: AtlasSpacing.xl),
+                        if (featuredPlace != null && !_isLoadingCatalog) ...[
+                          const SizedBox(height: AtlasSpacing.section),
+                          AtlasReveal(
+                            delay: AtlasMotion.staggerDelay * 4,
+                            child: const HomeSectionHeader(
+                              title: '✨ Sélection Atlas',
+                            ),
+                          ),
+                          const SizedBox(height: AtlasSpacing.lg),
+                          AtlasReveal(
+                            delay: AtlasMotion.staggerDelay * 5,
+                            child: PlaceFeaturedCard(
+                              place: featuredPlace,
+                              onTap: () => _openPlace(featuredPlace),
+                              onDirectionsFailed: _showDirectionsSnackBar,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AtlasSpacing.section),
                         Row(
                           children: [
                             Expanded(
                               child: HomeSectionHeader(
-                                title: _isCityCovered && _places.isNotEmpty
-                                    ? 'Lieux à découvrir · ${_places.length}'
+                                title: _isCityCovered && listPlaces.isNotEmpty
+                                    ? 'Lieux à découvrir · ${listPlaces.length}'
                                     : 'Lieux à découvrir',
                               ),
                             ),
@@ -493,20 +506,19 @@ class _ExplorerPageState extends State<ExplorerPage> {
                             'Changez de ville pour continuer à explorer.',
                       ),
                     )
-                  else if (_places.isEmpty)
+                  else if (_isLoadingCatalog)
+                    SliverList.separated(
+                      itemCount: 3,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AtlasSpacing.lg),
+                      itemBuilder: (context, index) {
+                        return PlaceGuideCardSkeleton(compact: useGrid);
+                      },
+                    )
+                  else if (listPlaces.isEmpty)
                     SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          const AtlasEmptyState(
-                            message:
-                                'Aucun lieu ne correspond à votre recherche.',
-                          ),
-                          if (hasActiveFilters)
-                            TextButton(
-                              onPressed: _clearSearchAndFilters,
-                              child: const Text('Réinitialiser les filtres'),
-                            ),
-                        ],
+                      child: ExplorerEmptyState(
+                        onReset: hasActiveFilters ? _clearSearchAndFilters : null,
                       ),
                     )
                   else if (useGrid)
@@ -516,27 +528,27 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         crossAxisCount: 2,
                         mainAxisSpacing: AtlasSpacing.lg,
                         crossAxisSpacing: AtlasSpacing.lg,
-                        childAspectRatio: 0.78,
+                        childAspectRatio: 0.72,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final place = _places[index];
+                          final place = listPlaces[index];
                           return PlaceGuideCard(
                             place: place,
                             compact: true,
                             onTap: () => _openPlace(place),
                           );
                         },
-                        childCount: _places.length,
+                        childCount: listPlaces.length,
                       ),
                     )
                   else
                     SliverList.separated(
-                      itemCount: _places.length,
+                      itemCount: listPlaces.length,
                       separatorBuilder: (_, _) =>
                           const SizedBox(height: AtlasSpacing.lg),
                       itemBuilder: (context, index) {
-                        final place = _places[index];
+                        final place = listPlaces[index];
                         return PlaceGuideCard(
                           place: place,
                           onTap: () => _openPlace(place),

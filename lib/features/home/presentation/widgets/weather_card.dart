@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../design_system/theme/atlas_colors.dart';
+import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
@@ -9,7 +9,7 @@ import '../../../../design_system/widgets/atlas_skeleton.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/weather_snapshot.dart';
 
-/// Carte météo — carte principale du briefing, température mise en avant.
+/// Carte météo — température dominante et icône animée discrètement.
 class WeatherCard extends StatelessWidget {
   const WeatherCard({
     super.key,
@@ -58,9 +58,9 @@ class _LoadingBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AtlasSkeleton(height: 14, width: 90),
+          SizedBox(height: AtlasSpacing.lg),
+          AtlasSkeleton(height: 52, width: 140),
           SizedBox(height: AtlasSpacing.md),
-          AtlasSkeleton(height: 36, width: 120),
-          SizedBox(height: AtlasSpacing.sm),
           AtlasSkeleton(height: 12, width: 160),
         ],
       ),
@@ -88,7 +88,7 @@ class _UnavailableBody extends StatelessWidget {
         Icon(
           Icons.cloud_off_outlined,
           size: 36,
-          color: AtlasColors.midnightBlueFaint,
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
         ),
         const SizedBox(height: AtlasSpacing.md),
         Text(
@@ -99,7 +99,6 @@ class _UnavailableBody extends StatelessWidget {
         ),
         const SizedBox(height: AtlasSpacing.sm),
         Text(
-          'Météo indisponible pour cette ville. '
           'Tirez pour actualiser lorsque vous êtes en ligne.',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: AtlasTextStyles.helper(theme.colorScheme),
@@ -134,9 +133,9 @@ class _ReadyBody extends StatelessWidget {
             letterSpacing: 0.3,
           ),
         ),
-        const SizedBox(height: AtlasSpacing.lg),
+        const SizedBox(height: AtlasSpacing.md),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
@@ -144,42 +143,42 @@ class _ReadyBody extends StatelessWidget {
                 children: [
                   Text(
                     '${data.temperature}°',
-                    style: theme.textTheme.displayMedium?.copyWith(
+                    style: theme.textTheme.displayLarge?.copyWith(
                       fontWeight: FontWeight.w200,
-                      letterSpacing: -2,
-                      height: 0.95,
-                    ),
-                  ),
-                  const SizedBox(height: AtlasSpacing.md),
-                  Text(
-                    data.condition,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: -0.2,
-                      height: 1.3,
+                      letterSpacing: -3.2,
+                      height: 0.88,
+                      fontSize: 64,
                     ),
                   ),
                   const SizedBox(height: AtlasSpacing.sm),
                   Text(
+                    data.condition,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.2,
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
                     'Ressenti ${data.feelsLike}°',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AtlasTextStyles.helper(theme.colorScheme),
-                      height: 1.4,
+                      height: 1.35,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: AtlasSpacing.md),
-            Icon(
-              data.icon,
-              size: 70,
-              color: theme.colorScheme.primary.withValues(alpha: 0.75),
+            const SizedBox(width: AtlasSpacing.sm),
+            Padding(
+              padding: const EdgeInsets.only(top: AtlasSpacing.xs),
+              child: _AnimatedWeatherIcon(icon: data.icon),
             ),
           ],
         ),
         if (data.hasWind || data.hasUv || data.hasRainProbability) ...[
-          const SizedBox(height: AtlasSpacing.lg),
+          const SizedBox(height: AtlasSpacing.md),
           Wrap(
             spacing: AtlasSpacing.md,
             runSpacing: AtlasSpacing.sm,
@@ -202,21 +201,92 @@ class _ReadyBody extends StatelessWidget {
             ],
           ),
         ],
-        const SizedBox(height: AtlasSpacing.lg),
-        Text(
-          statusLabel,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: AtlasTextStyles.metadata(theme.colorScheme),
-          ),
-        ),
-        const SizedBox(height: AtlasSpacing.xs),
+        const SizedBox(height: AtlasSpacing.md),
         Text(
           data.lastUpdatedLabel,
           style: theme.textTheme.labelSmall?.copyWith(
             color: AtlasTextStyles.metadata(theme.colorScheme),
+            height: 1.25,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Source · $statusLabel',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AtlasTextStyles.metadata(theme.colorScheme).withValues(
+                  alpha: 0.85,
+                ),
+            height: 1.25,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AnimatedWeatherIcon extends StatefulWidget {
+  const _AnimatedWeatherIcon({required this.icon});
+
+  final IconData icon;
+
+  @override
+  State<_AnimatedWeatherIcon> createState() => _AnimatedWeatherIconState();
+}
+
+class _AnimatedWeatherIconState extends State<_AnimatedWeatherIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+    _scale = Tween<double>(begin: 0.98, end: 1.02).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    _opacity = Tween<double>(begin: 0.78, end: 0.92).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (AtlasMotion.reduceMotionOf(context)) {
+      return Icon(
+        widget.icon,
+        size: 64,
+        color: theme.colorScheme.primary.withValues(alpha: 0.8),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacity.value,
+          child: Transform.scale(
+            scale: _scale.value,
+            child: child,
+          ),
+        );
+      },
+      child: Icon(
+        widget.icon,
+        size: 64,
+        color: theme.colorScheme.primary.withValues(alpha: 0.85),
+      ),
     );
   }
 }
