@@ -7,9 +7,8 @@ import 'place_record_mapper.dart';
 
 /// Lecture Supabase des lieux publiés.
 class SupabasePlaceRepository implements EditorialRemoteCatalog<PlaceGuide> {
-  const SupabasePlaceRepository({
-    SupabaseClient? Function()? clientProvider,
-  }) : _clientProvider = clientProvider ?? SupabaseBootstrap.clientOrNull;
+  const SupabasePlaceRepository({SupabaseClient? Function()? clientProvider})
+    : _clientProvider = clientProvider ?? SupabaseBootstrap.clientOrNull;
 
   final SupabaseClient? Function()? _clientProvider;
 

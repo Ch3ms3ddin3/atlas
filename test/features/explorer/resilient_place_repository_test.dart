@@ -67,6 +67,50 @@ void main() {
       );
     });
 
+    test('mappe image primaire et image_urls vers PlaceGuide.imageUrls', () {
+      final guide = PlaceRecordMapper.fromRow({
+        'slug': 'place-majorelle',
+        'name': 'Jardin Majorelle',
+        'city_name': 'Marrakech',
+        'category': 'Jardin',
+        'category_label': 'Jardin & culture',
+        'neighborhood': 'Guéliz',
+        'price_level': '€€',
+        'summary': 'Jardin mythique',
+        'image': 'https://cdn.example/cover.webp',
+        'image_urls': [
+          'https://cdn.example/cover.webp',
+          'https://cdn.example/gallery-1.webp',
+        ],
+      });
+
+      expect(guide.category, PlaceCategory.jardin);
+      expect(guide.primaryImageUrl, 'https://cdn.example/cover.webp');
+      expect(guide.imageUrls, [
+        'https://cdn.example/cover.webp',
+        'https://cdn.example/gallery-1.webp',
+      ]);
+    });
+
+    test('accepte category FR et image seule sans image_urls', () {
+      final guide = PlaceRecordMapper.tryFromRow({
+        'slug': 'place-ysl',
+        'name': 'Musée YSL',
+        'city_name': 'Marrakech',
+        'category': 'Musée',
+        'category_label': 'Musée',
+        'neighborhood': 'Guéliz',
+        'price_level': '€€€',
+        'summary': 'Musée',
+        'image': 'https://cdn.example/ysl.jpg',
+      });
+
+      expect(guide, isNotNull);
+      expect(guide!.category, PlaceCategory.musee);
+      expect(guide.primaryImageUrl, 'https://cdn.example/ysl.jpg');
+      expect(guide.hasPrimaryImage, isTrue);
+    });
+
     test('tolère les optionnels absents', () {
       final guide = PlaceRecordMapper.tryFromRow(const {
         'slug': 'place-minimal',
@@ -108,11 +152,7 @@ void main() {
       final repository = ResilientPlaceRepository(
         local: LocalPlaceRepository(),
         fetchRemote: () async => [
-          _guide(
-            id: 'remote-place',
-            name: 'Lieu distant',
-            isEditorsPick: true,
-          ),
+          _guide(id: 'remote-place', name: 'Lieu distant', isEditorsPick: true),
         ],
       );
 
@@ -154,40 +194,38 @@ void main() {
       );
     });
 
-    test('ignore les lignes distantes malformées sans casser le catalogue', () async {
-      final repository = ResilientPlaceRepository(
-        local: LocalPlaceRepository(),
-        fetchRemote: () async {
-          // Simule le filtre côté SupabasePlaceRepository (tryFromRow).
-          final rows = [
-            <String, dynamic>{
-              'slug': 'place-valid-remote',
-              'name': 'Valide',
-              'city_name': 'Marrakech',
-              'category': 'jardin',
-              'category_label': 'Jardin',
-              'neighborhood': 'Guéliz',
-              'price_level': 'Payant',
-              'summary': 'OK',
-              'is_editors_pick': true,
-            },
-            <String, dynamic>{
-              'slug': '',
-              'name': 'Invalide',
-            },
-          ];
-          return [
-            for (final row in rows) ?PlaceRecordMapper.tryFromRow(row),
-          ];
-        },
-      );
+    test(
+      'ignore les lignes distantes malformées sans casser le catalogue',
+      () async {
+        final repository = ResilientPlaceRepository(
+          local: LocalPlaceRepository(),
+          fetchRemote: () async {
+            // Simule le filtre côté SupabasePlaceRepository (tryFromRow).
+            final rows = [
+              <String, dynamic>{
+                'slug': 'place-valid-remote',
+                'name': 'Valide',
+                'city_name': 'Marrakech',
+                'category': 'jardin',
+                'category_label': 'Jardin',
+                'neighborhood': 'Guéliz',
+                'price_level': 'Payant',
+                'summary': 'OK',
+                'is_editors_pick': true,
+              },
+              <String, dynamic>{'slug': '', 'name': 'Invalide'},
+            ];
+            return [for (final row in rows) ?PlaceRecordMapper.tryFromRow(row)];
+          },
+        );
 
-      await repository.warmUp();
+        await repository.warmUp();
 
-      expect(repository.loadState, EditorialCatalogLoadState.success);
-      expect(repository.findById('place-valid-remote'), isNotNull);
-      expect(repository.getAll().length, 1);
-    });
+        expect(repository.loadState, EditorialCatalogLoadState.success);
+        expect(repository.findById('place-valid-remote'), isNotNull);
+        expect(repository.getAll().length, 1);
+      },
+    );
 
     test('rafraîchit après le démarrage : local puis distant', () async {
       final gate = Completer<void>();
@@ -225,69 +263,71 @@ void main() {
       expect(notified, isTrue);
     });
 
-    test('conserve recherche, filtre catégorie et navigation par slug', () async {
-      final repository = ResilientPlaceRepository(
-        local: LocalPlaceRepository(),
-        fetchRemote: () async => PlaceCatalog.guides,
-      );
+    test(
+      'conserve recherche, filtre catégorie et navigation par slug',
+      () async {
+        final repository = ResilientPlaceRepository(
+          local: LocalPlaceRepository(),
+          fetchRemote: () async => PlaceCatalog.guides,
+        );
 
-      await repository.warmUp();
+        await repository.warmUp();
 
-      final filtered = repository.search(
-        const PlaceSearchQuery(
-          cityName: 'Marrakech',
-          category: PlaceCategory.jardin,
-          text: 'majorelle',
-        ),
-      );
-
-      expect(filtered.any((place) => place.id == 'place-majorelle'), isTrue);
-      expect(
-        filtered.every((place) => place.category == PlaceCategory.jardin),
-        isTrue,
-      );
-
-      // Slugs stables pour favoris / signalements / deep links.
-      expect(repository.findById('place-majorelle'), isNotNull);
-      expect(repository.findById('place-oudayas'), isNotNull);
-      expect(repository.categories, PlaceCategory.values);
-    });
-
-    test('Home getFeatured utilise le catalogue distant après refresh', () async {
-      final repository = ResilientPlaceRepository(
-        local: LocalPlaceRepository(),
-        fetchRemote: () async => [
-          _guide(
-            id: 'place-featured-a',
-            name: 'Sélection A',
+        final filtered = repository.search(
+          const PlaceSearchQuery(
             cityName: 'Marrakech',
-            isEditorsPick: true,
+            category: PlaceCategory.jardin,
+            text: 'majorelle',
           ),
-          _guide(
-            id: 'place-featured-b',
-            name: 'Sélection B',
-            cityName: 'Marrakech',
-            isEditorsPick: true,
-          ),
-          _guide(
-            id: 'place-other',
-            name: 'Autre',
-            cityName: 'Marrakech',
-          ),
-        ],
-      );
+        );
 
-      final localFeatured = repository.getFeatured(cityName: 'Marrakech');
-      expect(localFeatured, isNotEmpty);
+        expect(filtered.any((place) => place.id == 'place-majorelle'), isTrue);
+        expect(
+          filtered.every((place) => place.category == PlaceCategory.jardin),
+          isTrue,
+        );
 
-      await repository.warmUp();
+        // Slugs stables pour favoris / signalements / deep links.
+        expect(repository.findById('place-majorelle'), isNotNull);
+        expect(repository.findById('place-oudayas'), isNotNull);
+        expect(repository.categories, PlaceCategory.values);
+      },
+    );
 
-      final remoteFeatured = repository.getFeatured(cityName: 'Marrakech');
-      expect(remoteFeatured.map((place) => place.id), [
-        'place-featured-a',
-        'place-featured-b',
-      ]);
-    });
+    test(
+      'Home getFeatured utilise le catalogue distant après refresh',
+      () async {
+        final repository = ResilientPlaceRepository(
+          local: LocalPlaceRepository(),
+          fetchRemote: () async => [
+            _guide(
+              id: 'place-featured-a',
+              name: 'Sélection A',
+              cityName: 'Marrakech',
+              isEditorsPick: true,
+            ),
+            _guide(
+              id: 'place-featured-b',
+              name: 'Sélection B',
+              cityName: 'Marrakech',
+              isEditorsPick: true,
+            ),
+            _guide(id: 'place-other', name: 'Autre', cityName: 'Marrakech'),
+          ],
+        );
+
+        final localFeatured = repository.getFeatured(cityName: 'Marrakech');
+        expect(localFeatured, isNotEmpty);
+
+        await repository.warmUp();
+
+        final remoteFeatured = repository.getFeatured(cityName: 'Marrakech');
+        expect(remoteFeatured.map((place) => place.id), [
+          'place-featured-a',
+          'place-featured-b',
+        ]);
+      },
+    );
 
     test('après échec distant, recherche et filtres restent locaux', () async {
       final repository = ResilientPlaceRepository(

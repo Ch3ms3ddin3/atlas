@@ -21,44 +21,42 @@ class AtlasFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AnimatedScale(
-      scale: isSelected ? 1.04 : 1,
-      duration: AtlasMotion.contentSwapDuration,
-      curve: AtlasMotion.curveDefault,
-      child: FilterChip(
-        label: AnimatedDefaultTextStyle(
-          duration: AtlasMotion.contentSwapDuration,
-          curve: AtlasMotion.curveDefault,
-          style: (theme.textTheme.labelMedium ?? const TextStyle()).copyWith(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-          child: Text(label),
-        ),
-        selected: isSelected,
-        onSelected: (_) {
-          AtlasHaptics.selection();
-          onTap();
-        },
-        showCheckmark: false,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AtlasSpacing.md,
-          vertical: AtlasSpacing.sm,
-        ),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        selectedColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.55),
-        backgroundColor: theme.colorScheme.surface,
-        side: BorderSide(
+    return FilterChip(
+      label: AnimatedDefaultTextStyle(
+        duration: AtlasMotion.contentSwapDuration,
+        curve: AtlasMotion.curveDefault,
+        style: (theme.textTheme.labelMedium ?? const TextStyle()).copyWith(
           color: isSelected
-              ? theme.colorScheme.primary.withValues(alpha: 0.4)
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.85),
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurfaceVariant,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          letterSpacing: -0.1,
+          height: 1.1,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        child: Text(label, softWrap: false, overflow: TextOverflow.visible),
       ),
+      selected: isSelected,
+      onSelected: (_) {
+        AtlasHaptics.selection();
+        onTap();
+      },
+      showCheckmark: false,
+      // Empêche Material d’ellipser le libellé dans une rangée scrollable.
+      labelPadding: const EdgeInsets.symmetric(horizontal: AtlasSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AtlasSpacing.sm,
+        vertical: AtlasSpacing.sm,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      selectedColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.55),
+      backgroundColor: theme.colorScheme.surface,
+      side: BorderSide(
+        color: isSelected
+            ? theme.colorScheme.primary.withValues(alpha: 0.4)
+            : theme.colorScheme.outlineVariant.withValues(alpha: 0.85),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

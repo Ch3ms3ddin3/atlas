@@ -32,10 +32,7 @@ enum PlaceSort {
 
 /// Créneau horaire d'un jour — uniquement si fourni par le catalogue.
 class PlaceHoursEntry {
-  const PlaceHoursEntry({
-    required this.dayLabel,
-    required this.hoursLabel,
-  });
+  const PlaceHoursEntry({required this.dayLabel, required this.hoursLabel});
 
   final String dayLabel;
   final String hoursLabel;
@@ -43,10 +40,7 @@ class PlaceHoursEntry {
 
 /// Horaires d'ouverture structurés — absents tant que non publiés.
 class PlaceOpeningHours {
-  const PlaceOpeningHours({
-    this.entries = const [],
-    this.note,
-  });
+  const PlaceOpeningHours({this.entries = const [], this.note});
 
   final List<PlaceHoursEntry> entries;
   final String? note;
@@ -109,7 +103,8 @@ class PlaceGuide {
   final String? website;
   final String? email;
 
-  /// URLs d'images distantes — galerie masquée si vide.
+  /// URLs d'images distantes — index 0 = image primaire (cartes / hero).
+  /// Galerie masquée si vide. Aucune URL inventée côté client.
   final List<String> imageUrls;
   final List<String> amenities;
   final List<String> accessibilityFeatures;
@@ -125,7 +120,18 @@ class PlaceGuide {
 
   bool get hasEmail => email != null && email!.trim().isNotEmpty;
 
-  bool get hasGallery => imageUrls.isNotEmpty;
+  /// Première URL non vide, ou `null` si aucune photo publiée.
+  String? get primaryImageUrl {
+    for (final url in imageUrls) {
+      final trimmed = url.trim();
+      if (trimmed.isNotEmpty) return trimmed;
+    }
+    return null;
+  }
+
+  bool get hasGallery => imageUrls.any((url) => url.trim().isNotEmpty);
+
+  bool get hasPrimaryImage => primaryImageUrl != null;
 
   bool get hasAmenities => amenities.isNotEmpty;
 

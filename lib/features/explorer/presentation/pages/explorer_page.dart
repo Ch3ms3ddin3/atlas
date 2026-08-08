@@ -325,7 +325,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Future<void> _onRefresh() async {
     final repository = _repository;
     if (repository is ResilientPlaceRepository) {
-      // warmUp is idempotent after first call — re-apply filters + location.
+      // Réessaie le distant après erreur/timeout (warmUp rejouable).
+      await repository.warmUp();
       await _resolveLocation();
     } else {
       await _resolveLocation();

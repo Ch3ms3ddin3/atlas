@@ -6,16 +6,17 @@ import 'place_detail_section.dart';
 
 /// Galerie d'images — uniquement si des URLs réelles sont fournies.
 class PlaceGallerySection extends StatelessWidget {
-  const PlaceGallerySection({
-    super.key,
-    required this.imageUrls,
-  });
+  const PlaceGallerySection({super.key, required this.imageUrls});
 
   final List<String> imageUrls;
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrls.isEmpty) return const SizedBox.shrink();
+    final urls = imageUrls
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty)
+        .toList(growable: false);
+    if (urls.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -25,10 +26,10 @@ class PlaceGallerySection extends StatelessWidget {
           height: 168,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: imageUrls.length,
+            itemCount: urls.length,
             separatorBuilder: (_, _) => const SizedBox(width: AtlasSpacing.md),
             itemBuilder: (context, index) {
-              final url = imageUrls[index];
+              final url = urls[index];
               return AspectRatio(
                 aspectRatio: 4 / 3,
                 child: AtlasNetworkImage(url: url),

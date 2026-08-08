@@ -63,11 +63,7 @@ void main() {
       isEditorsPick: true,
       imageColor: const Color(0xFF2D6A4F),
       summary: 'Une description éditoriale longue pour la fiche premium.',
-      practicalTips: practicalTips ??
-          const [
-            'Conseil un',
-            'Conseil deux',
-          ],
+      practicalTips: practicalTips ?? const ['Conseil un', 'Conseil deux'],
       bestTimeToVisit: 'Le matin',
       address: address,
       latitude: latitude,
@@ -97,6 +93,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AtlasTheme.light,
+        builder: (context, child) {
+          final media = MediaQuery.of(context);
+          return MediaQuery(
+            data: media.copyWith(disableAnimations: true),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         home: ContentReportsScope(
           repository: contentReports,
           child: FavoritesScope(
@@ -110,7 +113,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
   }
 
   testWidgets('affiche hero, description et conseils du catalogue', (

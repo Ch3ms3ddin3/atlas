@@ -319,6 +319,8 @@ Admin step-by-step guides. Arrays: `documents`, `steps`.
 ### `places`
 
 Curated places. `image_color` as `#RRGGBB` hex.  
+Optional `image` text — primary cover URL (Supabase Storage).  
+Optional `image_urls text[]` — gallery; client maps `[image?, ...image_urls]` with dedupe.  
 Optional `latitude` / `longitude` — Atlas Map shows markers **only** when both are set (never invents coordinates).
 
 ### `events`

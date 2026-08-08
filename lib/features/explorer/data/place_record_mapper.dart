@@ -33,11 +33,7 @@ abstract final class PlaceRecordMapper {
       return null;
     }
 
-    final categoryName = row['category'] as String?;
-    final category = PlaceCategory.values.firstWhere(
-      (value) => value.name == categoryName,
-      orElse: () => PlaceCategory.monument,
-    );
+    final category = _parseCategory(row['category'], categoryLabel);
 
     return PlaceGuide(
       id: slug,
@@ -59,11 +55,75 @@ abstract final class PlaceRecordMapper {
       phone: _optionalString(row['phone']),
       website: _optionalString(row['website']),
       email: _optionalString(row['email']),
-      imageUrls: _readStringList(row['image_urls']),
+      imageUrls: _readImageUrls(row),
       amenities: _readStringList(row['amenities']),
       accessibilityFeatures: _readStringList(row['accessibility_features']),
       openingHours: _readOpeningHours(row['opening_hours']),
     );
+  }
+
+  /// Catégorie tolérante : enum Dart, casse, libellés FR, préfixes.
+  static PlaceCategory _parseCategory(dynamic raw, String categoryLabel) {
+    PlaceCategory? fromToken(String? value) {
+      if (value == null) return null;
+      final normalized = _normalizeToken(value);
+      if (normalized.isEmpty) return null;
+
+      for (final category in PlaceCategory.values) {
+        if (category.name == normalized) return category;
+      }
+      for (final category in PlaceCategory.values) {
+        if (normalized.startsWith(category.name)) return category;
+      }
+
+      return switch (normalized) {
+        'garden' || 'jardins' => PlaceCategory.jardin,
+        'museum' || 'museums' || 'musees' => PlaceCategory.musee,
+        'beach' || 'plages' => PlaceCategory.plage,
+        'cafe' || 'cafes' || 'coffee' => PlaceCategory.cafe,
+        'restaurants' => PlaceCategory.restaurant,
+        'monuments' => PlaceCategory.monument,
+        'souks' => PlaceCategory.souk,
+        'hammams' => PlaceCategory.hammam,
+        _ => null,
+      };
+    }
+
+    return fromToken(raw is String ? raw : null) ??
+        fromToken(categoryLabel) ??
+        PlaceCategory.monument;
+  }
+
+  static String _normalizeToken(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll('é', 'e')
+        .replaceAll('è', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ù', 'u')
+        .replaceAll('û', 'u')
+        .replaceAll('ô', 'o')
+        .replaceAll('î', 'i')
+        .replaceAll('ï', 'i')
+        .replaceAll('ç', 'c');
+  }
+
+  /// Image primaire (`image`) puis galerie (`image_urls`), sans doublons.
+  static List<String> _readImageUrls(Map<String, dynamic> row) {
+    final urls = <String>[];
+    final primary = _optionalString(row['image']);
+    if (primary != null) {
+      urls.add(primary);
+    }
+    for (final url in _readStringList(row['image_urls'])) {
+      if (!urls.contains(url)) {
+        urls.add(url);
+      }
+    }
+    return List<String>.unmodifiable(urls);
   }
 
   static String? _requiredString(dynamic value) {

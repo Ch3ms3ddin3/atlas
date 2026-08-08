@@ -17,10 +17,11 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
     Future<List<PlaceGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
   }) : _catalog = ResilientEditorialCatalog<PlaceGuide>(
-          localItems: (local ?? LocalPlaceRepository()).items,
-          fetchRemote: fetchRemote ?? const SupabasePlaceRepository().fetchAll,
-          fetchTimeout: fetchTimeout,
-        ) {
+         localItems: (local ?? LocalPlaceRepository()).items,
+         fetchRemote: fetchRemote ?? const SupabasePlaceRepository().fetchAll,
+         // Réseau mobile réel : le health check a déjà dépassé 5s sur device.
+         fetchTimeout: fetchTimeout ?? const Duration(seconds: 15),
+       ) {
     _catalog.addListener(_onCatalogChanged);
   }
 
@@ -59,9 +60,9 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
 
   @override
   List<PlaceGuide> getFeatured({String? cityName, int limit = 2}) {
-    final places = getAll(cityName: cityName)
-        .where((place) => place.isEditorsPick)
-        .toList();
+    final places = getAll(
+      cityName: cityName,
+    ).where((place) => place.isEditorsPick).toList();
 
     if (places.length >= limit) {
       return places.take(limit).toList();
@@ -89,9 +90,7 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
   bool isCityCovered(String? cityName) {
     if (cityName == null || cityName.trim().isEmpty) return true;
     final normalized = cityName.trim().toLowerCase();
-    return _source.any(
-      (guide) => guide.cityName.toLowerCase() == normalized,
-    );
+    return _source.any((guide) => guide.cityName.toLowerCase() == normalized);
   }
 
   @override

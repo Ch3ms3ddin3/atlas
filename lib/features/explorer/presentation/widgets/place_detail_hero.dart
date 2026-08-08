@@ -5,9 +5,9 @@ import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../favorites/domain/favorite_entity_type.dart';
 import '../../../favorites/presentation/widgets/favorite_toggle_button.dart';
 import '../../domain/models/place_models.dart';
-import 'place_category_icon.dart';
+import 'place_cover_image.dart';
 
-/// Hero premium d'une fiche lieu — couleur éditoriale, meta et actions.
+/// Hero premium d'une fiche lieu — image primaire + meta et actions.
 class PlaceDetailHero extends StatelessWidget {
   const PlaceDetailHero({
     super.key,
@@ -18,19 +18,29 @@ class PlaceDetailHero extends StatelessWidget {
   final PlaceGuide place;
   final VoidCallback onReport;
 
+  static const double _height = 240;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final radius = BorderRadius.circular(AtlasSpacing.cardRadius);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AtlasSpacing.cardRadius),
+      borderRadius: radius,
       child: SizedBox(
-        height: 240,
+        height: _height,
         width: double.infinity,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ColoredBox(color: place.imageColor),
+            PlaceCoverImage(
+              place: place,
+              height: _height,
+              borderRadius: BorderRadius.zero,
+              fallbackColorOpacity: 1,
+              fallbackIconOpacity: 0.28,
+              fallbackIconSize: 64,
+            ),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -41,13 +51,6 @@ class PlaceDetailHero extends StatelessWidget {
                     Colors.black.withValues(alpha: 0.55),
                   ],
                 ),
-              ),
-            ),
-            Center(
-              child: Icon(
-                placeCategoryIcon(place.category),
-                size: 64,
-                color: Colors.white.withValues(alpha: 0.28),
               ),
             ),
             Positioned(
@@ -120,10 +123,7 @@ class PlaceDetailHero extends StatelessWidget {
 }
 
 class _HeroChip extends StatelessWidget {
-  const _HeroChip({
-    required this.label,
-    this.emphasized = false,
-  });
+  const _HeroChip({required this.label, this.emphasized = false});
 
   final String label;
   final bool emphasized;
@@ -142,9 +142,7 @@ class _HeroChip extends StatelessWidget {
             ? AtlasColors.terracotta.withValues(alpha: 0.92)
             : Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,

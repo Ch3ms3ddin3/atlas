@@ -11,14 +11,14 @@ import 'editorial_remote_catalog.dart';
 /// 2. `warmUp` passe en `loading` puis tente le distant (timeout) ;
 /// 3. succès non vide → cache distant (`success`) ;
 /// 4. distant vide → local inchangé (`stale`) ;
-/// 5. échec / timeout → local inchangé (`error`).
+/// 5. échec / timeout → local inchangé (`error`) — un nouvel appel peut réessayer.
 class ResilientEditorialCatalog<T> extends ChangeNotifier {
   ResilientEditorialCatalog({
     required List<T> localItems,
     required this._fetchRemote,
     Duration? fetchTimeout,
-  })  : _localItems = List<T>.unmodifiable(localItems),
-        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5);
+  }) : _localItems = List<T>.unmodifiable(localItems),
+       _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5);
 
   /// Construit depuis les contrats locaux / distants partagés.
   factory ResilientEditorialCatalog.fromSources({
@@ -54,10 +54,14 @@ class ResilientEditorialCatalog<T> extends ChangeNotifier {
   /// Source effective : distant si disponible, sinon local.
   List<T> get items => _remoteCache ?? _localItems;
 
-  /// Précharge le distant une seule fois. Les écouteurs sont notifiés
-  /// à chaque changement d'état (et donc au passage local → distant).
+  /// Précharge le distant. Idempotent après succès/stale ; réessaie après erreur.
   Future<void> warmUp() async {
-    if (_warmUpStarted) return;
+    if (_loadState == EditorialCatalogLoadState.loading) return;
+    if (_remoteCache != null) return;
+    if (_warmUpStarted && _loadState != EditorialCatalogLoadState.error) {
+      return;
+    }
+
     _warmUpStarted = true;
     _lastError = null;
     _setLoadState(EditorialCatalogLoadState.loading);
@@ -72,7 +76,6 @@ class ResilientEditorialCatalog<T> extends ChangeNotifier {
       _setLoadState(EditorialCatalogLoadState.stale);
     } catch (error) {
       _lastError = error;
-      // Repli silencieux sur le catalogue local.
       _setLoadState(EditorialCatalogLoadState.error);
     }
   }

@@ -222,13 +222,15 @@ class _MetaItem extends StatelessWidget {
           color: iconColor ?? theme.colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: AtlasSpacing.xs),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            letterSpacing: -0.1,
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: -0.1,
+            ),
           ),
         ),
       ],
