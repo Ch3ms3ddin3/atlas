@@ -443,6 +443,158 @@ void main() {
       );
     });
   });
+
+  group('P0 Explorer catalog ↔ Supabase representation', () {
+    /// Slugs stables — doivent rester alignés avec Favorites (`entity_slug`).
+    const expectedSlugs = <String>{
+      'place-majorelle',
+      'place-bahia',
+      'place-jemaa-el-fna',
+      'place-ysl-museum',
+      'place-hammam-marrakech',
+      'place-hassan-ii',
+      'place-corniche',
+      'place-marche-central',
+      'place-musee-judaisme',
+      'place-habous',
+      'place-tour-hassan',
+      'place-oudayas',
+      'place-chellah',
+      'place-musee-rabat',
+      'place-plage-rabat',
+    };
+
+    test('catalogue local : 15 slugs stables, uniques, sans nouveau lieu', () {
+      final ids = PlaceCatalog.guides.map((place) => place.id).toList();
+      expect(ids.toSet(), expectedSlugs);
+      expect(ids.toSet().length, ids.length);
+      expect(ids, hasLength(15));
+    });
+
+    test(
+      'chaque lieu local est représentable par le schéma Supabase (mapper)',
+      () {
+        for (final place in PlaceCatalog.guides) {
+          final row = _supabaseRowFromGuide(place);
+          final mapped = PlaceRecordMapper.tryFromRow(row);
+          expect(mapped, isNotNull, reason: place.id);
+          expect(mapped!.id, place.id);
+          expect(mapped.name, place.name);
+          expect(mapped.cityName, place.cityName);
+          expect(mapped.category, place.category);
+          expect(mapped.categoryLabel, place.categoryLabel);
+          expect(mapped.neighborhood, place.neighborhood);
+          expect(mapped.priceLevel, place.priceLevel);
+          expect(mapped.isEditorsPick, place.isEditorsPick);
+          expect(mapped.summary, place.summary);
+          expect(mapped.practicalTips, place.practicalTips);
+          expect(mapped.bestTimeToVisit, place.bestTimeToVisit);
+          expect(mapped.mapsUrl, place.mapsUrl);
+          expect(mapped.latitude, place.latitude);
+          expect(mapped.longitude, place.longitude);
+          expect(mapped.imageUrls, place.imageUrls);
+        }
+      },
+    );
+
+    test(
+      'distant partiel (majorelle seul) : merge conserve le catalogue complet',
+      () async {
+        final local = LocalPlaceRepository();
+        final localIds = local.items.map((place) => place.id).toSet();
+        expect(localIds, expectedSlugs);
+
+        final remoteMajorelle = PlaceRecordMapper.fromRow(
+          _supabaseRowFromGuide(
+            PlaceCatalog.guides.firstWhere((p) => p.id == 'place-majorelle'),
+          )..['name'] = 'Jardin Majorelle (Supabase)',
+        );
+
+        final repository = ResilientPlaceRepository(
+          local: local,
+          fetchRemote: () async => [remoteMajorelle],
+        );
+
+        await repository.warmUp();
+
+        expect(repository.loadState, EditorialCatalogLoadState.success);
+        expect(repository.isUsingRemote, isTrue);
+        expect(
+          repository.findById('place-majorelle')!.name,
+          'Jardin Majorelle (Supabase)',
+        );
+
+        // getAll() sans ville se résout sur Marrakech — le catalogue
+        // fusionné complet se vérifie par slug (toutes villes).
+        for (final id in expectedSlugs) {
+          expect(repository.findById(id), isNotNull, reason: id);
+        }
+        expect(
+          {
+            for (final city in ['Marrakech', 'Casablanca', 'Rabat'])
+              ...repository.getAll(cityName: city).map((place) => place.id),
+          },
+          expectedSlugs,
+        );
+      },
+    );
+
+    test(
+      'mergeRemoteOverLocal : distant partiel ne retire aucun lieu local',
+      () {
+        final local = PlaceCatalog.guides;
+        final remote = [
+          PlaceRecordMapper.fromRow(
+            _supabaseRowFromGuide(local.first)
+              ..['name'] = 'Override distant',
+          ),
+        ];
+
+        final merged = ResilientPlaceRepository.mergeRemoteOverLocal(
+          local: local,
+          remote: remote,
+        );
+
+        expect(merged.map((place) => place.id).toSet(), expectedSlugs);
+        expect(merged.where((place) => place.id == local.first.id).single.name,
+            'Override distant');
+        expect(merged.length, local.length);
+      },
+    );
+  });
+}
+
+/// Ligne Supabase synthétique alignée sur `places` (00002 + 00006 + 00013).
+Map<String, dynamic> _supabaseRowFromGuide(PlaceGuide place) {
+  final color =
+      '#${place.imageColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+  return <String, dynamic>{
+    'slug': place.id,
+    'name': place.name,
+    'city_name': place.cityName,
+    'category': place.category.name,
+    'category_label': place.categoryLabel,
+    'neighborhood': place.neighborhood,
+    'price_level': place.priceLevel,
+    'is_editors_pick': place.isEditorsPick,
+    'image_color': color,
+    'summary': place.summary,
+    'practical_tips': place.practicalTips,
+    'best_time_to_visit': place.bestTimeToVisit,
+    'maps_url': place.mapsUrl,
+    'address': place.address,
+    'latitude': place.latitude,
+    'longitude': place.longitude,
+    'phone': place.phone,
+    'website': place.website,
+    'email': place.email,
+    'image_urls': place.imageUrls,
+    'amenities': place.amenities,
+    'accessibility_features': place.accessibilityFeatures,
+    'opening_hours': null,
+    'image': place.primaryImageUrl,
+    'is_published': true,
+  };
 }
 
 PlaceGuide _guide({
