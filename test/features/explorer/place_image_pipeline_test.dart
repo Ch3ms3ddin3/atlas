@@ -146,6 +146,7 @@ void main() {
     expect(find.byType(PlaceCoverImage), findsOneWidget);
     expect(find.byType(PlaceImageFallback), findsOneWidget);
     expect(find.text('Lieu Test'), findsOneWidget);
+    expect(find.text('Gueliz · Marrakech'), findsOneWidget);
     expect(find.byTooltip('Signaler un problème'), findsOneWidget);
   });
 }

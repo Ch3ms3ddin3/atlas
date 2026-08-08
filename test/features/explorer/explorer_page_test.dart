@@ -11,6 +11,7 @@ import 'package:atlas/features/explorer/data/resilient_place_repository.dart';
 import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/explorer/domain/place_repository.dart';
 import 'package:atlas/features/explorer/presentation/pages/explorer_page.dart';
+import 'package:atlas/features/explorer/presentation/pages/place_detail_page.dart';
 import 'package:atlas/features/explorer/presentation/widgets/place_catalog_status_indicator.dart';
 import 'package:atlas/features/explorer/presentation/widgets/place_guide_card.dart';
 import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
@@ -77,7 +78,10 @@ void main() {
     expect(find.text('✨ Sélection Atlas'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Tanger'), findsOneWidget);
-    expect(find.text('Contenu bientôt disponible pour cette ville.'), findsNothing);
+    expect(
+      find.text('Contenu bientôt disponible pour cette ville.'),
+      findsNothing,
+    );
   });
 
   testWidgets('ville sans contenu affiche empty state premium', (tester) async {
@@ -148,10 +152,13 @@ void main() {
   testWidgets('carte ouvre le détail au tap', (tester) async {
     await pumpExplorer(tester);
 
-    await tester.tap(find.text('Jardin Majorelle'));
+    await tester.tap(find.text('Jardin Majorelle').first);
     await tester.pumpAndSettle();
 
+    expect(find.byType(PlaceDetailPage), findsOneWidget);
     expect(find.text('Conseils pratiques'), findsOneWidget);
+    expect(find.byTooltip('Retour'), findsOneWidget);
+    expect(find.text('Gueliz · Marrakech'), findsOneWidget);
   });
 
   testWidgets('indicateur catalogue visible seulement en stale/error', (
@@ -223,9 +230,6 @@ void main() {
     await pumpExplorer(tester, profile: profile);
 
     expect(find.text('Jardin Majorelle'), findsNothing);
-    expect(
-      find.textContaining('Contenu bientôt disponible'),
-      findsWidgets,
-    );
+    expect(find.textContaining('Contenu bientôt disponible'), findsWidgets);
   });
 }

@@ -128,9 +128,11 @@ void main() {
 
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Jardin'), findsOneWidget);
-    expect(find.text('Marrakech'), findsWidgets);
+    expect(find.text('Gueliz · Marrakech'), findsOneWidget);
+    expect(find.text('Sélection Atlas'), findsOneWidget);
     expect(find.textContaining('Jardin botanique'), findsOneWidget);
     expect(find.text('Conseils pratiques'), findsOneWidget);
+    expect(find.byTooltip('Retour'), findsOneWidget);
     expect(find.byTooltip('Ajouter aux favoris'), findsOneWidget);
     expect(find.byTooltip('Signaler un problème'), findsOneWidget);
   });
@@ -175,7 +177,10 @@ void main() {
         phone: '+212524313047',
         website: 'https://www.jardinmajorelle.com',
         email: 'info@example.com',
-        imageUrls: const ['https://cdn.example/photo.jpg'],
+        imageUrls: const [
+          'https://cdn.example/photo.jpg',
+          'https://cdn.example/gallery-2.jpg',
+        ],
         amenities: const ['Wifi'],
         accessibilityFeatures: const ['Accès fauteuil'],
         openingHours: const PlaceOpeningHours(
@@ -204,6 +209,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(opened, isNotEmpty);
     expect(opened.first.toString(), contains('31.6416'));
+  });
+
+  testWidgets('masque la galerie quand seule l\'image primaire existe', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      place: basePlace(imageUrls: const ['https://cdn.example/cover.jpg']),
+    );
+
+    expect(find.text('Galerie'), findsNothing);
+    expect(find.text('Lieu Test'), findsOneWidget);
   });
 
   testWidgets('soumet un signalement depuis le hero', (tester) async {
