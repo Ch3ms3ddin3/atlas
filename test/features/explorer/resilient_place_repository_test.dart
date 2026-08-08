@@ -148,20 +148,107 @@ void main() {
       expect(repository.findById('place-majorelle'), isNotNull);
     });
 
-    test('charge avec succès les données distantes', () async {
-      final repository = ResilientPlaceRepository(
-        local: LocalPlaceRepository(),
-        fetchRemote: () async => [
-          _guide(id: 'remote-place', name: 'Lieu distant', isEditorsPick: true),
-        ],
+    test(
+      'charge avec succès les données distantes fusionnées au local',
+      () async {
+        final localIds = LocalPlaceRepository().items
+            .map((place) => place.id)
+            .toSet();
+        final repository = ResilientPlaceRepository(
+          local: LocalPlaceRepository(),
+          fetchRemote: () async => [
+            _guide(
+              id: 'remote-place',
+              name: 'Lieu distant',
+              isEditorsPick: true,
+            ),
+          ],
+        );
+
+        await repository.warmUp();
+
+        expect(repository.loadState, EditorialCatalogLoadState.success);
+        expect(repository.isUsingRemote, isTrue);
+        expect(repository.findById('remote-place')?.name, 'Lieu distant');
+        // Lieux locaux conservés — le distant partiel ne remplace pas le catalogue.
+        for (final id in localIds) {
+          expect(repository.findById(id), isNotNull, reason: 'local id $id');
+        }
+      },
+    );
+
+    test(
+      'fusion : distant override le même id, local-only conservé, sans doublon',
+      () async {
+        final local = LocalPlaceRepository();
+        final localIds = local.items.map((place) => place.id).toSet();
+        final repository = ResilientPlaceRepository(
+          local: local,
+          fetchRemote: () async => [
+            _guide(
+              id: 'place-majorelle',
+              name: 'Majorelle (Supabase)',
+              category: PlaceCategory.jardin,
+              categoryLabel: 'Jardin',
+              isEditorsPick: true,
+            ),
+            _guide(id: 'remote-only', name: 'Nouveau distant'),
+          ],
+        );
+
+        await repository.warmUp();
+
+        expect(repository.loadState, EditorialCatalogLoadState.success);
+        expect(
+          repository.findById('place-majorelle')!.name,
+          'Majorelle (Supabase)',
+        );
+        expect(repository.findById('place-bahia'), isNotNull);
+        expect(repository.findById('remote-only'), isNotNull);
+
+        for (final id in localIds) {
+          expect(repository.findById(id), isNotNull, reason: 'local id $id');
+        }
+
+        final marrakechIds = repository
+            .getAll(cityName: 'Marrakech')
+            .map((place) => place.id)
+            .toList();
+        expect(marrakechIds.toSet().length, marrakechIds.length);
+        expect(marrakechIds.where((id) => id == 'place-majorelle').length, 1);
+      },
+    );
+
+    test('fusion pure : override id, conserve local-only, aucun doublon', () {
+      final local = [
+        _guide(id: 'a', name: 'Local A'),
+        _guide(id: 'b', name: 'Local B'),
+      ];
+      final remote = [
+        _guide(id: 'a', name: 'Remote A'),
+        _guide(id: 'c', name: 'Remote C'),
+      ];
+
+      final merged = ResilientPlaceRepository.mergeRemoteOverLocal(
+        local: local,
+        remote: remote,
       );
 
-      await repository.warmUp();
+      expect(merged.map((place) => place.id), ['a', 'b', 'c']);
+      expect(merged.map((place) => place.name), [
+        'Remote A',
+        'Local B',
+        'Remote C',
+      ]);
+      expect(merged.map((place) => place.id).toSet().length, merged.length);
+    });
 
-      expect(repository.loadState, EditorialCatalogLoadState.success);
-      expect(repository.isUsingRemote, isTrue);
-      expect(repository.findById('remote-place')?.name, 'Lieu distant');
-      expect(repository.findById('place-majorelle'), isNull);
+    test('distant vide ne déclenche pas de fusion (repli local via stale)', () {
+      final merged = ResilientPlaceRepository.mergeRemoteOverLocal(
+        local: [_guide(id: 'a', name: 'Local A')],
+        remote: const [],
+      );
+      expect(merged, isEmpty);
     });
 
     test('retombe sur le local en error si le distant échoue', () async {
@@ -223,7 +310,9 @@ void main() {
 
         expect(repository.loadState, EditorialCatalogLoadState.success);
         expect(repository.findById('place-valid-remote'), isNotNull);
-        expect(repository.getAll().length, 1);
+        expect(repository.findById('place-majorelle'), isNotNull);
+        expect(repository.findById('place-hassan-ii'), isNotNull);
+        expect(repository.findById('place-oudayas'), isNotNull);
       },
     );
 
@@ -260,6 +349,7 @@ void main() {
 
       expect(repository.loadState, EditorialCatalogLoadState.success);
       expect(repository.findById('place-majorelle')!.name, 'Majorelle (cloud)');
+      expect(repository.findById('place-bahia'), isNotNull);
       expect(notified, isTrue);
     });
 
@@ -295,7 +385,7 @@ void main() {
     );
 
     test(
-      'Home getFeatured utilise le catalogue distant après refresh',
+      'Home getFeatured voit les sélections distantes après fusion',
       () async {
         final repository = ResilientPlaceRepository(
           local: LocalPlaceRepository(),
@@ -321,11 +411,16 @@ void main() {
 
         await repository.warmUp();
 
-        final remoteFeatured = repository.getFeatured(cityName: 'Marrakech');
-        expect(remoteFeatured.map((place) => place.id), [
-          'place-featured-a',
-          'place-featured-b',
-        ]);
+        expect(repository.findById('place-featured-a'), isNotNull);
+        expect(repository.findById('place-featured-b'), isNotNull);
+        // Catalogue local toujours présent après distant partiel.
+        expect(repository.findById('place-majorelle'), isNotNull);
+        final featuredIds = repository
+            .getFeatured(cityName: 'Marrakech', limit: 20)
+            .map((place) => place.id)
+            .toSet();
+        expect(featuredIds.contains('place-featured-a'), isTrue);
+        expect(featuredIds.contains('place-featured-b'), isTrue);
       },
     );
 

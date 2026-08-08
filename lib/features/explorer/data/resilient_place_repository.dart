@@ -11,21 +11,69 @@ import 'supabase_place_repository.dart';
 /// Lieux : local immédiat, puis refresh Supabase via [ResilientEditorialCatalog].
 ///
 /// Les slugs (`PlaceGuide.id`) restent stables pour favoris et signalements.
+/// Un distant non vide est fusionné au local par `id` (distant prioritaire),
+/// sans jamais effacer les lieux locaux absents du remote.
 class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
   ResilientPlaceRepository({
     LocalPlaceRepository? local,
     Future<List<PlaceGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
-  }) : _catalog = ResilientEditorialCatalog<PlaceGuide>(
-         localItems: (local ?? LocalPlaceRepository()).items,
+  }) : this._fromItems(
+         localItems: List<PlaceGuide>.unmodifiable(
+           (local ?? LocalPlaceRepository()).items,
+         ),
          fetchRemote: fetchRemote ?? const SupabasePlaceRepository().fetchAll,
-         // Réseau mobile réel : le health check a déjà dépassé 5s sur device.
          fetchTimeout: fetchTimeout ?? const Duration(seconds: 15),
+       );
+
+  ResilientPlaceRepository._fromItems({
+    required List<PlaceGuide> localItems,
+    required Future<List<PlaceGuide>> Function() fetchRemote,
+    required Duration fetchTimeout,
+  }) : _catalog = ResilientEditorialCatalog<PlaceGuide>(
+         localItems: localItems,
+         fetchRemote: () async {
+           final remote = await fetchRemote();
+           return mergeRemoteOverLocal(local: localItems, remote: remote);
+         },
+         fetchTimeout: fetchTimeout,
        ) {
     _catalog.addListener(_onCatalogChanged);
   }
 
   final ResilientEditorialCatalog<PlaceGuide> _catalog;
+
+  /// Fusionne [remote] sur [local] par `PlaceGuide.id`.
+  ///
+  /// - distant vide → liste vide (le catalogue reste en repli local) ;
+  /// - même id → version distante ;
+  /// - id local seul → conservé ;
+  /// - id distant seul → ajouté ;
+  /// - aucun doublon.
+  @visibleForTesting
+  static List<PlaceGuide> mergeRemoteOverLocal({
+    required List<PlaceGuide> local,
+    required List<PlaceGuide> remote,
+  }) {
+    if (remote.isEmpty) return remote;
+
+    final remoteById = <String, PlaceGuide>{
+      for (final place in remote) place.id: place,
+    };
+    final seen = <String>{};
+    final merged = <PlaceGuide>[];
+
+    for (final localPlace in local) {
+      merged.add(remoteById[localPlace.id] ?? localPlace);
+      seen.add(localPlace.id);
+    }
+    for (final remotePlace in remote) {
+      if (seen.add(remotePlace.id)) {
+        merged.add(remotePlace);
+      }
+    }
+    return merged;
+  }
 
   /// État exposé par l'abstraction éditoriale partagée.
   EditorialCatalogLoadState get loadState => _catalog.loadState;
@@ -33,7 +81,7 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
   /// Dernière erreur distante, si [loadState] est [EditorialCatalogLoadState.error].
   Object? get lastError => _catalog.lastError;
 
-  /// `true` lorsque les données affichées viennent de Supabase.
+  /// `true` lorsque le cache distant (fusionné) est actif.
   bool get isUsingRemote => _catalog.isUsingRemote;
 
   List<PlaceGuide> get _source => _catalog.items;
