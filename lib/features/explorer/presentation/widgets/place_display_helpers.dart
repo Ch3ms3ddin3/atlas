@@ -1,6 +1,6 @@
 import '../../domain/models/place_models.dart';
 
-/// Libellés d'affichage dérivés du catalogue — sans données inventées côté API.
+/// Libellés d'affichage dérivés du catalogue — sans scores inventés.
 abstract final class PlaceDisplayHelpers {
   static String visitDuration(PlaceGuide place) {
     for (final tip in place.practicalTips) {
@@ -8,7 +8,9 @@ abstract final class PlaceDisplayHelpers {
       if (!lower.startsWith('prévoyez') && !lower.startsWith('comptez')) {
         continue;
       }
-      if (lower.contains('1h30') || lower.contains('1 h 30') || lower.contains('1h à 1h30')) {
+      if (lower.contains('1h30') ||
+          lower.contains('1 h 30') ||
+          lower.contains('1h à 1h30')) {
         return '1h30';
       }
       if (lower.contains('2h') || lower.contains('2 h')) return '2h';
@@ -27,19 +29,10 @@ abstract final class PlaceDisplayHelpers {
     };
   }
 
-  static String ratingLabel(PlaceGuide place) {
-    if (place.isEditorsPick) return '4.9';
-    return switch (place.category) {
-      PlaceCategory.jardin => '4.8',
-      PlaceCategory.monument => '4.7',
-      PlaceCategory.restaurant => '4.6',
-      PlaceCategory.cafe => '4.5',
-      PlaceCategory.musee => '4.7',
-      PlaceCategory.hammam => '4.6',
-      PlaceCategory.plage => '4.5',
-      PlaceCategory.souk => '4.8',
-    };
+  /// Quartier éditorial — jamais une distance GPS calculée.
+  static String neighborhoodLabel(PlaceGuide place) {
+    final name = place.neighborhood.trim();
+    if (name.isEmpty) return place.cityName;
+    return name;
   }
-
-  static String distanceLabel(PlaceGuide place) => place.neighborhood;
 }

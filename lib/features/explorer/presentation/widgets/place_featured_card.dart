@@ -28,7 +28,6 @@ class PlaceFeaturedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final duration = PlaceDisplayHelpers.visitDuration(place);
-    final rating = PlaceDisplayHelpers.ratingLabel(place);
 
     return Semantics(
       button: true,
@@ -158,13 +157,12 @@ class PlaceFeaturedCard extends StatelessWidget {
                           label: place.bestTimeToVisit!,
                         ),
                       _MetaItem(
-                        icon: Icons.star_rounded,
-                        label: rating,
-                        iconColor: AtlasColors.subtleGold,
-                      ),
-                      _MetaItem(
                         icon: Icons.payments_outlined,
                         label: place.priceLevel,
+                      ),
+                      _MetaItem(
+                        icon: Icons.place_outlined,
+                        label: PlaceDisplayHelpers.neighborhoodLabel(place),
                       ),
                     ],
                   ),
@@ -203,11 +201,10 @@ class PlaceFeaturedCard extends StatelessWidget {
 }
 
 class _MetaItem extends StatelessWidget {
-  const _MetaItem({required this.icon, required this.label, this.iconColor});
+  const _MetaItem({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +216,7 @@ class _MetaItem extends StatelessWidget {
         Icon(
           icon,
           size: 16,
-          color: iconColor ?? theme.colorScheme.onSurfaceVariant,
+          color: theme.colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: AtlasSpacing.xs),
         Flexible(

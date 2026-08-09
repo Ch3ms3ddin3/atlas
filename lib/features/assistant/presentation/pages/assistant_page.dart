@@ -8,11 +8,13 @@ import '../../../../design_system/widgets/atlas_card.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
+import '../../../itineraries/presentation/itinerary_scope.dart';
 import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
 import '../../domain/assistant_repository.dart';
+import '../assistant_page_wrapper.dart';
 import '../assistant_scope.dart';
 import '../widgets/assistant_message_bubble.dart';
 import '../widgets/assistant_quick_actions_row.dart';
@@ -23,8 +25,23 @@ class AssistantPage extends StatefulWidget {
   const AssistantPage({super.key});
 
   static Future<void> open(BuildContext context) {
+    // Scopes vivent sous AppShell ; un push hors du shell les perd.
+    final assistant = AssistantScope.read(context);
+    final profile = ProfileScope.read(context);
+    final itinerary = ItineraryScope.read(context);
+    final navigateToTab =
+        ShellNavigationScope.maybeOf(context)?.navigateToTab ?? (_) {};
     return Navigator.of(context).push(
-      AtlasPageRoute(page: const AssistantPage()),
+      AtlasPageRoute(
+        page: const AssistantPage(),
+        wrapPage: (child) => wrapWithAssistantRouteScopes(
+          assistantRepository: assistant,
+          profileRepository: profile,
+          itineraryRepository: itinerary,
+          navigateToTab: navigateToTab,
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -241,9 +258,7 @@ class _AssistantPageState extends State<AssistantPage> {
                         ? conversation.title!
                         : 'Conversation',
                   ),
-                  subtitle: Text(
-                    '${conversation.messages.length} messages',
-                  ),
+                  subtitle: Text('${conversation.messages.length} messages'),
                   selected: conversation.id == repository.activeConversation.id,
                   onTap: () {
                     repository.openConversation(conversation.id);
@@ -307,7 +322,9 @@ class _ComposerBar extends StatelessWidget {
                     minLines: 1,
                     maxLines: 4,
                     textInputAction: TextInputAction.send,
-                    onSubmitted: enabled && !isStreaming ? (_) => onSend() : null,
+                    onSubmitted: enabled && !isStreaming
+                        ? (_) => onSend()
+                        : null,
                     decoration: const InputDecoration(
                       hintText: 'Demander à Atlas…',
                       border: OutlineInputBorder(),

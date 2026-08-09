@@ -16,11 +16,11 @@ class ResilientPriceIntelligenceRepository
     Future<List<PriceObservation>> Function()? fetchRemote,
     Duration? fetchTimeout,
     List<PriceObservation>? seedItems,
-  })  : _cacheStore = cacheStore ?? const PriceIntelligenceCacheStore(),
-        _fetchRemote =
-            fetchRemote ?? const SupabasePriceIntelligenceRepository().fetchAll,
-        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5),
-        _items = List<PriceObservation>.unmodifiable(seedItems ?? const []);
+  }) : _cacheStore = cacheStore ?? const PriceIntelligenceCacheStore(),
+       _fetchRemote =
+           fetchRemote ?? const SupabasePriceIntelligenceRepository().fetchAll,
+       _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5),
+       _items = List<PriceObservation>.unmodifiable(seedItems ?? const []);
 
   final PriceIntelligenceCacheStore _cacheStore;
   final Future<List<PriceObservation>> Function() _fetchRemote;
@@ -123,16 +123,20 @@ class ResilientPriceIntelligenceRepository
   @override
   List<String> get availableCities {
     // Ne pas exposer le sentinel national comme puce de ville.
-    final cities = _items
-        .where((e) => !e.isNational)
-        .map((e) => e.cityName)
-        .toSet()
-        .toList()
-      ..sort();
+    final cities =
+        _items
+            .where((e) => !e.isNational)
+            .map((e) => e.cityName)
+            .toSet()
+            .toList()
+          ..sort();
     return cities;
   }
 
   @override
-  List<PriceIntelligenceCategory> get categories =>
-      PriceIntelligenceCategory.values;
+  List<PriceIntelligenceCategory> get categories {
+    final present = _items.map((e) => e.category).toSet().toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+    return present;
+  }
 }

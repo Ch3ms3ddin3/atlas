@@ -7,7 +7,18 @@ void main() {
   test('visitDuration dérive des conseils pratiques ou de la catégorie', () {
     final majorelle = PlaceCatalog.guides.first;
     expect(PlaceDisplayHelpers.visitDuration(majorelle), '1h30');
-    expect(PlaceDisplayHelpers.ratingLabel(majorelle), '4.9');
-    expect(PlaceDisplayHelpers.distanceLabel(majorelle), 'Gueliz');
+  });
+
+  test('neighborhoodLabel returns editorial quartier, not a distance', () {
+    final majorelle = PlaceCatalog.guides.first;
+    expect(PlaceDisplayHelpers.neighborhoodLabel(majorelle), 'Gueliz');
+    expect(
+      PlaceDisplayHelpers.neighborhoodLabel(majorelle),
+      isNot(contains('km')),
+    );
+    expect(
+      PlaceDisplayHelpers.neighborhoodLabel(majorelle),
+      isNot(contains('min')),
+    );
   });
 }

@@ -79,20 +79,32 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
   }
 
   List<AtlasEvent> get _filtered {
+    final available = _availableCategories;
+    final category = available.contains(_category) ? _category : null;
     return _repository.search(
       EventSearchQuery(
         cityName: _city,
-        category: _category,
+        category: category,
         includeNational: true,
         from: EventQuery.calendarDay(EventQuery.casablancaNow()),
       ),
     );
   }
 
+  List<EventCategory> get _availableCategories {
+    final cats = _repository.getAll().map((e) => e.category).toSet().toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+    return cats;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final events = _filtered;
+    final availableCategories = _availableCategories;
+    final selectedCategory = availableCategories.contains(_category)
+        ? _category
+        : null;
     final width = MediaQuery.sizeOf(context).width;
     final isWide = width >= 840;
 
@@ -117,17 +129,18 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
                           const AtlasPageHeader(
                             title: 'Agenda',
                             subtitle:
-                                'Dates utiles pour résidents, MRE et voyageurs.',
+                                'Fêtes nationales civiles sourcées — '
+                                'pas un calendrier festivals complet.',
                             footnote:
-                                'Fêtes civiles nationales sourcées. '
-                                'Festivals et dates religieuses uniquement '
-                                'lorsqu\'elles sont publiées et sourcées — '
-                                'jamais inventées.',
+                                'Inventaire actuel : jours fériés nationaux. '
+                                'Autres catégories uniquement si publiées '
+                                'et sourcées — jamais inventées.',
                           ),
                           const SizedBox(height: AtlasSpacing.xl),
                           EventFiltersBar(
-                            selectedCategory: _category,
+                            selectedCategory: selectedCategory,
                             selectedCity: _city,
+                            availableCategories: availableCategories,
                             onCategorySelected: (value) =>
                                 setState(() => _category = value),
                             onCitySelected: (value) =>
@@ -147,17 +160,18 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
                     const AtlasPageHeader(
                       title: 'Agenda Maroc',
                       subtitle:
-                          'Dates utiles pour résidents, MRE et voyageurs.',
+                          'Fêtes nationales civiles sourcées — '
+                          'pas un calendrier festivals complet.',
                       footnote:
-                          'Fêtes civiles nationales sourcées. '
-                          'Festivals et dates religieuses uniquement '
-                          'lorsqu\'elles sont publiées et sourcées — '
-                          'jamais inventées.',
+                          'Inventaire actuel : jours fériés nationaux. '
+                          'Autres catégories uniquement si publiées '
+                          'et sourcées — jamais inventées.',
                     ),
                     const SizedBox(height: AtlasSpacing.xl),
                     EventFiltersBar(
-                      selectedCategory: _category,
+                      selectedCategory: selectedCategory,
                       selectedCity: _city,
+                      availableCategories: availableCategories,
                       onCategorySelected: (value) =>
                           setState(() => _category = value),
                       onCitySelected: (value) => setState(() => _city = value),

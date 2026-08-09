@@ -611,7 +611,7 @@ class _EventsEntryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AtlasSpacing.xs),
                 Text(
-                  'Fêtes nationales et dates utiles sourcées — sans contenu inventé.',
+                  'Fêtes nationales sourcées — pas un calendrier festivals complet.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AtlasColors.midnightBlueMuted,
                   ),

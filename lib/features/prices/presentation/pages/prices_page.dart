@@ -113,7 +113,8 @@ class _PricesPageState extends State<PricesPage> {
   }
 
   Future<void> _resolveLocation() async {
-    final preferredCity = _profileRepository?.profile.preferredCity ??
+    final preferredCity =
+        _profileRepository?.profile.preferredCity ??
         UserProfile.defaultPreferredCity;
     final location = await _locationRepository.resolveLocation(
       preferredCityName: preferredCity,
@@ -127,6 +128,10 @@ class _PricesPageState extends State<PricesPage> {
 
   void _applyFilters({bool notify = true}) {
     void update() {
+      final available = _repository.categories;
+      if (_selectedCategory != null && !available.contains(_selectedCategory)) {
+        _selectedCategory = null;
+      }
       _items = _repository.search(
         PriceIntelligenceQuery(
           text: _searchController.text,
@@ -155,7 +160,8 @@ class _PricesPageState extends State<PricesPage> {
     final width = MediaQuery.sizeOf(context).width;
     final isWide = width >= _wideBreakpoint;
     final cities = _repository.availableCities;
-    final showUnavailable = _loadState == EditorialCatalogLoadState.error &&
+    final showUnavailable =
+        _loadState == EditorialCatalogLoadState.error &&
         _items.isEmpty &&
         _repository.getAll().isEmpty;
 
@@ -175,8 +181,8 @@ class _PricesPageState extends State<PricesPage> {
                     AtlasPageHeader(
                       title: 'Prix',
                       subtitle:
-                          'Prix vérifiés au Maroc — carburant, courses, '
-                          'transport et plus.',
+                          'Prix vérifiés — transport, parking, forfaits '
+                          'mobile et internet. Aucune valeur inventée.',
                     ),
                     const SizedBox(height: AtlasSpacing.md),
                     PriceIntelligenceStatusIndicator(loadState: _loadState),
@@ -200,6 +206,7 @@ class _PricesPageState extends State<PricesPage> {
                     const SizedBox(height: AtlasSpacing.lg),
                     PriceIntelligenceCategoryFilter(
                       selectedCategory: _selectedCategory,
+                      availableCategories: _repository.categories,
                       onCategorySelected: (category) {
                         setState(() => _selectedCategory = category);
                         _applyFilters();
@@ -238,25 +245,24 @@ class _PricesPageState extends State<PricesPage> {
                 )
               else if (isWide)
                 SliverPadding(
-                  padding: const EdgeInsets.only(bottom: AtlasSpacing.sectionLarge),
+                  padding: const EdgeInsets.only(
+                    bottom: AtlasSpacing.sectionLarge,
+                  ),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: AtlasSpacing.lg,
-                      crossAxisSpacing: AtlasSpacing.lg,
-                      childAspectRatio: 1.55,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final item = _items[index];
-                        return PriceObservationCard(
-                          observation: item,
-                          onTap: () => _openObservation(item),
-                        );
-                      },
-                      childCount: _items.length,
-                    ),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: AtlasSpacing.lg,
+                          crossAxisSpacing: AtlasSpacing.lg,
+                          childAspectRatio: 1.55,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final item = _items[index];
+                      return PriceObservationCard(
+                        observation: item,
+                        onTap: () => _openObservation(item),
+                      );
+                    }, childCount: _items.length),
                   ),
                 )
               else
@@ -283,8 +289,8 @@ class _PricesPageState extends State<PricesPage> {
   }
 
   String get _emptyMessage {
-    final hasFilters = _searchController.text.trim().isNotEmpty ||
-        _selectedCategory != null;
+    final hasFilters =
+        _searchController.text.trim().isNotEmpty || _selectedCategory != null;
     if (hasFilters) {
       return 'Aucun prix vérifié ne correspond à ces filtres.';
     }

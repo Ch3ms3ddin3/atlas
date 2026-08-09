@@ -9,6 +9,7 @@ import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../domain/itinerary_repository.dart';
 import '../../domain/models/trip.dart';
+import '../itinerary_page_wrapper.dart';
 import '../itinerary_scope.dart';
 import '../widgets/trip_create_sheet.dart';
 import 'trip_detail_page.dart';
@@ -17,8 +18,12 @@ class TripListPage extends StatefulWidget {
   const TripListPage({super.key});
 
   static Future<void> open(BuildContext context) {
+    final repository = ItineraryScope.read(context);
     return Navigator.of(context).push(
-      AtlasPageRoute(page: const TripListPage()),
+      AtlasPageRoute(
+        page: const TripListPage(),
+        wrapPage: (child) => wrapWithItineraryScope(repository, child),
+      ),
     );
   }
 
@@ -56,9 +61,9 @@ class _TripListPageState extends State<TripListPage> {
   Future<void> _create() async {
     final id = await TripCreateSheet.show(context);
     if (!mounted || id == null) return;
-    await Navigator.of(context).push(
-      AtlasPageRoute(page: TripDetailPage(tripId: id)),
-    );
+    await Navigator.of(
+      context,
+    ).push(AtlasPageRoute(page: TripDetailPage(tripId: id)));
   }
 
   @override
@@ -122,9 +127,7 @@ class _TripListPageState extends State<TripListPage> {
                     trip: trip,
                     onOpen: () {
                       Navigator.of(context).push(
-                        AtlasPageRoute(
-                          page: TripDetailPage(tripId: trip.id),
-                        ),
+                        AtlasPageRoute(page: TripDetailPage(tripId: trip.id)),
                       );
                     },
                     onDelete: () => repo.deleteTrip(trip.id),

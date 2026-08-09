@@ -27,10 +27,7 @@ void main() {
       MaterialApp(
         theme: AtlasTheme.light,
         home: const Scaffold(
-          body: HomeEventsSections(
-            todayEvents: [],
-            upcomingEvents: [],
-          ),
+          body: HomeEventsSections(todayEvents: [], upcomingEvents: []),
         ),
       ),
     );
@@ -85,9 +82,7 @@ void main() {
   testWidgets('agenda liste les fériés locaux', (tester) async {
     EventRepository.registerFactory(
       () => ResilientEventRepository(
-        local: LocalEventRepository(
-          nowProvider: () => DateTime(2026, 7, 17),
-        ),
+        local: LocalEventRepository(nowProvider: () => DateTime(2026, 7, 17)),
         fetchRemote: () async => throw Exception('offline'),
       ),
     );
@@ -96,14 +91,16 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: AtlasTheme.light,
-        home: const EventsCalendarPage(),
-      ),
+      MaterialApp(theme: AtlasTheme.light, home: const EventsCalendarPage()),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Agenda Maroc'), findsWidgets);
+    expect(
+      find.textContaining('pas un calendrier festivals complet'),
+      findsWidgets,
+    );
+    expect(find.text('Festivals culturels'), findsNothing);
     expect(find.byType(EventListTileCard), findsWidgets);
     expect(find.text('Hors ligne'), findsOneWidget);
   });
@@ -112,9 +109,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: EventReliabilityChip(
-            reliability: EventReliability.estimated,
-          ),
+          body: EventReliabilityChip(reliability: EventReliability.estimated),
         ),
       ),
     );

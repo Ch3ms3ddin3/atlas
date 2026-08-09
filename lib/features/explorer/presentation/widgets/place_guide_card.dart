@@ -30,7 +30,6 @@ class PlaceGuideCard extends StatelessWidget {
     final theme = Theme.of(context);
     final mediaHeight = compact ? 120.0 : 140.0;
     final duration = PlaceDisplayHelpers.visitDuration(place);
-    final rating = PlaceDisplayHelpers.ratingLabel(place);
 
     return Semantics(
       button: true,
@@ -137,15 +136,10 @@ class PlaceGuideCard extends StatelessWidget {
                         label: place.priceLevel,
                       ),
                       _ChipMeta(icon: Icons.schedule_outlined, label: duration),
-                      _ChipMeta(
-                        icon: Icons.star_rounded,
-                        label: rating,
-                        iconColor: AtlasColors.subtleGold,
-                      ),
                       if (!compact)
                         _ChipMeta(
-                          icon: Icons.near_me_outlined,
-                          label: PlaceDisplayHelpers.distanceLabel(place),
+                          icon: Icons.place_outlined,
+                          label: PlaceDisplayHelpers.neighborhoodLabel(place),
                         ),
                     ],
                   ),
@@ -160,11 +154,10 @@ class PlaceGuideCard extends StatelessWidget {
 }
 
 class _ChipMeta extends StatelessWidget {
-  const _ChipMeta({required this.icon, required this.label, this.iconColor});
+  const _ChipMeta({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +169,7 @@ class _ChipMeta extends StatelessWidget {
         Icon(
           icon,
           size: 14,
-          color: iconColor ?? theme.colorScheme.onSurfaceVariant,
+          color: theme.colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: AtlasSpacing.xs),
         Text(
