@@ -143,8 +143,10 @@ void main() {
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Pour vous'), findsOneWidget);
-    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
+    expect(find.textContaining('Circulation'), findsNothing);
+    expect(find.textContaining('férié listé'), findsNothing);
+    expect(find.text('il y a 5 min'), findsNothing);
     expect(find.text('Explorer'), findsWidgets);
     expect(find.text('Carte'), findsWidgets);
     expect(find.text('Démarches'), findsWidgets);
@@ -158,15 +160,11 @@ void main() {
     final profile = LocalProfileRepository();
     final favorites = LocalFavoritesRepository();
 
-    await pumpHomeDashboard(
-      tester,
-      profile: profile,
-      favorites: favorites,
-    );
+    await pumpHomeDashboard(tester, profile: profile, favorites: favorites);
 
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.text('Mes favoris'), findsNothing);
-    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
     expect(find.text('Urgences'), findsNothing);
   });
 
@@ -176,15 +174,9 @@ void main() {
     final profile = LocalProfileRepository();
     final favorites = LocalFavoritesRepository();
     await profile.load();
-    await profile.save(
-      UserProfile.defaults.copyWith(firstName: 'Salma'),
-    );
+    await profile.save(UserProfile.defaults.copyWith(firstName: 'Salma'));
 
-    await pumpHomeDashboard(
-      tester,
-      profile: profile,
-      favorites: favorites,
-    );
+    await pumpHomeDashboard(tester, profile: profile, favorites: favorites);
 
     expect(find.text('Bonjour Salma 👋'), findsOneWidget);
     expect(find.text('Bonjour Voyageur 👋'), findsNothing);
@@ -219,15 +211,13 @@ void main() {
     );
 
     expect(find.text('Mes favoris'), findsNothing);
-    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
   });
 
   testWidgets('no recommendations: Recommandations section is hidden', (
     WidgetTester tester,
   ) async {
-    PlaceRepository.registerFactory(
-      () => _EmptyFeaturedPlaceRepository(),
-    );
+    PlaceRepository.registerFactory(() => _EmptyFeaturedPlaceRepository());
 
     await pumpHomeDashboard(
       tester,
@@ -237,9 +227,8 @@ void main() {
 
     expect(find.text('Recommandations'), findsNothing);
     expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
-    expect(find.text('Pour vous'), findsOneWidget);
-    // Contextual Pour vous tip may mention Majorelle — not the old carousel.
-    expect(find.textContaining('Majorelle'), findsWidgets);
+    expect(find.text('Pour vous'), findsNothing);
+    expect(find.textContaining('Majorelle'), findsNothing);
   });
 
   testWidgets('offline APIs: Home still renders without invented weather', (
@@ -258,8 +247,9 @@ void main() {
     expect(find.text('Taux indisponible'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsNothing);
     expect(find.textContaining('données estimées'), findsNothing);
+    expect(find.textContaining('Circulation'), findsNothing);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Pour vous'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
   });
 
   testWidgets('empty remote catalogs: local fallback keeps Home usable', (
@@ -306,8 +296,8 @@ void main() {
       favorites: LocalFavoritesRepository(),
     );
 
-    expect(find.text('Pour vous'), findsOneWidget);
-    expect(find.textContaining('Majorelle'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
+    expect(find.textContaining('Majorelle'), findsNothing);
     expect(find.text('Prix à la une'), findsNothing);
     expect(find.text('SP95 Marrakech'), findsNothing);
     expect(find.text('Démarches utiles'), findsNothing);
@@ -330,15 +320,13 @@ class _HomeTestAuthRepository extends AuthRepository {
   Future<AuthActionResult> signUp({
     required String email,
     required String password,
-  }) async =>
-      AuthActionResult.success();
+  }) async => AuthActionResult.success();
 
   @override
   Future<AuthActionResult> signIn({
     required String email,
     required String password,
-  }) async =>
-      AuthActionResult.success();
+  }) async => AuthActionResult.success();
 
   @override
   Future<AuthActionResult> signInWithApple() async =>
@@ -356,8 +344,7 @@ class _HomeTestAuthRepository extends AuthRepository {
   Future<AuthActionResult> signOut() async => AuthActionResult.success();
 
   @override
-  Future<AuthActionResult> deleteAccount() async =>
-      AuthActionResult.success();
+  Future<AuthActionResult> deleteAccount() async => AuthActionResult.success();
 }
 
 /// Place repository whose featured list is always empty (section must hide).

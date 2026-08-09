@@ -67,8 +67,8 @@ void main() {
     expect(find.text('Marrakech'), findsWidgets);
     expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
     expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Pour vous'), findsOneWidget);
-    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
+    expect(find.textContaining('Circulation'), findsNothing);
     expect(find.text('Météo indisponible'), findsWidgets);
     expect(find.text('Horaires indisponibles'), findsWidgets);
     expect(find.text('Taux indisponible'), findsWidgets);
@@ -87,10 +87,7 @@ void main() {
 
     await tapBottomNav(tester, 'Explorer');
 
-    expect(
-      find.textContaining('meilleurs lieux du Maroc'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsWidgets);
 
     await tapBottomNav(tester, 'Carte');
@@ -99,16 +96,16 @@ void main() {
 
     await tapBottomNav(tester, 'Démarches');
 
-    expect(find.text('Guides pas à pas pour vos démarches au Maroc.'), findsOneWidget);
+    expect(
+      find.text('Guides pas à pas pour vos démarches au Maroc.'),
+      findsOneWidget,
+    );
     expect(find.text('Renouveler la CIN'), findsOneWidget);
     expect(find.text('Carte de séjour'), findsOneWidget);
 
     await tapBottomNav(tester, 'Prix');
 
-    expect(
-      find.textContaining('Prix vérifiés au Maroc'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Prix vérifiés au Maroc'), findsOneWidget);
     expect(find.text('SP95 Marrakech'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('Taxi Airport Marrakech'),
@@ -120,10 +117,7 @@ void main() {
 
     await tapBottomNav(tester, 'Profil');
 
-    expect(
-      find.textContaining('Identité, synchronisation'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Identité, synchronisation'), findsOneWidget);
     expect(find.text('Enregistrer'), findsOneWidget);
 
     await tapBottomNav(tester, 'Accueil');
@@ -148,21 +142,16 @@ void main() {
     expect(find.text('Explorer'), findsWidgets);
     expect(find.text('Carte'), findsWidgets);
     expect(find.text('Prix'), findsWidgets);
-    expect(find.text('Pour vous'), findsOneWidget);
-    expect(find.textContaining('Majorelle'), findsOneWidget);
-    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Pour vous'), findsNothing);
+    expect(find.textContaining('Majorelle'), findsNothing);
+    expect(find.textContaining('Circulation'), findsNothing);
+    expect(find.text('il y a 5 min'), findsNothing);
     expect(find.text('Mes favoris'), findsNothing);
     expect(find.text('Démarches utiles'), findsNothing);
     expect(find.text('Prix à la une'), findsNothing);
-    expect(
-      find.textContaining('Toutes les données mises à jour'),
-      findsWidgets,
-    );
   });
 
-  testWidgets('Un repère de prix ouvre le détail', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('Un repère de prix ouvre le détail', (WidgetTester tester) async {
     await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
@@ -202,10 +191,7 @@ void main() {
     await tester.tap(explorerAction);
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining('meilleurs lieux du Maroc'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
 
     await tapBottomNav(tester, 'Accueil');
 

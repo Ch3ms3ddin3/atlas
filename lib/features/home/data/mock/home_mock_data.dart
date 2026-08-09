@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/home_models.dart';
 
-/// Données fictives pour le tableau de bord — remplacées par les APIs plus tard.
+/// Fixtures de test / legacy — ne pas utiliser pour peupler Home en production.
 abstract final class HomeMockData {
   static const greeting = GreetingData(
     userName: 'Voyageur',

@@ -1,41 +1,45 @@
 import 'package:atlas/design_system/theme/atlas_theme.dart';
+import 'package:atlas/features/home/data/daily_insight/daily_insight_builder.dart';
 import 'package:atlas/features/home/data/home_dashboard_catalog.dart';
-import 'package:atlas/features/home/data/pour_vous/pour_vous_builder.dart';
 import 'package:atlas/features/home/domain/models/home_models.dart';
+import 'package:atlas/features/home/presentation/widgets/daily_insight_section.dart';
 import 'package:atlas/features/home/presentation/widgets/greeting_header.dart';
-import 'package:atlas/features/home/presentation/widgets/pour_vous_section.dart';
 import 'package:atlas/features/home/presentation/widgets/quick_actions_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Pour vous shows title, detail and contextual icon', (
-    tester,
-  ) async {
+  testWidgets('Bon à savoir shows tip when data is present', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AtlasTheme.light,
         home: const Scaffold(
-          body: PourVousSection(
-            recommendations: [
-              PourVousRecommendation(
-                icon: Icons.park_outlined,
-                message:
-                    'Jardin Majorelle — réservez tôt si vous souhaitez y aller.',
-              ),
-            ],
+          body: DailyInsightSection(
+            data: DailyInsightData(
+              icon: Icons.wb_sunny_outlined,
+              message:
+                  'Chaleur intense — hydratez-vous et privilégiez l\'ombre.',
+            ),
           ),
         ),
       ),
     );
 
-    expect(find.text('Pour vous'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(
-      find.text('réservez tôt si vous souhaitez y aller.'),
-      findsOneWidget,
+    expect(find.text('Bon à savoir'), findsOneWidget);
+    expect(find.text('Chaleur intense'), findsOneWidget);
+    expect(find.text('hydratez-vous et privilégiez l\'ombre.'), findsOneWidget);
+    expect(find.byIcon(Icons.wb_sunny_outlined), findsOneWidget);
+  });
+
+  testWidgets('Bon à savoir hides when tip is null', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AtlasTheme.light,
+        home: const Scaffold(body: DailyInsightSection(data: null)),
+      ),
     );
-    expect(find.byIcon(Icons.park_outlined), findsOneWidget);
+
+    expect(find.text('Bon à savoir'), findsNothing);
   });
 
   testWidgets('quick actions keep Démarches fully visible on iPhone width', (
@@ -50,9 +54,7 @@ void main() {
         home: Scaffold(
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: QuickActionsGrid(
-              actions: HomeDashboardCatalog.quickActions,
-            ),
+            child: QuickActionsGrid(actions: HomeDashboardCatalog.quickActions),
           ),
         ),
       ),

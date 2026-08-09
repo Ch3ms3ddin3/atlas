@@ -2,7 +2,6 @@ import '../../../events/domain/models/atlas_event.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 import '../../domain/models/weather_snapshot.dart';
-import '../prayer/prayer_mapper.dart';
 
 /// Identifiant d'action optionnel pour une ligne du briefing.
 enum MorningBriefAction { events }
@@ -44,6 +43,8 @@ class MorningBriefData {
 }
 
 /// Compose le briefing à partir des snapshots live — jamais de données inventées.
+///
+/// Pas de circulation mock. Agenda affiché seulement s'il y a des dates listées.
 class MorningBriefBuilder {
   const MorningBriefBuilder();
 
@@ -54,25 +55,26 @@ class MorningBriefBuilder {
     required ExchangeRateSnapshot exchangeRateSnapshot,
     required List<AtlasEvent> todayEvents,
   }) {
-    final anyLoading =
+    // Weather + prayer gate the brief; FX may still be loading as its own line.
+    final coreLoading =
         weatherSnapshot.state == WeatherLoadState.loading ||
-        prayerSnapshot.state == PrayerLoadState.loading ||
-        exchangeRateSnapshot.state == ExchangeRateLoadState.loading;
+        prayerSnapshot.state == PrayerLoadState.loading;
 
-    if (anyLoading) {
+    if (coreLoading) {
       return MorningBriefData.loading(cityName: cityName);
     }
 
-    return MorningBriefData(
-      title: 'Aujourd\'hui à $cityName',
-      lines: [
-        _weatherLine(weatherSnapshot),
-        _prayerLine(prayerSnapshot),
-        _exchangeLine(exchangeRateSnapshot),
-        _trafficLine(),
-        _eventsLine(todayEvents),
-      ],
-    );
+    final lines = <MorningBriefLine>[
+      _weatherLine(weatherSnapshot),
+      _prayerLine(prayerSnapshot),
+      _exchangeLine(exchangeRateSnapshot),
+    ];
+    final eventsLine = _eventsLine(todayEvents);
+    if (eventsLine != null) {
+      lines.add(eventsLine);
+    }
+
+    return MorningBriefData(title: 'Aujourd\'hui à $cityName', lines: lines);
   }
 
   MorningBriefLine _weatherLine(WeatherSnapshot snapshot) {
@@ -98,6 +100,10 @@ class MorningBriefBuilder {
 
   MorningBriefLine _exchangeLine(ExchangeRateSnapshot snapshot) {
     return switch (snapshot.state) {
+      ExchangeRateLoadState.loading => const MorningBriefLine(
+        emoji: '💶',
+        text: 'Taux en cours…',
+      ),
       ExchangeRateLoadState.success ||
       ExchangeRateLoadState.stale => MorningBriefLine(
         emoji: '💶',
@@ -108,26 +114,9 @@ class MorningBriefBuilder {
     };
   }
 
-  /// Circulation — mock intelligent en attendant une source fiable.
-  MorningBriefLine _trafficLine() {
-    final hour = PrayerMapper.casablancaNow().hour;
-    if (hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19) {
-      return const MorningBriefLine(
-        emoji: '🚦',
-        text: 'Circulation dense aux heures de pointe',
-      );
-    }
-    return const MorningBriefLine(emoji: '🚦', text: 'Circulation fluide');
-  }
-
-  MorningBriefLine _eventsLine(List<AtlasEvent> todayEvents) {
-    if (todayEvents.isEmpty) {
-      return const MorningBriefLine(
-        emoji: '📅',
-        text: 'Agenda · aucun férié listé aujourd\'hui',
-        action: MorningBriefAction.events,
-      );
-    }
+  /// Agenda — affiché uniquement s'il y a au moins une date listée (pas de filler).
+  MorningBriefLine? _eventsLine(List<AtlasEvent> todayEvents) {
+    if (todayEvents.isEmpty) return null;
     if (todayEvents.length == 1) {
       return MorningBriefLine(
         emoji: '📅',

@@ -4,11 +4,8 @@ import 'package:atlas/core/datetime/last_updated_formatter.dart';
 
 void main() {
   group('LastUpdatedFormatter', () {
-    test('renvoie le libellé par défaut sans fetch', () {
-      expect(
-        LastUpdatedFormatter.format([]),
-        'Toutes les données mises à jour à l\'instant',
-      );
+    test('renvoie une chaîne vide sans fetch', () {
+      expect(LastUpdatedFormatter.format([]), isEmpty);
     });
 
     test('renvoie le délai depuis le fetch le plus récent', () {
