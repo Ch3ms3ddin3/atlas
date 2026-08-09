@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'price_models.dart';
+
 /// Catégories Price Intelligence v1.
 enum PriceIntelligenceCategory {
   fuel,
@@ -164,6 +166,9 @@ class PriceObservation {
   final PriceVerificationStatus verificationStatus;
   final int userReportsCount;
   final int? atlasScore;
+
+  /// Tarif national (sentinel [PriceNationalCity.name]), applicable à toute ville.
+  bool get isNational => cityName == PriceNationalCity.name;
 
   String get locationLabel {
     if (district == null || district!.trim().isEmpty) return cityName;

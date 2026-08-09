@@ -2,6 +2,7 @@ import 'package:atlas/core/editorial/editorial_catalog_load_state.dart';
 import 'package:atlas/features/prices/data/price_observation_mapper.dart';
 import 'package:atlas/features/prices/data/price_observation_query.dart';
 import 'package:atlas/features/prices/data/resilient_price_intelligence_repository.dart';
+import 'package:atlas/features/prices/domain/models/price_models.dart';
 import 'package:atlas/features/prices/domain/models/price_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -77,7 +78,14 @@ void main() {
         limit: 3,
       );
       expect(highlights.length, 3);
-      expect(highlights.every((e) => e.cityName == 'Marrakech'), isTrue);
+      expect(
+        highlights.every(
+          (e) =>
+              e.cityName == 'Marrakech' ||
+              e.cityName == PriceNationalCity.name,
+        ),
+        isTrue,
+      );
       final categories = highlights.map((e) => e.category).toSet();
       expect(categories.length, greaterThanOrEqualTo(2));
     });

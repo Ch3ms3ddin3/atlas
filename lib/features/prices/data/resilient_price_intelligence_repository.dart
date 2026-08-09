@@ -122,7 +122,13 @@ class ResilientPriceIntelligenceRepository
 
   @override
   List<String> get availableCities {
-    final cities = _items.map((e) => e.cityName).toSet().toList()..sort();
+    // Ne pas exposer le sentinel national comme puce de ville.
+    final cities = _items
+        .where((e) => !e.isNational)
+        .map((e) => e.cityName)
+        .toSet()
+        .toList()
+      ..sort();
     return cities;
   }
 

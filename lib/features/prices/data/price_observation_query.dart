@@ -1,7 +1,19 @@
+import '../domain/models/price_models.dart';
 import '../domain/models/price_observation.dart';
 
 /// Filtre, tri et highlights — sans inventer de données.
 abstract final class PriceObservationQuery {
+  /// Ville exacte **ou** observation nationale applicable.
+  ///
+  /// Les tarifs nationaux sont stockés une seule fois avec
+  /// [PriceNationalCity.name] ; le filtre Prix les inclut pour chaque ville.
+  static bool matchesCity(PriceObservation item, String? cityName) {
+    final city = cityName?.trim().toLowerCase();
+    if (city == null || city.isEmpty) return true;
+    if (item.isNational) return true;
+    return item.cityName.toLowerCase() == city;
+  }
+
   static PriceObservation? findById(
     String id, {
     required List<PriceObservation> source,
@@ -17,7 +29,6 @@ abstract final class PriceObservationQuery {
     required List<PriceObservation> source,
   }) {
     final text = query.text.trim().toLowerCase();
-    final city = query.cityName?.trim().toLowerCase();
 
     final filtered = source.where((item) {
       if (item.verificationStatus != PriceVerificationStatus.verified) {
@@ -26,9 +37,7 @@ abstract final class PriceObservationQuery {
       if (query.category != null && item.category != query.category) {
         return false;
       }
-      if (city != null && city.isNotEmpty) {
-        if (item.cityName.toLowerCase() != city) return false;
-      }
+      if (!matchesCity(item, query.cityName)) return false;
       if (text.isEmpty) return true;
       final haystack = [
         item.itemName,
@@ -78,16 +87,13 @@ abstract final class PriceObservationQuery {
     int limit = 5,
   }) {
     final capped = limit.clamp(3, 5);
-    final city = cityName?.trim().toLowerCase();
     final verified = source
         .where((e) => e.verificationStatus == PriceVerificationStatus.verified)
         .toList();
 
-    final forCity = city == null || city.isEmpty
-        ? verified
-        : verified
-            .where((e) => e.cityName.toLowerCase() == city)
-            .toList();
+    final forCity = verified
+        .where((e) => matchesCity(e, cityName))
+        .toList();
 
     final pool = forCity.isNotEmpty ? forCity : verified;
     if (pool.isEmpty) return const [];
