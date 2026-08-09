@@ -12,13 +12,25 @@ class AtScope extends InheritedNotifier<AtRepository> {
 
   static AtRepository of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AtScope>();
-    assert(scope != null, 'AtScope introuvable dans l\'arbre de widgets.');
-    return scope!.notifier!;
+    final repository = scope?.notifier;
+    if (repository == null) {
+      throw StateError(
+        'AtScope introuvable dans l\'arbre de widgets. '
+        'Utilisez wrapWithAtScope pour les routes poussées hors du shell.',
+      );
+    }
+    return repository;
   }
 
   static AtRepository read(BuildContext context) {
     final scope = context.getInheritedWidgetOfExactType<AtScope>();
-    assert(scope != null, 'AtScope introuvable dans l\'arbre de widgets.');
-    return scope!.notifier!;
+    final repository = scope?.notifier;
+    if (repository == null) {
+      throw StateError(
+        'AtScope introuvable dans l\'arbre de widgets. '
+        'Utilisez wrapWithAtScope pour les routes poussées hors du shell.',
+      );
+    }
+    return repository;
   }
 }

@@ -16,31 +16,21 @@ import '../widgets/event_list_tile_card.dart';
 import 'event_detail_page.dart';
 
 /// Ouvre l'agenda Maroc.
-Future<void> openEventsCalendar(
-  BuildContext context, {
-  String? initialCity,
-}) {
+Future<void> openEventsCalendar(BuildContext context, {String? initialCity}) {
   return Navigator.of(context).push<void>(
-    AtlasPageRoute<void>(
-      page: EventsCalendarPage(initialCity: initialCity),
-    ),
+    AtlasPageRoute<void>(page: EventsCalendarPage(initialCity: initialCity)),
   );
 }
 
 Future<void> openEventDetail(BuildContext context, String eventId) {
-  return Navigator.of(context).push<void>(
-    AtlasPageRoute<void>(
-      page: EventDetailPage(eventId: eventId),
-    ),
-  );
+  return Navigator.of(
+    context,
+  ).push<void>(AtlasPageRoute<void>(page: EventDetailPage(eventId: eventId)));
 }
 
 /// Agenda chronologique avec filtres catégorie / ville.
 class EventsCalendarPage extends StatefulWidget {
-  const EventsCalendarPage({
-    super.key,
-    this.initialCity,
-  });
+  const EventsCalendarPage({super.key, this.initialCity});
 
   final String? initialCity;
 
@@ -129,8 +119,10 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
                             subtitle:
                                 'Dates utiles pour résidents, MRE et voyageurs.',
                             footnote:
+                                'Fêtes civiles nationales sourcées. '
                                 'Festivals et dates religieuses uniquement '
-                                'lorsqu\'elles sont publiées et sourcées.',
+                                'lorsqu\'elles sont publiées et sourcées — '
+                                'jamais inventées.',
                           ),
                           const SizedBox(height: AtlasSpacing.xl),
                           EventFiltersBar(
@@ -157,8 +149,10 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
                       subtitle:
                           'Dates utiles pour résidents, MRE et voyageurs.',
                       footnote:
+                          'Fêtes civiles nationales sourcées. '
                           'Festivals et dates religieuses uniquement '
-                          'lorsqu\'elles sont publiées et sourcées.',
+                          'lorsqu\'elles sont publiées et sourcées — '
+                          'jamais inventées.',
                     ),
                     const SizedBox(height: AtlasSpacing.xl),
                     EventFiltersBar(
@@ -173,8 +167,9 @@ class _EventsCalendarPageState extends State<EventsCalendarPage> {
                       const AtlasEmptyState(
                         icon: Icons.event_busy_outlined,
                         message:
-                            'Aucun événement ne correspond à ces filtres '
-                            'pour le moment.',
+                            'Aucune date sourcée ne correspond à ces filtres. '
+                            'Atlas n\'invente pas d\'événements pour remplir '
+                            'l\'écran.',
                       )
                     else
                       ..._groupedTiles(theme, events),
@@ -252,7 +247,8 @@ class _EventList extends StatelessWidget {
         child: AtlasEmptyState(
           icon: Icons.event_busy_outlined,
           message:
-              'Aucun événement ne correspond à ces filtres pour le moment.',
+              'Aucune date sourcée ne correspond à ces filtres. '
+              'Atlas n\'invente pas d\'événements pour remplir l\'écran.',
         ),
       );
     }

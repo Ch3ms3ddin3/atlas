@@ -25,10 +25,11 @@ class HomeVehiclesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (vehicle == null) {
+    final current = vehicle;
+    if (current == null) {
       return _EmptyCard(onAddTap: onAddTap);
     }
-    return _VehicleCard(vehicle: vehicle!, onTap: onTap);
+    return _VehicleCard(vehicle: current, onTap: onTap);
   }
 }
 

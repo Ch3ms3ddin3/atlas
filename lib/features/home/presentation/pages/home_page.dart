@@ -7,8 +7,14 @@ import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
+import '../../../admission_temporaire/data/at_calculator.dart';
+import '../../../admission_temporaire/presentation/at_scope.dart';
+import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
+import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.dart';
 import '../../../events/domain/event_repository.dart';
 import '../../../events/domain/models/atlas_event.dart';
+import '../../../events/presentation/pages/events_calendar_page.dart';
+import '../../../events/presentation/widgets/home_events_sections.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
@@ -43,6 +49,8 @@ import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
+import '../../../admission_temporaire/domain/models/at_vehicle.dart';
+import '../../../admission_temporaire/domain/at_repository.dart';
 
 /// Home V5 — briefing quotidien premium.
 ///
@@ -62,7 +70,8 @@ class _HomePageState extends State<HomePage> {
   final LocationRepository _locationRepository = LocationRepository();
   final WeatherRepository _weatherRepository = WeatherRepository();
   final PrayerRepository _prayerRepository = PrayerRepository.instance;
-  final ExchangeRateRepository _exchangeRateRepository = ExchangeRateRepository();
+  final ExchangeRateRepository _exchangeRateRepository =
+      ExchangeRateRepository();
   final HolidayRepository _holidayRepository = HolidayRepository();
   final GreetingRepository _greetingRepository = const GreetingRepository();
   final EventRepository _eventRepository = EventRepository();
@@ -86,7 +95,9 @@ class _HomePageState extends State<HomePage> {
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
   ProfileRepository? _profileRepository;
+  AtRepository? _atRepository;
   List<AtlasEvent> _todayEvents = const [];
+  List<AtlasEvent> _upcomingEvents = const [];
   VoidCallback? _eventCatalogListener;
 
   @override
@@ -119,11 +130,18 @@ class _HomePageState extends State<HomePage> {
         _refreshDerivedDashboardData();
       }
     }
+    final atRepository = AtScope.of(context);
+    if (!identical(atRepository, _atRepository)) {
+      _atRepository?.removeListener(_onAtChanged);
+      _atRepository = atRepository;
+      _atRepository!.addListener(_onAtChanged);
+    }
   }
 
   @override
   void dispose() {
     _profileRepository?.removeListener(_onProfileChanged);
+    _atRepository?.removeListener(_onAtChanged);
     _detachEventListener();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
@@ -150,6 +168,11 @@ class _HomePageState extends State<HomePage> {
     setState(_refreshEvents);
   }
 
+  void _onAtChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
   void _onProfileChanged() {
     if (!mounted) return;
     _refreshDerivedDashboardData();
@@ -158,13 +181,24 @@ class _HomePageState extends State<HomePage> {
 
   void _refreshEvents() {
     _todayEvents = _eventRepository.today(cityName: _location.cityName);
+    _upcomingEvents = _eventRepository.upcoming(
+      cityName: _location.cityName,
+      limit: 5,
+    );
+  }
+
+  AtVehicle? get _urgentVehicle {
+    final vehicles = _atRepository?.activeVehicles ?? const [];
+    return AtCalculator.mostUrgent(vehicles);
   }
 
   void _scheduleDateRollTimer() {
     final now = PrayerMapper.casablancaNow();
-    final midnight = DateTime(now.year, now.month, now.day).add(
-      const Duration(days: 1),
-    );
+    final midnight = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
     var delay = midnight.difference(now);
     if (delay <= Duration.zero) {
       delay = const Duration(seconds: 1);
@@ -199,13 +233,15 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _resolveLocation() async {
     final preferredCity =
-        _profileRepository?.profile.preferredCity ?? UserProfile.defaultPreferredCity;
+        _profileRepository?.profile.preferredCity ??
+        UserProfile.defaultPreferredCity;
     final location = await _locationRepository.resolveLocation(
       preferredCityName: preferredCity,
     );
     if (!mounted) return;
 
-    final locationChanged = location.latitude != _location.latitude ||
+    final locationChanged =
+        location.latitude != _location.latitude ||
         location.longitude != _location.longitude ||
         location.cityName != _location.cityName;
 
@@ -220,10 +256,7 @@ class _HomePageState extends State<HomePage> {
         _weatherSnapshot = const WeatherSnapshot.loading();
         _prayerSnapshot = const PrayerTimesSnapshot.loading();
       });
-      await Future.wait([
-        _loadWeather(),
-        _loadPrayerTimes(),
-      ]);
+      await Future.wait([_loadWeather(), _loadPrayerTimes()]);
       unawaited(
         prayerNotificationCoordinator.sync(location: location, force: true),
       );
@@ -274,8 +307,9 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() {
       _exchangeRateSnapshot = snapshot;
-      _exchangeFetchedAt =
-          snapshot.hasRate ? snapshot.data?.fetchedAt ?? DateTime.now() : null;
+      _exchangeFetchedAt = snapshot.hasRate
+          ? snapshot.data?.fetchedAt ?? DateTime.now()
+          : null;
       _refreshDerivedDashboardData();
     });
   }
@@ -363,6 +397,9 @@ class _HomePageState extends State<HomePage> {
       weatherSnapshot: _weatherSnapshot,
       cityName: _location.cityName,
     );
+    final urgentVehicle = _urgentVehicle;
+    final hasEventSections =
+        _todayEvents.isNotEmpty || _upcomingEvents.isNotEmpty;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -378,14 +415,18 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const SizedBox(height: AtlasSpacing.md),
                     // 1. Header
-                    AtlasReveal(
-                      child: GreetingHeader(data: _greeting),
-                    ),
+                    AtlasReveal(child: GreetingHeader(data: _greeting)),
                     const SizedBox(height: AtlasSpacing.md),
                     // 2. Aujourd'hui à {ville}
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay,
-                      child: MorningBriefSection(data: morningBrief),
+                      child: MorningBriefSection(
+                        data: morningBrief,
+                        onEventsTap: () => openEventsCalendar(
+                          context,
+                          initialCity: _location.cityName,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: AtlasSpacing.md),
                     // 3. Weather
@@ -402,14 +443,35 @@ class _HomePageState extends State<HomePage> {
                         onTap: _onPrayerCardTap,
                       ),
                     ),
+                    // 5. AT — only when the user already tracks a vehicle
+                    if (urgentVehicle != null) ...[
+                      const SizedBox(height: AtlasSpacing.md),
+                      AtlasReveal(
+                        delay: AtlasMotion.staggerDelay * 2,
+                        child: HomeVehiclesCard(
+                          vehicle: urgentVehicle,
+                          onTap: () => openVehiclesTracker(context),
+                        ),
+                      ),
+                    ],
+                    // 6. Events — hide when empty (no invented filler)
+                    if (hasEventSections)
+                      AtlasReveal(
+                        delay: AtlasMotion.staggerDelay * 3,
+                        child: HomeEventsSections(
+                          todayEvents: _todayEvents,
+                          upcomingEvents: _upcomingEvents,
+                          cityName: _location.cityName,
+                        ),
+                      ),
                     const SizedBox(height: AtlasSpacing.md),
-                    // 5. Pour vous
+                    // 7. Pour vous
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 3,
                       child: PourVousSection(recommendations: pourVous),
                     ),
                     const SizedBox(height: AtlasSpacing.md),
-                    // 6. Quick actions (secondary)
+                    // 8. Quick actions (secondary)
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 3,
                       child: Column(
@@ -425,7 +487,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: AtlasSpacing.md),
-                    // 7. Daily insight
+                    // 9. Daily insight
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 4,
                       child: DailyInsightSection(data: insight),

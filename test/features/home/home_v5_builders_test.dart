@@ -43,7 +43,8 @@ void main() {
       expect(data.lines[1].text, 'Horaires indisponibles');
       expect(data.lines[2].text, 'Taux indisponible');
       expect(data.lines[3].emoji, '🚦');
-      expect(data.lines[4].text, 'Aucun événement majeur');
+      expect(data.lines[4].text, 'Agenda · aucun férié listé aujourd\'hui');
+      expect(data.lines[4].action, MorningBriefAction.events);
     });
 
     test('shows live weather temperature when available', () {
@@ -109,10 +110,7 @@ void main() {
         cityName: 'Marrakech',
       );
 
-      expect(
-        items.any((item) => item.message.contains('Majorelle')),
-        isTrue,
-      );
+      expect(items.any((item) => item.message.contains('Majorelle')), isTrue);
       expect(items.first.icon, isNotNull);
       expect(items.first.title, isNotEmpty);
     });

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/datetime/casablanca_date_formatter.dart';
 import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
@@ -15,8 +16,10 @@ import '../../../procedures/domain/procedure_repository.dart';
 import '../../../procedures/presentation/pages/procedures_page.dart';
 import '../../data/at_bootstrap.dart';
 import '../../data/at_calculator.dart';
+import '../../data/at_guidance.dart';
 import '../../domain/at_repository.dart';
 import '../../domain/models/at_vehicle.dart';
+import '../at_page_wrapper.dart';
 import '../at_scope.dart';
 import '../at_status_colors.dart';
 import '../widgets/at_timeline.dart';
@@ -24,8 +27,14 @@ import '../widgets/at_vehicle_form_sheet.dart';
 
 /// Ouvre le suivi « Mes véhicules au Maroc ».
 Future<void> openVehiclesTracker(BuildContext context) {
+  // AtScope vit sous AppShell ; un push hors du shell sort de ce scope.
+  // Capture le repository avant le push — le wrapPage s'exécute hors AtScope.
+  final repository = AtScope.read(context);
   return Navigator.of(context).push<void>(
-    AtlasPageRoute<void>(page: const AtTrackerPage()),
+    AtlasPageRoute<void>(
+      page: const AtTrackerPage(),
+      wrapPage: (child) => wrapWithAtScope(repository, child),
+    ),
   );
 }
 
@@ -70,8 +79,7 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
       _selectedId = null;
       return;
     }
-    if (_selectedId == null ||
-        !active.any((v) => v.id == _selectedId)) {
+    if (_selectedId == null || !active.any((v) => v.id == _selectedId)) {
       _selectedId = AtCalculator.mostUrgent(active)?.id ?? active.first.id;
     }
   }
@@ -83,6 +91,14 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
       if (v.id == id) return v;
     }
     return null;
+  }
+
+  void _openProcedureGuide() {
+    openProcedureGuideById(
+      context,
+      ProcedureRepository(),
+      AtGuidance.procedureGuideId,
+    );
   }
 
   Future<void> _addVehicle() async {
@@ -140,9 +156,7 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Les rappels ne sont pas disponibles sur le web.',
-          ),
+          content: Text('Les rappels ne sont pas disponibles sur le web.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -212,8 +226,9 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
     final repo = _repository;
     final vehicles = repo?.activeVehicles ?? const [];
     final selected = _selected;
+    final selectedNotes = selected?.notes;
     final width = MediaQuery.sizeOf(context).width;
-    final isWide = width >= 720;
+    final isWide = width >= 900;
 
     return Scaffold(
       appBar: AppBar(
@@ -229,7 +244,10 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
       body: SafeArea(
         child: AtlasContentContainer(
           child: vehicles.isEmpty
-              ? _EmptyTracker(onAdd: _addVehicle)
+              ? _EmptyTracker(
+                  onAdd: _addVehicle,
+                  onOpenGuide: _openProcedureGuide,
+                )
               : ListView(
                   padding: const EdgeInsets.only(bottom: AtlasSpacing.section),
                   children: [
@@ -239,10 +257,12 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
                       subtitle: selected == null
                           ? 'Suivi de vos admissions temporaires'
                           : '${selected.plate} · ${selected.countryLabel} · '
-                              '${selected.type.labelFr}',
+                                '${selected.type.labelFr}',
                       footnote:
                           'Suivi personnel local — aucune validation douanière.',
                     ),
+                    const SizedBox(height: AtlasSpacing.section),
+                    const _AtRulesCard(),
                     const SizedBox(height: AtlasSpacing.section),
                     if (isWide && selected != null)
                       Row(
@@ -267,15 +287,36 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
                         AtTimeline(vehicle: selected),
                       ],
                     ],
-                    if (selected?.notes != null &&
-                        selected!.notes!.isNotEmpty) ...[
+                    if (selected != null) ...[
+                      const SizedBox(height: AtlasSpacing.section),
+                      _DeclaredDatesCard(vehicle: selected),
+                      const SizedBox(height: AtlasSpacing.lg),
+                      _NextActionCard(vehicle: selected),
+                      const SizedBox(height: AtlasSpacing.lg),
+                      _ProvenanceCard(vehicle: selected),
+                    ],
+                    if (selectedNotes != null && selectedNotes.isNotEmpty) ...[
                       const SizedBox(height: AtlasSpacing.section),
                       AtlasCard(
-                        child: Text(
-                          selected.notes!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            height: 1.4,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Notes (saisie utilisateur)',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: AtlasTextStyles.cardLabel(
+                                  theme.colorScheme,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AtlasSpacing.sm),
+                            Text(
+                              selectedNotes,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -295,13 +336,10 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
                             icon: const Icon(Icons.delete_outline),
                             label: const Text('Supprimer'),
                           ),
-                          TextButton(
-                            onPressed: () => openProcedureGuideById(
-                              context,
-                              ProcedureRepository(),
-                              'admission-temporaire',
-                            ),
-                            child: const Text('Guide Admission temporaire'),
+                          FilledButton.tonalIcon(
+                            onPressed: _openProcedureGuide,
+                            icon: const Icon(Icons.menu_book_outlined),
+                            label: const Text('Guide Admission temporaire'),
                           ),
                         ],
                       ),
@@ -352,49 +390,277 @@ class _AtTrackerPageState extends State<AtTrackerPage> {
 }
 
 class _EmptyTracker extends StatelessWidget {
-  const _EmptyTracker({required this.onAdd});
+  const _EmptyTracker({required this.onAdd, required this.onOpenGuide});
 
   final VoidCallback onAdd;
+  final VoidCallback onOpenGuide;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AtlasSpacing.section),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.directions_car_outlined,
-              size: 48,
-              color: AtlasColors.midnightBlueFaint,
+    return ListView(
+      padding: const EdgeInsets.all(AtlasSpacing.section),
+      children: [
+        const SizedBox(height: AtlasSpacing.xl),
+        Icon(
+          Icons.directions_car_outlined,
+          size: 48,
+          color: AtlasColors.midnightBlueFaint,
+        ),
+        const SizedBox(height: AtlasSpacing.xl),
+        Text(
+          'Aucun véhicule suivi',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: AtlasSpacing.md),
+        Text(
+          'Ajoutez votre véhicule pour suivre les dates d\'admission '
+          'temporaire que vous déclarez, et activer des rappels optionnels.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AtlasTextStyles.helper(theme.colorScheme),
+            height: 1.4,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: AtlasSpacing.xxl),
+        FilledButton.icon(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter un véhicule'),
+        ),
+        const SizedBox(height: AtlasSpacing.lg),
+        TextButton(
+          onPressed: onOpenGuide,
+          child: const Text('Lire le guide Admission temporaire'),
+        ),
+        const SizedBox(height: AtlasSpacing.section),
+        const _AtRulesCard(),
+      ],
+    );
+  }
+}
+
+class _AtRulesCard extends StatelessWidget {
+  const _AtRulesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Cadre & règles (éditorial Atlas)',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: AtlasSpacing.xl),
-            Text(
-              'Aucun véhicule suivi',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AtlasSpacing.sm),
+          Text(
+            'Information générale — pas un avis douanier.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AtlasTextStyles.metadata(theme.colorScheme),
             ),
-            const SizedBox(height: AtlasSpacing.md),
-            Text(
-              'Ajoutez votre véhicule pour suivre l\'admission temporaire '
-              'et recevoir des rappels avant l\'expiration.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AtlasTextStyles.helper(theme.colorScheme),
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AtlasSpacing.lg),
+          Text(
+            'Cela vous concerne-t-il ?',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: AtlasSpacing.xxl),
-            FilledButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add),
-              label: const Text('Ajouter un véhicule'),
-            ),
+          ),
+          const SizedBox(height: AtlasSpacing.sm),
+          for (final bullet in AtGuidance.eligibilityBullets) ...[
+            _Bullet(text: bullet),
+            const SizedBox(height: AtlasSpacing.sm),
           ],
+          const SizedBox(height: AtlasSpacing.md),
+          Text(
+            'Points de vigilance',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AtlasSpacing.sm),
+          for (final bullet in AtGuidance.rulesBullets) ...[
+            _Bullet(text: bullet),
+            const SizedBox(height: AtlasSpacing.sm),
+          ],
+          const SizedBox(height: AtlasSpacing.sm),
+          Text(
+            'Source officielle de référence : ${AtGuidance.officialSourceLabel}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AtlasTextStyles.helper(theme.colorScheme),
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Bullet extends StatelessWidget {
+  const _Bullet({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '·',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: AtlasSpacing.sm),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeclaredDatesCard extends StatelessWidget {
+  const _DeclaredDatesCard({required this.vehicle});
+
+  final AtVehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Dates déclarées (saisie utilisateur)',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AtlasSpacing.lg),
+          _DateRow(
+            label: 'Entrée',
+            value: CasablancaDateFormatter.formatShortDate(vehicle.entryDate),
+          ),
+          const SizedBox(height: AtlasSpacing.sm),
+          _DateRow(
+            label: 'Expiration calculée',
+            value: CasablancaDateFormatter.formatShortDate(vehicle.expiryDate),
+          ),
+          const SizedBox(height: AtlasSpacing.sm),
+          _DateRow(
+            label: 'Durée déclarée',
+            value: '${vehicle.durationDays} jours',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DateRow extends StatelessWidget {
+  const _DateRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AtlasTextStyles.helper(theme.colorScheme),
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NextActionCard extends StatelessWidget {
+  const _NextActionCard({required this.vehicle});
+
+  final AtVehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final status = AtCalculator.status(expiryDate: vehicle.expiryDate);
+    final color = AtStatusColors.forStatus(status);
+    return AtlasCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Prochaine action',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                AtCalculator.statusLabel(status),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AtlasSpacing.md),
+          Text(
+            AtGuidance.nextActionFor(status),
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProvenanceCard extends StatelessWidget {
+  const _ProvenanceCard({required this.vehicle});
+
+  final AtVehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      emphasis: AtlasCardEmphasis.compact,
+      child: Text(
+        AtGuidance.provenanceFootnote(vehicle: vehicle),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: AtlasTextStyles.metadata(theme.colorScheme),
+          height: 1.4,
         ),
       ),
     );
@@ -409,8 +675,9 @@ class _HeroStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final remaining =
-        AtCalculator.remainingDays(expiryDate: vehicle.expiryDate);
+    final remaining = AtCalculator.remainingDays(
+      expiryDate: vehicle.expiryDate,
+    );
     final status = AtCalculator.status(expiryDate: vehicle.expiryDate);
     final progress = AtCalculator.progress(
       remainingDays: remaining,
@@ -434,20 +701,27 @@ class _HeroStatus extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AtlasSpacing.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AtlasSpacing.md,
-                  vertical: AtlasSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  AtCalculator.statusLabel(status),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AtlasSpacing.md,
+                      vertical: AtlasSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      AtCalculator.statusLabel(status),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -499,14 +773,17 @@ class _VehicleListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final remaining =
-        AtCalculator.remainingDays(expiryDate: vehicle.expiryDate);
+    final remaining = AtCalculator.remainingDays(
+      expiryDate: vehicle.expiryDate,
+    );
     final status = AtCalculator.status(expiryDate: vehicle.expiryDate);
     final color = AtStatusColors.forStatus(status);
 
     return AtlasCard(
       onTap: onTap,
-      emphasis: selected ? AtlasCardEmphasis.standard : AtlasCardEmphasis.compact,
+      emphasis: selected
+          ? AtlasCardEmphasis.standard
+          : AtlasCardEmphasis.compact,
       child: Row(
         children: [
           Expanded(

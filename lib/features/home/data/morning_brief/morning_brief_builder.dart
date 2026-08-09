@@ -4,15 +4,22 @@ import '../../domain/models/prayer_times_snapshot.dart';
 import '../../domain/models/weather_snapshot.dart';
 import '../prayer/prayer_mapper.dart';
 
+/// Identifiant d'action optionnel pour une ligne du briefing.
+enum MorningBriefAction { events }
+
 /// Ligne scannable du briefing matinal.
 class MorningBriefLine {
   const MorningBriefLine({
     required this.emoji,
     required this.text,
+    this.action,
   });
 
   final String emoji;
   final String text;
+
+  /// Si non null, la ligne peut ouvrir une surface Atlas (ex. agenda).
+  final MorningBriefAction? action;
 }
 
 /// Résumé dynamique « Aujourd'hui à {ville} » — lisible en moins de 5 secondes.
@@ -47,7 +54,8 @@ class MorningBriefBuilder {
     required ExchangeRateSnapshot exchangeRateSnapshot,
     required List<AtlasEvent> todayEvents,
   }) {
-    final anyLoading = weatherSnapshot.state == WeatherLoadState.loading ||
+    final anyLoading =
+        weatherSnapshot.state == WeatherLoadState.loading ||
         prayerSnapshot.state == PrayerLoadState.loading ||
         exchangeRateSnapshot.state == ExchangeRateLoadState.loading;
 
@@ -70,42 +78,33 @@ class MorningBriefBuilder {
   MorningBriefLine _weatherLine(WeatherSnapshot snapshot) {
     return switch (snapshot.state) {
       WeatherLoadState.success || WeatherLoadState.stale => MorningBriefLine(
-          emoji: _weatherEmoji(snapshot.data!.weatherCode),
-          text: '${snapshot.data!.temperature}°C',
-        ),
-      _ => const MorningBriefLine(
-          emoji: '☁️',
-          text: 'Météo indisponible',
-        ),
+        emoji: _weatherEmoji(snapshot.data!.weatherCode),
+        text: '${snapshot.data!.temperature}°C',
+      ),
+      _ => const MorningBriefLine(emoji: '☁️', text: 'Météo indisponible'),
     };
   }
 
   MorningBriefLine _prayerLine(PrayerTimesSnapshot snapshot) {
     return switch (snapshot.state) {
       PrayerLoadState.success || PrayerLoadState.stale => MorningBriefLine(
-          emoji: '🕌',
-          text:
-              '${snapshot.data!.nextPrayerName} ${snapshot.data!.nextPrayerCountdown}',
-        ),
-      _ => const MorningBriefLine(
-          emoji: '🕌',
-          text: 'Horaires indisponibles',
-        ),
+        emoji: '🕌',
+        text:
+            '${snapshot.data!.nextPrayerName} ${snapshot.data!.nextPrayerCountdown}',
+      ),
+      _ => const MorningBriefLine(emoji: '🕌', text: 'Horaires indisponibles'),
     };
   }
 
   MorningBriefLine _exchangeLine(ExchangeRateSnapshot snapshot) {
     return switch (snapshot.state) {
-      ExchangeRateLoadState.success || ExchangeRateLoadState.stale =>
-        MorningBriefLine(
-          emoji: '💶',
-          text:
-              '1 ${snapshot.data!.fromCurrency} = ${snapshot.data!.rate.toStringAsFixed(2)} ${snapshot.data!.toCurrency}',
-        ),
-      _ => const MorningBriefLine(
-          emoji: '💶',
-          text: 'Taux indisponible',
-        ),
+      ExchangeRateLoadState.success ||
+      ExchangeRateLoadState.stale => MorningBriefLine(
+        emoji: '💶',
+        text:
+            '1 ${snapshot.data!.fromCurrency} = ${snapshot.data!.rate.toStringAsFixed(2)} ${snapshot.data!.toCurrency}',
+      ),
+      _ => const MorningBriefLine(emoji: '💶', text: 'Taux indisponible'),
     };
   }
 
@@ -118,28 +117,28 @@ class MorningBriefBuilder {
         text: 'Circulation dense aux heures de pointe',
       );
     }
-    return const MorningBriefLine(
-      emoji: '🚦',
-      text: 'Circulation fluide',
-    );
+    return const MorningBriefLine(emoji: '🚦', text: 'Circulation fluide');
   }
 
   MorningBriefLine _eventsLine(List<AtlasEvent> todayEvents) {
     if (todayEvents.isEmpty) {
       return const MorningBriefLine(
-        emoji: '🎉',
-        text: 'Aucun événement majeur',
+        emoji: '📅',
+        text: 'Agenda · aucun férié listé aujourd\'hui',
+        action: MorningBriefAction.events,
       );
     }
     if (todayEvents.length == 1) {
       return MorningBriefLine(
-        emoji: '🎉',
+        emoji: '📅',
         text: todayEvents.first.title,
+        action: MorningBriefAction.events,
       );
     }
     return MorningBriefLine(
-      emoji: '🎉',
-      text: '${todayEvents.length} événements aujourd\'hui',
+      emoji: '📅',
+      text: '${todayEvents.length} dates utiles aujourd\'hui',
+      action: MorningBriefAction.events,
     );
   }
 

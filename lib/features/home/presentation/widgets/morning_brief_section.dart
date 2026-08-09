@@ -9,12 +9,12 @@ import '../../data/morning_brief/morning_brief_builder.dart';
 
 /// Briefing compact « Aujourd'hui à… » — une composition scannable.
 class MorningBriefSection extends StatelessWidget {
-  const MorningBriefSection({
-    super.key,
-    required this.data,
-  });
+  const MorningBriefSection({super.key, required this.data, this.onEventsTap});
 
   final MorningBriefData data;
+
+  /// Ouvre l'agenda lorsque la ligne événements est touchée.
+  final VoidCallback? onEventsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +40,9 @@ class MorningBriefSection extends StatelessWidget {
                   DecoratedBox(
                     decoration: BoxDecoration(
                       color: AtlasColors.surfaceWhite.withValues(alpha: 0.92),
-                      borderRadius:
-                          BorderRadius.circular(AtlasSpacing.cardRadius),
+                      borderRadius: BorderRadius.circular(
+                        AtlasSpacing.cardRadius,
+                      ),
                       border: Border.all(
                         color: AtlasColors.sandMuted.withValues(alpha: 0.55),
                       ),
@@ -57,7 +58,14 @@ class MorningBriefSection extends StatelessWidget {
                         children: [
                           for (var i = 0; i < data.lines.length; i++) ...[
                             if (i > 0) const SizedBox(height: 10),
-                            _BriefLine(line: data.lines[i]),
+                            _BriefLine(
+                              line: data.lines[i],
+                              onTap:
+                                  data.lines[i].action ==
+                                      MorningBriefAction.events
+                                  ? onEventsTap
+                                  : null,
+                            ),
                           ],
                         ],
                       ),
@@ -71,15 +79,15 @@ class MorningBriefSection extends StatelessWidget {
 }
 
 class _BriefLine extends StatelessWidget {
-  const _BriefLine({required this.line});
+  const _BriefLine({required this.line, this.onTap});
 
   final MorningBriefLine line;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Row(
+    final row = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
@@ -101,10 +109,30 @@ class _BriefLine extends StatelessWidget {
               letterSpacing: -0.2,
               height: 1.2,
               color: theme.colorScheme.onSurface,
+              decoration: onTap == null ? null : TextDecoration.underline,
+              decorationColor: AtlasColors.midnightBlueMuted.withValues(
+                alpha: 0.35,
+              ),
             ),
           ),
         ),
+        if (onTap != null)
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 18,
+            color: AtlasTextStyles.helper(theme.colorScheme),
+          ),
       ],
+    );
+
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: row,
+      ),
     );
   }
 }

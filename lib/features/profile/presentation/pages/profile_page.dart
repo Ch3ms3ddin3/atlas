@@ -14,10 +14,12 @@ import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../admission_temporaire/presentation/at_scope.dart';
+import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
 import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../auth/domain/auth_session.dart';
 import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
+import '../../../events/presentation/pages/events_calendar_page.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
 import '../../../itineraries/presentation/itinerary_scope.dart';
 import '../../../itineraries/presentation/pages/trip_list_page.dart';
@@ -91,9 +93,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _saveProfile() async {
     setState(() {
-      _firstNameError =
-          ProfileValidator.validateFirstName(_firstNameController.text)
-              ?.message;
+      _firstNameError = ProfileValidator.validateFirstName(
+        _firstNameController.text,
+      )?.message;
     });
     if (!_isFormValid) return;
 
@@ -200,19 +202,18 @@ class _ProfilePageState extends State<ProfilePage> {
     final syncStatus = sync?.status ?? const CloudSyncStatus.idle();
 
     if (_profileRepository != null && !_profileRepository!.isLoaded) {
-      return const SafeArea(
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const SafeArea(child: Center(child: CircularProgressIndicator()));
     }
 
     final displayName = session.displayName?.trim().isNotEmpty == true
         ? session.displayName!
         : (_profileRepository?.profile.resolvedDisplayName ??
-            (_firstNameController.text.trim().isNotEmpty
-                ? _firstNameController.text.trim()
-                : 'Voyageur Atlas'));
+              (_firstNameController.text.trim().isNotEmpty
+                  ? _firstNameController.text.trim()
+                  : 'Voyageur Atlas'));
 
-    final avatarUrl = session.avatarUrl ?? _profileRepository?.profile.avatarUrl;
+    final avatarUrl =
+        session.avatarUrl ?? _profileRepository?.profile.avatarUrl;
 
     return SafeArea(
       child: Form(
@@ -227,8 +228,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   const AtlasPageHeader(
                     title: 'Profil',
-                    subtitle:
-                        'Identité, synchronisation et préférences Atlas.',
+                    subtitle: 'Identité, synchronisation et préférences Atlas.',
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   _IdentityHero(
@@ -244,9 +244,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     onOpen: () => AssistantPage.open(context),
                   ),
                   const SizedBox(height: AtlasSpacing.lg),
-                  _ItineraryEntryCard(
-                    onOpen: () => TripListPage.open(context),
-                  ),
+                  _ItineraryEntryCard(onOpen: () => TripListPage.open(context)),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  _AtEntryCard(onOpen: () => openVehiclesTracker(context)),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  _EventsEntryCard(onOpen: () => openEventsCalendar(context)),
                   const SizedBox(height: AtlasSpacing.lg),
                   AtlasCard(
                     child: Column(
@@ -275,16 +277,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: AtlasSpacing.sm),
                         DropdownButtonFormField<String>(
                           key: ValueKey(_preferredCity),
-                          initialValue: MoroccoCities.supportedNames
-                                  .contains(_preferredCity)
+                          initialValue:
+                              MoroccoCities.supportedNames.contains(
+                                _preferredCity,
+                              )
                               ? _preferredCity
                               : UserProfile.defaultPreferredCity,
                           items: [
                             for (final city in MoroccoCities.supportedNames)
-                              DropdownMenuItem(
-                                value: city,
-                                child: Text(city),
-                              ),
+                              DropdownMenuItem(value: city, child: Text(city)),
                           ],
                           onChanged: (value) {
                             if (value == null) return;
@@ -292,10 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           },
                         ),
                         const SizedBox(height: AtlasSpacing.lg),
-                        Text(
-                          'Vous êtes',
-                          style: theme.textTheme.labelMedium,
-                        ),
+                        Text('Vous êtes', style: theme.textTheme.labelMedium),
                         const SizedBox(height: AtlasSpacing.sm),
                         Wrap(
                           spacing: AtlasSpacing.sm,
@@ -305,16 +303,12 @@ class _ProfilePageState extends State<ProfilePage> {
                               AtlasFilterChip(
                                 label: type.label,
                                 isSelected: _userType == type,
-                                onTap: () =>
-                                    setState(() => _userType = type),
+                                onTap: () => setState(() => _userType = type),
                               ),
                           ],
                         ),
                         const SizedBox(height: AtlasSpacing.lg),
-                        Text(
-                          'Langue',
-                          style: theme.textTheme.labelMedium,
-                        ),
+                        Text('Langue', style: theme.textTheme.labelMedium),
                         const SizedBox(height: AtlasSpacing.sm),
                         Wrap(
                           spacing: AtlasSpacing.sm,
@@ -408,8 +402,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: AtlasSpacing.xl),
                   FilledButton(
-                    onPressed:
-                        _isSaving || !_isFormValid ? null : _saveProfile,
+                    onPressed: _isSaving || !_isFormValid ? null : _saveProfile,
                     child: _isSaving
                         ? const SizedBox(
                             width: 20,
@@ -532,6 +525,107 @@ class _AssistantEntryCard extends StatelessWidget {
   }
 }
 
+class _AtEntryCard extends StatelessWidget {
+  const _AtEntryCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      onTap: onOpen,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AtlasColors.terracottaGhost,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.directions_car_outlined,
+              color: AtlasColors.terracotta,
+            ),
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Véhicules / Admission temporaire',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  'Suivi local de vos dates déclarées — sans validation douanière.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AtlasColors.midnightBlueMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventsEntryCard extends StatelessWidget {
+  const _EventsEntryCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      onTap: onOpen,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AtlasColors.info.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.event_outlined, color: AtlasColors.info),
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Agenda Maroc',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  'Fêtes nationales et dates utiles sourcées — sans contenu inventé.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AtlasColors.midnightBlueMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
+      ),
+    );
+  }
+}
+
 class _IdentityHero extends StatelessWidget {
   const _IdentityHero({
     required this.displayName,
@@ -548,8 +642,9 @@ class _IdentityHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final initial =
-        displayName.isNotEmpty ? displayName.characters.first.toUpperCase() : 'A';
+    final initial = displayName.isNotEmpty
+        ? displayName.characters.first.toUpperCase()
+        : 'A';
 
     return AtlasCard(
       child: Row(
@@ -558,8 +653,9 @@ class _IdentityHero extends StatelessWidget {
             radius: 32,
             backgroundColor: AtlasColors.terracottaGhost,
             foregroundColor: AtlasColors.terracotta,
-            backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            backgroundImage: avatarUrl != null
+                ? NetworkImage(avatarUrl!)
+                : null,
             child: avatarUrl == null
                 ? Text(
                     initial,
@@ -727,18 +823,14 @@ class _AccountCardState extends State<_AccountCard> {
             )
           else if (session.isAnonymous) ...[
             FilledButton(
-              onPressed: () => AuthFormSheet.show(
-                context,
-                initialMode: AuthFormMode.signUp,
-              ),
+              onPressed: () =>
+                  AuthFormSheet.show(context, initialMode: AuthFormMode.signUp),
               child: const Text('Créer un compte'),
             ),
             const SizedBox(height: AtlasSpacing.sm),
             OutlinedButton(
-              onPressed: () => AuthFormSheet.show(
-                context,
-                initialMode: AuthFormMode.signIn,
-              ),
+              onPressed: () =>
+                  AuthFormSheet.show(context, initialMode: AuthFormMode.signIn),
               child: const Text('Se connecter'),
             ),
           ] else ...[
