@@ -12,11 +12,15 @@ class PlaceBrowseFilters extends ChangeNotifier {
   PlaceCategory? _category;
   String _searchText = '';
   bool _favoritesOnly = false;
+  String? _focusPlaceId;
 
   String get cityName => _cityName;
   PlaceCategory? get category => _category;
   String get searchText => _searchText;
   bool get favoritesOnly => _favoritesOnly;
+
+  /// Demande de centrage carte (consommée une fois par [consumeFocusPlaceId]).
+  String? get focusPlaceId => _focusPlaceId;
 
   void setCityName(String value, {bool notify = true}) {
     if (_cityName == value) return;
@@ -40,6 +44,23 @@ class PlaceBrowseFilters extends ChangeNotifier {
     if (_favoritesOnly == value) return;
     _favoritesOnly = value;
     if (notify) notifyListeners();
+  }
+
+  /// Prépare la carte Atlas pour un lieu précis (ville + focus, filtres nettoyés).
+  void requestFocusPlace({required String placeId, required String cityName}) {
+    _focusPlaceId = placeId;
+    _cityName = cityName;
+    _category = null;
+    _searchText = '';
+    _favoritesOnly = false;
+    notifyListeners();
+  }
+
+  /// Lit et efface le focus demandé — sans notification.
+  String? consumeFocusPlaceId() {
+    final id = _focusPlaceId;
+    _focusPlaceId = null;
+    return id;
   }
 
   void update({
@@ -80,5 +101,6 @@ class PlaceBrowseFilters extends ChangeNotifier {
     instance._category = null;
     instance._searchText = '';
     instance._favoritesOnly = false;
+    instance._focusPlaceId = null;
   }
 }

@@ -1,8 +1,11 @@
 import '../../domain/models/place_models.dart';
 
-/// Libellés d'affichage dérivés du catalogue — sans scores inventés.
+/// Libellés d'affichage dérivés du catalogue — sans scores ni durées inventés.
 abstract final class PlaceDisplayHelpers {
-  static String visitDuration(PlaceGuide place) {
+  /// Durée de visite uniquement si un conseil pratique l'indique explicitement.
+  ///
+  /// Retourne `null` plutôt qu'une valeur par catégorie — l'absence est honnête.
+  static String? visitDuration(PlaceGuide place) {
     for (final tip in place.practicalTips) {
       final lower = tip.toLowerCase();
       if (!lower.startsWith('prévoyez') && !lower.startsWith('comptez')) {
@@ -16,17 +19,7 @@ abstract final class PlaceDisplayHelpers {
       if (lower.contains('2h') || lower.contains('2 h')) return '2h';
       if (lower.contains('1h') || lower.contains('1 h')) return '1h';
     }
-
-    return switch (place.category) {
-      PlaceCategory.jardin => '1h30',
-      PlaceCategory.monument => '1h',
-      PlaceCategory.restaurant => '1h30',
-      PlaceCategory.cafe => '45 min',
-      PlaceCategory.musee => '1h',
-      PlaceCategory.hammam => '2h',
-      PlaceCategory.plage => '2h',
-      PlaceCategory.souk => '2h',
-    };
+    return null;
   }
 
   /// Quartier éditorial — jamais une distance GPS calculée.

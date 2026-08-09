@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_network_image.dart';
+import '../../data/place_cover_assets.dart';
 import '../../domain/models/place_models.dart';
 import 'place_category_icon.dart';
 
-/// Visuel principal d'un lieu — image primaire (`imageUrls.first`) ou fallback.
+/// Visuel principal d'un lieu — URL distante, asset vérifié, ou fallback honnête.
 ///
-/// Utilisé par les cartes Explorer et le hero détail pour un comportement unique
-/// (chargement, erreur, absence d'URL).
+/// Priorité : `imageUrls` remote → cover bundle vérifié → fallback catégorie.
+/// Jamais d'image géographiquement ou thématiquement non liée.
 class PlaceCoverImage extends StatelessWidget {
   const PlaceCoverImage({
     super.key,
@@ -51,28 +52,52 @@ class PlaceCoverImage extends StatelessWidget {
     );
 
     final primaryUrl = place.primaryImageUrl;
-    if (primaryUrl == null) {
-      return fallback;
+    if (primaryUrl != null) {
+      final dpr = MediaQuery.devicePixelRatioOf(context);
+      final cacheHeight = (height * dpr).round().clamp(1, 2048);
+
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: AtlasNetworkImage(
+          url: primaryUrl,
+          borderRadius: radius,
+          placeholder: fallback,
+          errorWidget: fallback,
+          memCacheHeight: cacheHeight,
+        ),
+      );
     }
 
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    final cacheHeight = (height * dpr).round().clamp(1, 2048);
+    final assetPath = PlaceCoverAssets.assetPathFor(place.id);
+    if (assetPath != null) {
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                assetPath,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                errorBuilder: (context, error, stackTrace) => fallback,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: AtlasNetworkImage(
-        url: primaryUrl,
-        borderRadius: radius,
-        placeholder: fallback,
-        errorWidget: fallback,
-        memCacheHeight: cacheHeight,
-      ),
-    );
+    return fallback;
   }
 }
 
-/// Fallback éditorial — couleur lieu + icône catégorie.
+/// Fallback éditorial intentionnel — couleur lieu + icône catégorie.
+///
+/// Utilisé quand aucune photo vérifiée (remote ou bundle) n'est disponible.
 class PlaceImageFallback extends StatelessWidget {
   const PlaceImageFallback({
     super.key,
@@ -100,18 +125,21 @@ class PlaceImageFallback extends StatelessWidget {
         );
     final resolvedIconSize = iconSize ?? (height * 0.34).clamp(40.0, 64.0);
 
-    return Container(
-      height: height,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: place.imageColor.withValues(alpha: colorOpacity),
-        borderRadius: radius,
-      ),
-      child: Center(
-        child: Icon(
-          placeCategoryIcon(place.category),
-          size: resolvedIconSize,
-          color: Colors.white.withValues(alpha: iconOpacity),
+    return Semantics(
+      label: 'Photo non disponible pour ${place.name}',
+      child: Container(
+        height: height,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: place.imageColor.withValues(alpha: colorOpacity),
+          borderRadius: radius,
+        ),
+        child: Center(
+          child: Icon(
+            placeCategoryIcon(place.category),
+            size: resolvedIconSize,
+            color: Colors.white.withValues(alpha: iconOpacity),
+          ),
         ),
       ),
     );

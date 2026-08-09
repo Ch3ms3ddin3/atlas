@@ -25,9 +25,9 @@ class LocalPlaceRepository
 
   @override
   List<PlaceGuide> getFeatured({String? cityName, int limit = 2}) {
-    final places = getAll(cityName: cityName)
-        .where((place) => place.isEditorsPick)
-        .toList();
+    final places = getAll(
+      cityName: cityName,
+    ).where((place) => place.isEditorsPick).toList();
 
     if (places.length >= limit) {
       return places.take(limit).toList();
@@ -62,5 +62,6 @@ class LocalPlaceRepository
   }
 
   @override
-  List<PlaceCategory> get categories => PlaceCategory.values;
+  List<PlaceCategory> get categories =>
+      PlaceMapper.categoriesPresentIn(PlaceCatalog.guides);
 }

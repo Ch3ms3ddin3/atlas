@@ -36,7 +36,9 @@ Local staging only. Not uploaded to Supabase.
 - Size: 292.7 KB
 
 ## Hammam traditionnel (`place-hammam-marrakech`)
-- Status: **PASS**
+- Status: **EXCLUDED FROM APP SHIPPING (P6)**
+- Reason: Commons source shows Hamamm Seffarine rooftop **in Fès** — geographically
+  incompatible with a Marrakech-labeled place. Kept in staging ledger only.
 - Source: https://commons.wikimedia.org/wiki/File%3AHamamm_Seffarine_rooftop_in_Fes.jpg
 - Commons title: File:Hamamm Seffarine rooftop in Fes.jpg
 - Author: Gonzalo Riestra from España

@@ -96,8 +96,9 @@ abstract final class PlaceMapper {
         });
       case PlaceSort.priceLevel:
         sorted.sort((a, b) {
-          final byPrice =
-              _priceLevelRank(a.priceLevel).compareTo(_priceLevelRank(b.priceLevel));
+          final byPrice = _priceLevelRank(
+            a.priceLevel,
+          ).compareTo(_priceLevelRank(b.priceLevel));
           if (byPrice != 0) return byPrice;
           return a.name.compareTo(b.name);
         });
@@ -112,10 +113,7 @@ abstract final class PlaceMapper {
     return sorted;
   }
 
-  static PlaceGuide? findById(
-    String id, {
-    List<PlaceGuide>? source,
-  }) {
+  static PlaceGuide? findById(String id, {List<PlaceGuide>? source}) {
     final catalog = source ?? PlaceCatalog.guides;
     for (final guide in catalog) {
       if (guide.id == id) return guide;
@@ -166,5 +164,17 @@ abstract final class PlaceMapper {
       }
     }
     return LocationConstants.fallbackCity;
+  }
+
+  /// Catégories réellement présentes dans [places], ordre enum stable.
+  static List<PlaceCategory> categoriesPresentIn(Iterable<PlaceGuide> places) {
+    final present = <PlaceCategory>{};
+    for (final place in places) {
+      present.add(place.category);
+    }
+    return [
+      for (final category in PlaceCategory.values)
+        if (present.contains(category)) category,
+    ];
   }
 }

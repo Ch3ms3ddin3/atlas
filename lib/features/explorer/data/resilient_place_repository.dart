@@ -142,5 +142,6 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
   }
 
   @override
-  List<PlaceCategory> get categories => PlaceCategory.values;
+  List<PlaceCategory> get categories =>
+      PlaceMapper.categoriesPresentIn(_source);
 }

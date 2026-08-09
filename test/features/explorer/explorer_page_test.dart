@@ -74,7 +74,10 @@ void main() {
     await pumpExplorer(tester);
 
     expect(find.text('Explorer'), findsOneWidget);
-    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
+    expect(
+      find.textContaining('Marrakech, Casablanca et Rabat'),
+      findsOneWidget,
+    );
     expect(find.text('✨ Sélection Atlas'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Tanger'), findsOneWidget);

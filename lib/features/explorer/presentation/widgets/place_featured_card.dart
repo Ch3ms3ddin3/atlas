@@ -150,7 +150,11 @@ class PlaceFeaturedCard extends StatelessWidget {
                     spacing: AtlasSpacing.lg,
                     runSpacing: AtlasSpacing.sm,
                     children: [
-                      _MetaItem(icon: Icons.schedule_outlined, label: duration),
+                      if (duration != null)
+                        _MetaItem(
+                          icon: Icons.schedule_outlined,
+                          label: duration,
+                        ),
                       if (place.hasBestTimeToVisit)
                         _MetaItem(
                           icon: Icons.wb_sunny_outlined,
@@ -213,11 +217,7 @@ class _MetaItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: AtlasSpacing.xs),
         Flexible(
           child: Text(

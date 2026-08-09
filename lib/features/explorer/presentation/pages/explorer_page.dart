@@ -21,6 +21,7 @@ import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../data/place_mapper.dart';
 import '../../data/resilient_place_repository.dart';
 import '../../domain/models/place_models.dart';
 import '../../domain/place_browse_filters.dart';
@@ -246,6 +247,10 @@ class _ExplorerPageState extends State<ExplorerPage> {
   void _applyFilters({bool notify = true}) {
     void update() {
       _isCityCovered = _repository.isCityCovered(_cityName);
+      final available = _availableCategoriesForCity(_cityName);
+      if (_selectedCategory != null && !available.contains(_selectedCategory)) {
+        _selectedCategory = null;
+      }
       var places = _repository.search(
         PlaceSearchQuery(
           text: _searchController.text,
@@ -277,6 +282,13 @@ class _ExplorerPageState extends State<ExplorerPage> {
     } else {
       update();
     }
+  }
+
+  List<PlaceCategory> _availableCategoriesForCity(String cityName) {
+    if (!_repository.isCityCovered(cityName)) return const [];
+    return PlaceMapper.categoriesPresentIn(
+      _repository.getAll(cityName: cityName),
+    );
   }
 
   void _onCitySelected(String city) {
@@ -439,6 +451,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           delay: AtlasMotion.staggerDelay * 2,
                           child: PlaceCategoryFilter(
                             selectedCategory: _selectedCategory,
+                            availableCategories: _availableCategoriesForCity(
+                              _cityName,
+                            ),
                             onCategorySelected: _onCategorySelected,
                             favoritesOnly: _browseFilters.favoritesOnly,
                             onFavoritesToggle: () {

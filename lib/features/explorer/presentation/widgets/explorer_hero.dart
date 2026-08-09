@@ -30,7 +30,8 @@ class ExplorerHero extends StatelessWidget {
               ),
               const SizedBox(height: AtlasSpacing.sm),
               Text(
-                'Découvrez les meilleurs lieux du Maroc sélectionnés par Atlas.',
+                'Lieux utiles à Marrakech, Casablanca et Rabat — '
+                'sélectionnés par Atlas.',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: AtlasTextStyles.helper(theme.colorScheme),
                   height: 1.4,

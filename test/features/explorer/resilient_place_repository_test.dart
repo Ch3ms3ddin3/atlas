@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:atlas/core/editorial/editorial_catalog_load_state.dart';
 import 'package:atlas/features/explorer/data/local_place_repository.dart';
 import 'package:atlas/features/explorer/data/place_catalog.dart';
+import 'package:atlas/features/explorer/data/place_mapper.dart';
 import 'package:atlas/features/explorer/data/place_record_mapper.dart';
 import 'package:atlas/features/explorer/data/resilient_place_repository.dart';
 import 'package:atlas/features/explorer/domain/models/place_models.dart';
@@ -380,7 +381,9 @@ void main() {
         // Slugs stables pour favoris / signalements / deep links.
         expect(repository.findById('place-majorelle'), isNotNull);
         expect(repository.findById('place-oudayas'), isNotNull);
-        expect(repository.categories, PlaceCategory.values);
+        expect(repository.categories, isNot(contains(PlaceCategory.cafe)));
+        expect(repository.categories, contains(PlaceCategory.restaurant));
+        expect(repository.categories, contains(PlaceCategory.plage));
       },
     );
 
@@ -529,13 +532,10 @@ void main() {
         for (final id in expectedSlugs) {
           expect(repository.findById(id), isNotNull, reason: id);
         }
-        expect(
-          {
-            for (final city in ['Marrakech', 'Casablanca', 'Rabat'])
-              ...repository.getAll(cityName: city).map((place) => place.id),
-          },
-          expectedSlugs,
-        );
+        expect({
+          for (final city in ['Marrakech', 'Casablanca', 'Rabat'])
+            ...repository.getAll(cityName: city).map((place) => place.id),
+        }, expectedSlugs);
       },
     );
 
@@ -545,8 +545,7 @@ void main() {
         final local = PlaceCatalog.guides;
         final remote = [
           PlaceRecordMapper.fromRow(
-            _supabaseRowFromGuide(local.first)
-              ..['name'] = 'Override distant',
+            _supabaseRowFromGuide(local.first)..['name'] = 'Override distant',
           ),
         ];
 
@@ -556,8 +555,10 @@ void main() {
         );
 
         expect(merged.map((place) => place.id).toSet(), expectedSlugs);
-        expect(merged.where((place) => place.id == local.first.id).single.name,
-            'Override distant');
+        expect(
+          merged.where((place) => place.id == local.first.id).single.name,
+          'Override distant',
+        );
         expect(merged.length, local.length);
       },
     );

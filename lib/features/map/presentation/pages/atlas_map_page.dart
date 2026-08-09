@@ -13,7 +13,9 @@ import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
+import '../../../explorer/data/place_mapper.dart';
 import '../../../explorer/data/resilient_place_repository.dart';
+import '../../../explorer/domain/models/place_models.dart';
 import '../../../explorer/domain/place_browse_filters.dart';
 import '../../../explorer/domain/place_repository.dart';
 import '../../../explorer/presentation/widgets/place_catalog_status_indicator.dart';
@@ -31,10 +33,7 @@ import '../widgets/place_map_preview_sheet.dart';
 
 /// Carte interactive Atlas — lieux curatés avec coordonnées valides uniquement.
 class AtlasMapPage extends StatefulWidget {
-  const AtlasMapPage({
-    super.key,
-    this.isActive = true,
-  });
+  const AtlasMapPage({super.key, this.isActive = true});
 
   /// `false` tant que l'onglet Carte n'a pas été ouvert (évite tuiles/warmUp en fond).
   final bool isActive;
@@ -93,10 +92,13 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     if (_mapEngineReady) return;
     _mapEngineReady = true;
     _attachCatalogListener();
+    final focusingPlace = _filters.focusPlaceId != null;
     _rebuildMarkers();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _centerOnSelectedCity();
+      if (!focusingPlace) {
+        _centerOnSelectedCity();
+      }
       unawaited(_checkPermission());
       unawaited(_repository.warmUp());
     });
@@ -110,8 +112,8 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
       _profileRepository = profile;
       if (_filters.cityName.isEmpty ||
           _filters.cityName == LocationConstants.fallbackCity) {
-        final preferred = MoroccoCities.resolve(profile.profile.preferredCity)
-                ?.name ??
+        final preferred =
+            MoroccoCities.resolve(profile.profile.preferredCity)?.name ??
             LocationConstants.fallbackCity;
         _filters.setCityName(preferred);
       }
@@ -183,10 +185,11 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
         selection: TextSelection.collapsed(offset: _filters.searchText.length),
       );
     }
+    final focusingPlace = _filters.focusPlaceId != null;
     setState(() {
       _rebuildMarkers(notify: false);
     });
-    if (_mapEngineReady) {
+    if (_mapEngineReady && !focusingPlace) {
       _centerOnSelectedCity();
     }
   }
@@ -202,6 +205,10 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
 
   void _rebuildMarkers({bool notify = true}) {
     void update() {
+      final available = _availableCategories;
+      if (_filters.category != null && !available.contains(_filters.category)) {
+        _filters.setCategory(null, notify: false);
+      }
       _markers = MapPlaceQuery.markers(
         repository: _repository,
         filters: _filters,
@@ -214,6 +221,34 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     } else {
       update();
     }
+    _consumeFocusPlaceIfNeeded();
+  }
+
+  List<PlaceCategory> get _availableCategories {
+    if (!_repository.isCityCovered(_filters.cityName)) return const [];
+    return PlaceMapper.categoriesPresentIn(
+      _repository.getAll(cityName: _filters.cityName),
+    );
+  }
+
+  bool get _isCityCovered => _repository.isCityCovered(_filters.cityName);
+
+  void _consumeFocusPlaceIfNeeded() {
+    final placeId = _filters.consumeFocusPlaceId();
+    if (placeId == null) return;
+    final place = _repository.findById(placeId);
+    if (place == null || !place.hasCoordinates) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _selectedPlaceId = placeId);
+      _animateCameraTo(place.latitude!, place.longitude!, 14);
+      unawaited(
+        showPlaceMapPreviewSheet(context, place: place).whenComplete(() {
+          if (mounted) setState(() => _selectedPlaceId = null);
+        }),
+      );
+    });
   }
 
   void _onSearchChanged() {
@@ -224,7 +259,8 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   }
 
   void _centerOnSelectedCity() {
-    final city = MoroccoCities.resolve(_filters.cityName) ?? MoroccoCities.fallback;
+    final city =
+        MoroccoCities.resolve(_filters.cityName) ?? MoroccoCities.fallback;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       try {
@@ -251,7 +287,9 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     final startZoom = _mapController.camera.zoom;
     const steps = 14;
     var step = 0;
-    _cameraAnimTimer = Timer.periodic(const Duration(milliseconds: 18), (timer) {
+    _cameraAnimTimer = Timer.periodic(const Duration(milliseconds: 18), (
+      timer,
+    ) {
       step += 1;
       final t = Curves.easeOutCubic.transform(step / steps);
       _mapController.move(
@@ -269,7 +307,8 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   }
 
   Future<void> _onNearMe() async {
-    final preferred = _profileRepository?.profile.preferredCity ??
+    final preferred =
+        _profileRepository?.profile.preferredCity ??
         UserProfile.defaultPreferredCity;
     final location = await _locationRepository.resolveLocation(
       preferredCityName: preferred,
@@ -307,8 +346,9 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     final place = _repository.findById(marker.placeId);
     if (place == null) return;
     setState(() => _selectedPlaceId = marker.placeId);
-    final targetZoom =
-        _mapController.camera.zoom < 14 ? 14.0 : _mapController.camera.zoom;
+    final targetZoom = _mapController.camera.zoom < 14
+        ? 14.0
+        : _mapController.camera.zoom;
     _animateCameraTo(marker.latitude, marker.longitude, targetZoom);
     unawaited(
       showPlaceMapPreviewSheet(context, place: place).whenComplete(() {
@@ -318,11 +358,9 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   }
 
   AtlasMapCamera get _camera {
-    final city = MoroccoCities.resolve(_filters.cityName) ?? MoroccoCities.fallback;
-    return AtlasMapCamera(
-      latitude: city.latitude,
-      longitude: city.longitude,
-    );
+    final city =
+        MoroccoCities.resolve(_filters.cityName) ?? MoroccoCities.fallback;
+    return AtlasMapCamera(latitude: city.latitude, longitude: city.longitude);
   }
 
   @override
@@ -370,7 +408,9 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                       PlaceCatalogStatusIndicator(loadState: _loadState),
                       if (_tilesUnavailable)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: AtlasSpacing.sm),
+                          padding: const EdgeInsets.only(
+                            bottom: AtlasSpacing.sm,
+                          ),
                           child: Text(
                             'Tuiles indisponibles — marqueurs issus du cache.',
                             style: theme.textTheme.labelSmall?.copyWith(
@@ -405,6 +445,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                       const SizedBox(height: AtlasSpacing.sm),
                       PlaceCategoryFilter(
                         selectedCategory: _filters.category,
+                        availableCategories: _availableCategories,
                         onCategorySelected: (category) {
                           if (category == null) {
                             _filters.update(clearCategory: true);
@@ -477,12 +518,16 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                                       elevation: 2,
                                       borderRadius: BorderRadius.circular(12),
                                       color: theme.colorScheme.surface,
-                                      child: const Padding(
-                                        padding:
-                                            EdgeInsets.all(AtlasSpacing.lg),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(
+                                          AtlasSpacing.lg,
+                                        ),
                                         child: Text(
-                                          'Aucun lieu avec coordonnées '
-                                          'vérifiées pour ces filtres.',
+                                          !_isCityCovered
+                                              ? 'Contenu bientôt disponible pour '
+                                                    '${_filters.cityName.isEmpty ? LocationConstants.fallbackCity : _filters.cityName}.'
+                                              : 'Aucun lieu avec coordonnées '
+                                                    'vérifiées pour ces filtres.',
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -512,9 +557,7 @@ Future<void> openAtlasMap(BuildContext context) {
         repository: profile,
         child: FavoritesScope(
           repository: favorites,
-          child: const Scaffold(
-            body: AtlasMapPage(),
-          ),
+          child: const Scaffold(body: AtlasMapPage()),
         ),
       ),
     ),

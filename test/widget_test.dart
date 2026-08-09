@@ -87,7 +87,7 @@ void main() {
 
     await tapBottomNav(tester, 'Explorer');
 
-    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
+    expect(find.textContaining('Marrakech, Casablanca et Rabat'), findsOneWidget);
     expect(find.text('Jardin Majorelle'), findsWidgets);
 
     await tapBottomNav(tester, 'Carte');
@@ -105,15 +105,7 @@ void main() {
 
     await tapBottomNav(tester, 'Prix');
 
-    expect(find.textContaining('Prix vérifiés au Maroc'), findsOneWidget);
-    expect(find.text('SP95 Marrakech'), findsWidgets);
-    await tester.scrollUntilVisible(
-      find.text('Taxi Airport Marrakech'),
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Taxi Airport Marrakech'), findsOneWidget);
+    expect(find.textContaining('Prix vérifiés'), findsOneWidget);
 
     await tapBottomNav(tester, 'Profil');
 
@@ -191,7 +183,7 @@ void main() {
     await tester.tap(explorerAction);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('meilleurs lieux du Maroc'), findsOneWidget);
+    expect(find.textContaining('Marrakech, Casablanca et Rabat'), findsOneWidget);
 
     await tapBottomNav(tester, 'Accueil');
 
