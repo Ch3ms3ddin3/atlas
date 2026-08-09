@@ -21,6 +21,7 @@ import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
 import '../../../events/presentation/pages/events_calendar_page.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
+import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../itineraries/presentation/itinerary_scope.dart';
 import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../onboarding/data/onboarding_preferences_store.dart';
@@ -243,6 +244,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   _AssistantEntryCard(
                     onOpen: () => AssistantPage.open(context),
                   ),
+                  const SizedBox(height: AtlasSpacing.lg),
+                  _FavoritesEntryCard(onOpen: () => openFavoritesHub(context)),
                   const SizedBox(height: AtlasSpacing.lg),
                   _ItineraryEntryCard(onOpen: () => TripListPage.open(context)),
                   const SizedBox(height: AtlasSpacing.lg),
@@ -511,6 +514,58 @@ class _AssistantEntryCard extends StatelessWidget {
                 const SizedBox(height: AtlasSpacing.xs),
                 Text(
                   'Conseils contextualisés à partir de vos données Atlas.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AtlasColors.midnightBlueMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded),
+        ],
+      ),
+    );
+  }
+}
+
+class _FavoritesEntryCard extends StatelessWidget {
+  const _FavoritesEntryCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AtlasCard(
+      onTap: onOpen,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AtlasColors.terracottaGhost,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.favorite_border,
+              color: AtlasColors.terracotta,
+            ),
+          ),
+          const SizedBox(width: AtlasSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Favoris',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AtlasSpacing.xs),
+                Text(
+                  'Retrouvez vos lieux, démarches et prix vérifiés sauvegardés.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AtlasColors.midnightBlueMuted,
                   ),
