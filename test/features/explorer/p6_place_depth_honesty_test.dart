@@ -36,15 +36,17 @@ void main() {
   });
 
   group('P6 cover honesty', () {
-    test('bundled covers exclude majorelle and geo-mismatched hammam', () {
+    test('bundled covers include jemaa, ysl, hammam; exclude majorelle', () {
       expect(PlaceCoverAssets.hasBundledCover('place-bahia'), isTrue);
+      expect(PlaceCoverAssets.hasBundledCover('place-jemaa-el-fna'), isTrue);
+      expect(PlaceCoverAssets.hasBundledCover('place-ysl-museum'), isTrue);
       expect(PlaceCoverAssets.hasBundledCover('place-hassan-ii'), isTrue);
       expect(PlaceCoverAssets.hasBundledCover('place-majorelle'), isFalse);
       expect(
         PlaceCoverAssets.hasBundledCover('place-hammam-marrakech'),
-        isFalse,
+        isTrue,
       );
-      expect(PlaceCoverAssets.bundledPlaceIds.length, 13);
+      expect(PlaceCoverAssets.bundledPlaceIds.length, 14);
     });
 
     testWidgets('PlaceCoverImage uses Image.asset for bundled cover', (

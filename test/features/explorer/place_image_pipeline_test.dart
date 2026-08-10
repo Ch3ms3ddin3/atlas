@@ -95,6 +95,46 @@ void main() {
     expect(find.byIcon(Icons.park_outlined), findsWidgets);
   });
 
+  testWidgets(
+    'cover bundle vérifié gagne sur une URL remote (Jemaa / YSL / hammam)',
+    (tester) async {
+      final jemaa = PlaceGuide(
+        id: 'place-jemaa-el-fna',
+        name: 'Place Jemaa el-Fna',
+        cityName: 'Marrakech',
+        category: PlaceCategory.souk,
+        categoryLabel: 'Souk',
+        neighborhood: 'Médina',
+        priceLevel: '€',
+        isEditorsPick: true,
+        imageColor: const Color(0xFF8B4513),
+        summary: 'Résumé',
+        practicalTips: const [],
+        imageUrls: const [
+          'https://example.invalid/place-photos/old-jemaa.webp',
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AtlasTheme.light,
+          home: Scaffold(
+            body: PlaceCoverImage(place: jemaa, height: 140),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(Image), findsOneWidget);
+      expect(find.byType(AtlasNetworkImage), findsNothing);
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(
+        (image.image as AssetImage).assetName,
+        'assets/explorer_place_covers/place-photos/place-jemaa-el-fna/cover.webp',
+      );
+    },
+  );
+
   test('AtlasNetworkImage.encode les parenthèses du chemin Storage', () {
     const raw =
         'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/Blue_and_more_(11277856173).jpg';

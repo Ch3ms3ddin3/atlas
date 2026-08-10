@@ -1,13 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-/// Covers locaux vérifiés (Commons) — hors inventaire inventé.
+/// Covers locaux vérifiés — hors inventaire inventé.
 ///
 /// Sources et licences : `assets/explorer_place_covers/_ledger/ATTRIBUTION.md`.
 ///
 /// Exclus volontairement :
 /// - `place-majorelle` : aucun cover local vérifié dans le ledger
-/// - `place-hammam-marrakech` : photo Commons d'un hammam à Fès — géographique
-///   incompatible avec un lieu libellé Marrakech
 abstract final class PlaceCoverAssets {
   static const _assetByPlaceId = <String, String>{
     'place-bahia':
@@ -16,6 +14,8 @@ abstract final class PlaceCoverAssets {
         'assets/explorer_place_covers/place-photos/place-jemaa-el-fna/cover.webp',
     'place-ysl-museum':
         'assets/explorer_place_covers/place-photos/place-ysl-museum/cover.webp',
+    'place-hammam-marrakech':
+        'assets/explorer_place_covers/place-photos/place-hammam-marrakech/cover.webp',
     'place-hassan-ii':
         'assets/explorer_place_covers/place-photos/place-hassan-ii/cover.webp',
     'place-corniche':

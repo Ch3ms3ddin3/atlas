@@ -6,9 +6,11 @@ import '../../data/place_cover_assets.dart';
 import '../../domain/models/place_models.dart';
 import 'place_category_icon.dart';
 
-/// Visuel principal d'un lieu — URL distante, asset vérifié, ou fallback honnête.
+/// Visuel principal d'un lieu — asset vérifié, URL distante, ou fallback honnête.
 ///
-/// Priorité : `imageUrls` remote → cover bundle vérifié → fallback catégorie.
+/// Priorité : cover bundle vérifié → `imageUrls` remote → fallback catégorie.
+/// Les covers locaux expédiés (ex. Jemaa / YSL / hammam) gagnent toujours sur
+/// une URL Storage distante, pour éviter d'afficher d'anciennes photos cloud.
 /// Jamais d'image géographiquement ou thématiquement non liée.
 class PlaceCoverImage extends StatelessWidget {
   const PlaceCoverImage({
@@ -51,24 +53,6 @@ class PlaceCoverImage extends StatelessWidget {
       iconSize: fallbackIconSize,
     );
 
-    final primaryUrl = place.primaryImageUrl;
-    if (primaryUrl != null) {
-      final dpr = MediaQuery.devicePixelRatioOf(context);
-      final cacheHeight = (height * dpr).round().clamp(1, 2048);
-
-      return SizedBox(
-        height: height,
-        width: double.infinity,
-        child: AtlasNetworkImage(
-          url: primaryUrl,
-          borderRadius: radius,
-          placeholder: fallback,
-          errorWidget: fallback,
-          memCacheHeight: cacheHeight,
-        ),
-      );
-    }
-
     final assetPath = PlaceCoverAssets.assetPathFor(place.id);
     if (assetPath != null) {
       return SizedBox(
@@ -87,6 +71,24 @@ class PlaceCoverImage extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    final primaryUrl = place.primaryImageUrl;
+    if (primaryUrl != null) {
+      final dpr = MediaQuery.devicePixelRatioOf(context);
+      final cacheHeight = (height * dpr).round().clamp(1, 2048);
+
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: AtlasNetworkImage(
+          url: primaryUrl,
+          borderRadius: radius,
+          placeholder: fallback,
+          errorWidget: fallback,
+          memCacheHeight: cacheHeight,
         ),
       );
     }

@@ -15,38 +15,35 @@ Local staging only. Not uploaded to Supabase.
 
 ## Place Jemaa el-Fna (`place-jemaa-el-fna`)
 - Status: **PASS**
-- Source: https://commons.wikimedia.org/wiki/File%3AJemaa_El_Fna_Square_Marrakech_Morocco_173933_%2849701985992%29.jpg
-- Commons title: File:Jemaa El Fna Square Marrakech Morocco 173933 (49701985992).jpg
-- Author: bobistraveling
-- License: CC BY 2.0
-- License URL: https://creativecommons.org/licenses/by/2.0
+- Source: Provided by Atlas product owner for commercial app use
+  (selected golden-hour square view with food stalls / Koutoubia)
+- Author: Atlas-provided asset
+- License: Rights granted by provider for Atlas commercial mobile distribution
 - Local path: `assets/explorer_place_covers/place-photos/place-jemaa-el-fna/cover.webp`
 - Dimensions: 1800x1200
-- Size: 266.1 KB
+- Size: 351.3 KB
 
 ## Musée Yves Saint Laurent (`place-ysl-museum`)
 - Status: **PASS**
-- Source: https://commons.wikimedia.org/wiki/File%3AArchitetti_studio_ko%2C_museo_YSL_a_Marrakech.jpg
-- Commons title: File:Architetti studio ko, museo YSL a Marrakech.jpg
-- Author: Pivari
-- License: CC BY 4.0
-- License URL: https://creativecommons.org/licenses/by/4.0
+- Source: Provided by Atlas product owner for commercial app use
+  (selected clean brick-façade architectural photograph)
+- Author: Atlas-provided asset
+- License: Rights granted by provider for Atlas commercial mobile distribution
 - Local path: `assets/explorer_place_covers/place-photos/place-ysl-museum/cover.webp`
 - Dimensions: 1800x1200
-- Size: 292.7 KB
+- Size: 294.2 KB
 
 ## Hammam traditionnel (`place-hammam-marrakech`)
-- Status: **EXCLUDED FROM APP SHIPPING (P6)**
-- Reason: Commons source shows Hamamm Seffarine rooftop **in Fès** — geographically
-  incompatible with a Marrakech-labeled place. Kept in staging ledger only.
-- Source: https://commons.wikimedia.org/wiki/File%3AHamamm_Seffarine_rooftop_in_Fes.jpg
-- Commons title: File:Hamamm Seffarine rooftop in Fes.jpg
-- Author: Gonzalo Riestra from España
-- License: CC BY 2.0
-- License URL: https://creativecommons.org/licenses/by/2.0
+- Status: **PASS**
+- Source: Provided by Atlas product owner for commercial app use
+  (generic traditional hammam interior — tadelakt / zellige / warm light)
+- Author: Atlas-provided asset
+- License: Rights granted by provider for Atlas commercial mobile distribution
+- Note: Generic category visual — does **not** represent a named hammam
+  establishment. Replaces prior Fès rooftop Commons asset (geo-mismatched).
 - Local path: `assets/explorer_place_covers/place-photos/place-hammam-marrakech/cover.webp`
 - Dimensions: 1800x1200
-- Size: 272.8 KB
+- Size: 280.0 KB
 
 ## Mosquée Hassan II (`place-hassan-ii`)
 - Status: **PASS**
