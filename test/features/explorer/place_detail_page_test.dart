@@ -208,7 +208,11 @@ void main() {
     await tester.tap(find.text('Itinéraire'));
     await tester.pumpAndSettle();
     expect(opened, isNotEmpty);
-    expect(opened.first.toString(), contains('31.6416'));
+    final query = opened.first.queryParameters['query']!;
+    expect(query, contains('31.6416'));
+    expect(query, contains('-8.0031'));
+    expect(query, '31.6416,-8.0031');
+    expect(query, isNot(contains('Lieu Test')));
   });
 
   testWidgets('masque la galerie quand seule l\'image primaire existe', (

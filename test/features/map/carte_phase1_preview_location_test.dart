@@ -132,7 +132,10 @@ void main() {
     await tester.tap(find.text('Itinéraire'));
     await tester.pumpAndSettle();
     expect(openedUri, isNotNull);
-    expect(openedUri.toString(), contains('${place.latitude}'));
-    expect(openedUri.toString(), contains('${place.longitude}'));
+    final query = openedUri!.queryParameters['query']!;
+    expect(query, contains('${place.latitude}'));
+    expect(query, contains('${place.longitude}'));
+    expect(query, isNot(contains(place.name)));
+    expect(query, '${place.latitude},${place.longitude}');
   });
 }

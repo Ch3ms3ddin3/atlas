@@ -9,7 +9,7 @@ import 'place_category_icon.dart';
 /// Visuel principal d'un lieu — asset vérifié, URL distante, ou fallback honnête.
 ///
 /// Priorité : cover bundle vérifié → `imageUrls` remote → fallback catégorie.
-/// Les covers locaux expédiés (ex. Jemaa / YSL / hammam) gagnent toujours sur
+/// Les covers locaux expédiés (ex. Jemaa / YSL) gagnent toujours sur
 /// une URL Storage distante, pour éviter d'afficher d'anciennes photos cloud.
 /// Jamais d'image géographiquement ou thématiquement non liée.
 class PlaceCoverImage extends StatelessWidget {

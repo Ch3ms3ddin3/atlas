@@ -14,8 +14,6 @@ abstract final class PlaceCoverAssets {
         'assets/explorer_place_covers/place-photos/place-jemaa-el-fna/cover.webp',
     'place-ysl-museum':
         'assets/explorer_place_covers/place-photos/place-ysl-museum/cover.webp',
-    'place-hammam-marrakech':
-        'assets/explorer_place_covers/place-photos/place-hammam-marrakech/cover.webp',
     'place-hassan-ii':
         'assets/explorer_place_covers/place-photos/place-hassan-ii/cover.webp',
     'place-corniche':

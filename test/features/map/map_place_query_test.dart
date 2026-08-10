@@ -23,6 +23,7 @@ void main() {
     expect(markers, isNotEmpty);
     expect(markers.every((m) => m.placeId != 'place-hammam-marrakech'), isTrue);
     expect(markers.any((m) => m.placeId == 'place-majorelle'), isTrue);
+    expect(markers.any((m) => m.placeId == 'place-les-bains-marrakech'), isTrue);
   });
 
   test('filtre favoris uniquement', () async {

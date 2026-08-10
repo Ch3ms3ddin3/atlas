@@ -31,7 +31,14 @@ abstract final class AtlasExternalLinks {
     return false;
   }
 
-  static Uri? mapsUri({required double latitude, required double longitude}) {
+  /// Google Maps Search Universal Link — destination = coordonnées exactes.
+  ///
+  /// iOS Google Maps traite `query=lat,lng(Name)` comme une recherche texte
+  /// (souvent « Aucun résultat ») : on n'injecte donc pas de libellé ici.
+  static Uri? mapsUri({
+    required double latitude,
+    required double longitude,
+  }) {
     return Uri.parse(
       'https://www.google.com/maps/search/?api=1'
       '&query=${Uri.encodeComponent('$latitude,$longitude')}',

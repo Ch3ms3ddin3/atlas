@@ -453,7 +453,10 @@ void main() {
       'place-bahia',
       'place-jemaa-el-fna',
       'place-ysl-museum',
-      'place-hammam-marrakech',
+      'place-les-bains-marrakech',
+      'place-hammam-de-la-rose',
+      'place-heritage-spa',
+      'place-hammam-place-des-epices',
       'place-hassan-ii',
       'place-corniche',
       'place-marche-central',
@@ -466,11 +469,13 @@ void main() {
       'place-plage-rabat',
     };
 
-    test('catalogue local : 15 slugs stables, uniques, sans nouveau lieu', () {
+    test('catalogue local : slugs stables, uniques, hammams nommément curatés', () {
       final ids = PlaceCatalog.guides.map((place) => place.id).toList();
       expect(ids.toSet(), expectedSlugs);
       expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(15));
+      expect(ids, hasLength(18));
+      expect(ids, isNot(contains('place-hammam-marrakech')));
+      expect(ids, isNot(contains('place-bain-de-kasbah')));
     });
 
     test(

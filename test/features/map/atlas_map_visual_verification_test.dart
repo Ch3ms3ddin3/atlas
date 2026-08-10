@@ -225,6 +225,10 @@ void main() {
         markers.every((m) => m.latitude.isFinite && m.longitude.isFinite),
         isTrue,
       );
+      expect(
+        markers.any((m) => m.placeId == 'place-les-bains-marrakech'),
+        isTrue,
+      );
     });
   });
 

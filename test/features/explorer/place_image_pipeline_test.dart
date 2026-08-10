@@ -96,7 +96,7 @@ void main() {
   });
 
   testWidgets(
-    'cover bundle vérifié gagne sur une URL remote (Jemaa / YSL / hammam)',
+    'cover bundle vérifié gagne sur une URL remote (Jemaa / YSL)',
     (tester) async {
       final jemaa = PlaceGuide(
         id: 'place-jemaa-el-fna',

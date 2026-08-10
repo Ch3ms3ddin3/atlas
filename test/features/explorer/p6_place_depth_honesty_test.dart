@@ -36,7 +36,7 @@ void main() {
   });
 
   group('P6 cover honesty', () {
-    test('bundled covers include jemaa, ysl, hammam; exclude majorelle', () {
+    test('bundled covers include jemaa and ysl; exclude majorelle and hammams', () {
       expect(PlaceCoverAssets.hasBundledCover('place-bahia'), isTrue);
       expect(PlaceCoverAssets.hasBundledCover('place-jemaa-el-fna'), isTrue);
       expect(PlaceCoverAssets.hasBundledCover('place-ysl-museum'), isTrue);
@@ -44,9 +44,13 @@ void main() {
       expect(PlaceCoverAssets.hasBundledCover('place-majorelle'), isFalse);
       expect(
         PlaceCoverAssets.hasBundledCover('place-hammam-marrakech'),
-        isTrue,
+        isFalse,
       );
-      expect(PlaceCoverAssets.bundledPlaceIds.length, 14);
+      expect(
+        PlaceCoverAssets.hasBundledCover('place-les-bains-marrakech'),
+        isFalse,
+      );
+      expect(PlaceCoverAssets.bundledPlaceIds.length, 13);
     });
 
     testWidgets('PlaceCoverImage uses Image.asset for bundled cover', (
@@ -220,11 +224,23 @@ void main() {
       );
     });
 
-    test('catalog size and categories remain honest after P6', () {
-      expect(PlaceCatalog.guides, hasLength(15));
+    test('catalog size and categories remain honest after P6 hammam curation', () {
+      expect(PlaceCatalog.guides, hasLength(18));
+      expect(
+        PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
+        isFalse,
+      );
+      expect(
+        PlaceCatalog.guides.any((p) => p.id == 'place-bain-de-kasbah'),
+        isFalse,
+      );
       expect(
         PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
         isNot(contains(PlaceCategory.cafe)),
+      );
+      expect(
+        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+        contains(PlaceCategory.hammam),
       );
     });
   });
