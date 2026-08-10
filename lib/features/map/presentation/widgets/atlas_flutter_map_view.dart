@@ -22,6 +22,7 @@ class AtlasFlutterMapView extends StatelessWidget {
     this.selectedPlaceId,
     this.userLatitude,
     this.userLongitude,
+    this.onTileError,
   });
 
   final AtlasMapCamera camera;
@@ -32,6 +33,9 @@ class AtlasFlutterMapView extends StatelessWidget {
   final String? selectedPlaceId;
   final double? userLatitude;
   final double? userLongitude;
+
+  /// Premier échec de tuile (réseau / OSM).
+  final VoidCallback? onTileError;
 
   static const clusterMaxZoom = 14.0;
 
@@ -85,6 +89,7 @@ class AtlasFlutterMapView extends StatelessWidget {
             tileProvider:
                 useSilentTiles ? _SilentTileProvider() : NetworkTileProvider(),
             errorTileCallback: (_, error, _) {
+              onTileError?.call();
               assert(() {
                 debugPrint('Atlas map tile error: $error');
                 return true;
@@ -96,21 +101,27 @@ class AtlasFlutterMapView extends StatelessWidget {
             maxClusterRadius: 48,
             disableClusteringAtZoom: clusterMaxZoom.round(),
             size: const Size(40, 40),
+            zoomToBoundsOnClick: true,
+            spiderfyCluster: true,
             markers: flutterMarkers,
             builder: (context, clusterMarkers) {
-              return AnimatedContainer(
-                duration: AtlasMotion.navAnimationDuration,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AtlasColors.terracotta,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: Text(
-                  '${clusterMarkers.length}',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+              return Semantics(
+                button: true,
+                label: '${clusterMarkers.length} lieux',
+                child: AnimatedContainer(
+                  duration: AtlasMotion.navAnimationDuration,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AtlasColors.terracotta,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Text(
+                    '${clusterMarkers.length}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               );
@@ -192,7 +203,7 @@ class _PlaceMarkerPinState extends State<_PlaceMarkerPin> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
+    final baseColor =
         widget.isFavorite ? AtlasColors.terracotta : AtlasColors.midnightBlue;
     final selected = widget.isSelected || _pressed;
     return GestureDetector(
@@ -201,14 +212,14 @@ class _PlaceMarkerPinState extends State<_PlaceMarkerPin> {
       onTapUp: (_) => setState(() => _pressed = false),
       onTap: widget.onTap,
       child: AnimatedScale(
-        scale: selected ? 1.18 : 1,
+        scale: selected ? 1.22 : 1,
         duration: AtlasMotion.navAnimationDuration,
         curve: AtlasMotion.curveSpring,
         child: AnimatedContainer(
           duration: AtlasMotion.navAnimationDuration,
           curve: AtlasMotion.curveDefault,
           decoration: BoxDecoration(
-            color: color,
+            color: widget.isSelected ? AtlasColors.terracotta : baseColor,
             shape: BoxShape.circle,
             border: Border.all(
               color: Colors.white,
@@ -217,7 +228,7 @@ class _PlaceMarkerPinState extends State<_PlaceMarkerPin> {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: selected ? 0.28 : 0.2),
-                blurRadius: selected ? 8 : 4,
+                blurRadius: selected ? 10 : 4,
                 offset: const Offset(0, 2),
               ),
             ],

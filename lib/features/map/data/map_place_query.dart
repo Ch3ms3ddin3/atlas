@@ -4,6 +4,7 @@ import '../../explorer/domain/place_repository.dart';
 import '../../favorites/domain/favorite_entity_type.dart';
 import '../../favorites/domain/favorites_repository.dart';
 import '../domain/atlas_map_models.dart';
+import 'map_search_text.dart';
 
 /// Projection filtres partagés → lieux cartographiables (coords obligatoires).
 abstract final class MapPlaceQuery {
@@ -12,9 +13,10 @@ abstract final class MapPlaceQuery {
     required PlaceBrowseFilters filters,
     FavoritesRepository? favorites,
   }) {
+    // City/category via le dépôt partagé ; texte géré ici (accents ignorés).
     final results = repository.search(
       PlaceSearchQuery(
-        text: filters.searchText,
+        text: '',
         category: filters.category,
         cityName: filters.cityName.isEmpty ? null : filters.cityName,
         sort: PlaceSort.catalog,
@@ -22,8 +24,21 @@ abstract final class MapPlaceQuery {
       ),
     );
 
+    final needle = MapSearchText.normalize(filters.searchText);
+
     return results.where((place) {
       if (!place.hasCoordinates) return false;
+
+      if (needle.isNotEmpty) {
+        final haystack = MapSearchText.searchableHaystack(
+          name: place.name,
+          summary: place.summary,
+          neighborhood: place.neighborhood,
+          categoryLabel: place.categoryLabel,
+        );
+        if (!haystack.contains(needle)) return false;
+      }
+
       if (!filters.favoritesOnly) return true;
       if (favorites == null || !favorites.isLoaded) return false;
       return favorites.isFavorite(

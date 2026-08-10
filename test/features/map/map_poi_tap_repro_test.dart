@@ -103,9 +103,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(PlaceMapPreviewSheet), findsOneWidget);
     expect(find.text(placeName), findsWidgets);
-    expect(find.text('Voir la fiche complète'), findsOneWidget);
+    expect(find.text('Voir la fiche'), findsOneWidget);
 
-    await tester.tap(find.text('Voir la fiche complète'));
+    await tester.tap(find.text('Voir la fiche'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

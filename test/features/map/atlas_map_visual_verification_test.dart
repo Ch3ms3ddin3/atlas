@@ -167,9 +167,9 @@ void main() {
 
       expect(find.byType(PlaceMapPreviewSheet), findsOneWidget);
       expect(find.text('Jardin Majorelle'), findsWidgets);
-      expect(find.text('Voir la fiche complète'), findsOneWidget);
+      expect(find.text('Voir la fiche'), findsOneWidget);
 
-      await tester.tap(find.text('Voir la fiche complète'));
+      await tester.tap(find.text('Voir la fiche'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Conseils pratiques'), findsOneWidget);
@@ -257,15 +257,16 @@ void main() {
     );
     await pumpFrames(tester, 6);
 
+    // Category while Marrakech (default) still selected — Casablanca may
+    // hide Jardin from available chips.
+    await tester.tap(find.text('Jardin'));
+    await pumpFrames(tester, 4);
+    expect(PlaceBrowseFilters.instance.category, PlaceCategory.jardin);
+
     // City chip Casablanca
     await tester.tap(find.text('Casablanca'));
     await pumpFrames(tester, 4);
     expect(PlaceBrowseFilters.instance.cityName, 'Casablanca');
-
-    // Category Jardin
-    await tester.tap(find.text('Jardin'));
-    await pumpFrames(tester, 4);
-    expect(PlaceBrowseFilters.instance.category, PlaceCategory.jardin);
 
     // Search
     await tester.enterText(find.byType(TextField).first, 'Majorelle');

@@ -46,5 +46,6 @@ void main() {
     expect(find.text('Carte'), findsOneWidget);
     expect(find.text('Favoris'), findsOneWidget);
     expect(find.text('Marrakech'), findsWidgets);
+    expect(find.byTooltip('Près de moi'), findsOneWidget);
   });
 }

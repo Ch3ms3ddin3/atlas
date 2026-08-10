@@ -49,7 +49,7 @@
 		<string>mailto</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Atlas utilise votre position pour afficher la météo et les horaires de prière de votre ville.</string>
+	<string>Atlas utilise votre position pour centrer la carte sur vous, et pour afficher la météo et les horaires de prière de votre ville.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Atlas peut ajouter un événement (jour férié ou rappel) à votre calendrier, uniquement si vous le demandez.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>

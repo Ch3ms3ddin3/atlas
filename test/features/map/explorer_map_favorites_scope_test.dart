@@ -119,7 +119,16 @@ void main() {
       expect(find.byType(PlaceDetailPage), findsOneWidget);
       expect(find.text('Conseils pratiques'), findsOneWidget);
 
-      await tester.pageBack();
+      // Prefer Material back / close over Cupertino-only pageBack().
+      final back = find.byTooltip('Back');
+      final close = find.byTooltip('Close');
+      if (back.evaluate().isNotEmpty) {
+        await tester.tap(back.first);
+      } else if (close.evaluate().isNotEmpty) {
+        await tester.tap(close.first);
+      } else {
+        await tester.binding.handlePopRoute();
+      }
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Ouvrir la carte'));
@@ -131,7 +140,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(PlaceMapPreviewSheet), findsOneWidget);
 
-      await tester.tap(find.text('Voir la fiche complète'));
+      await tester.tap(find.text('Voir la fiche'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 

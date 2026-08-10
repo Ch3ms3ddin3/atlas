@@ -57,4 +57,50 @@ void main() {
     );
     expect(markers.every((m) => m.category == PlaceCategory.jardin), isTrue);
   });
+
+  test('recherche Carte ignore accents et casse (musée / musee)', () {
+    final repo = LocalPlaceRepository();
+    final filters = PlaceBrowseFilters.instance;
+    filters.setCityName('Marrakech', notify: false);
+
+    List<String> idsFor(String query) {
+      filters.setSearchText(query, notify: false);
+      return MapPlaceQuery.markers(repository: repo, filters: filters)
+          .map((m) => m.placeId)
+          .toList()
+        ..sort();
+    }
+
+    final accented = idsFor('musée');
+    final plain = idsFor('musee');
+    final upper = idsFor('MUSEE');
+    final mixed = idsFor('Musée');
+    final title = idsFor('Musee');
+
+    expect(accented, isNotEmpty);
+    expect(accented, contains('place-ysl-museum'));
+    expect(plain, accented);
+    expect(upper, accented);
+    expect(mixed, accented);
+    expect(title, accented);
+  });
+
+  test('recherche Carte médina / medina et guéliz si présent', () {
+    final repo = LocalPlaceRepository();
+    final filters = PlaceBrowseFilters.instance;
+    filters.setCityName('Marrakech', notify: false);
+
+    List<String> idsFor(String query) {
+      filters.setSearchText(query, notify: false);
+      return MapPlaceQuery.markers(repository: repo, filters: filters)
+          .map((m) => m.placeId)
+          .toList()
+        ..sort();
+    }
+
+    expect(idsFor('medina'), idsFor('médina'));
+    expect(idsFor('MEDINA'), idsFor('Médina'));
+    expect(idsFor('medina'), isNotEmpty);
+  });
 }
+

@@ -7,7 +7,6 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/editorial/editorial_catalog_load_state.dart';
 import '../../../../core/location/geolocator_service.dart';
 import '../../../../core/location/location_constants.dart';
-import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
@@ -23,7 +22,6 @@ import '../../../explorer/presentation/widgets/place_category_filter.dart';
 import '../../../explorer/presentation/widgets/place_city_filter.dart';
 import '../../../favorites/domain/favorites_repository.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
-import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../data/map_place_query.dart';
@@ -44,7 +42,6 @@ class AtlasMapPage extends StatefulWidget {
 
 class _AtlasMapPageState extends State<AtlasMapPage> {
   final PlaceRepository _repository = PlaceRepository();
-  final LocationRepository _locationRepository = LocationRepository();
   final GeolocatorService _geolocator = const GeolocatorService();
   final PlaceBrowseFilters _filters = PlaceBrowseFilters.instance;
   final MapController _mapController = MapController();
@@ -277,6 +274,18 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     setState(() => _hasLocationPermission = permission);
   }
 
+  void _showLocationSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   void _animateCameraTo(double latitude, double longitude, double zoom) {
     _cameraAnimTimer?.cancel();
     if (AtlasMotion.reduceMotionOf(context)) {
@@ -306,29 +315,44 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     });
   }
 
+  /// Demande la permission seulement au tap — jamais au lancement seul.
   Future<void> _onNearMe() async {
-    final preferred =
-        _profileRepository?.profile.preferredCity ??
-        UserProfile.defaultPreferredCity;
-    final location = await _locationRepository.resolveLocation(
-      preferredCityName: preferred,
-    );
-    if (!mounted) return;
-    if (!location.isFromGps) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Position indisponible — carte centrée sur la ville.'),
-        ),
+    try {
+      final position = await _geolocator.getCurrentPosition();
+      if (!mounted) return;
+      if (position != null) {
+        setState(() {
+          _userLat = position.latitude;
+          _userLng = position.longitude;
+          _hasLocationPermission = true;
+        });
+        _animateCameraTo(position.latitude, position.longitude, 14);
+        return;
+      }
+
+      final granted = await _geolocator.hasGrantedPermission();
+      if (!mounted) return;
+      setState(() => _hasLocationPermission = granted);
+      if (!granted) {
+        _showLocationSnack(
+          'Localisation refusée — la carte reste utilisable.',
+        );
+        return;
+      }
+      _showLocationSnack(
+        'Position indisponible pour le moment. Réessayez plus tard.',
       );
-      _centerOnSelectedCity();
-      return;
+    } catch (_) {
+      if (!mounted) return;
+      _showLocationSnack(
+        'Position indisponible pour le moment. Réessayez plus tard.',
+      );
     }
-    setState(() {
-      _userLat = location.latitude;
-      _userLng = location.longitude;
-      _hasLocationPermission = true;
-    });
-    _animateCameraTo(location.latitude, location.longitude, 14);
+  }
+
+  void _onTileError() {
+    if (!mounted || _tilesUnavailable) return;
+    setState(() => _tilesUnavailable = true);
   }
 
   Future<void> _onRefresh() async {
@@ -397,12 +421,15 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                               ),
                             ),
                           ),
-                          if (_hasLocationPermission)
-                            IconButton(
-                              tooltip: 'Près de moi',
-                              onPressed: _onNearMe,
-                              icon: const Icon(Icons.my_location_outlined),
+                          IconButton(
+                            tooltip: 'Près de moi',
+                            onPressed: _onNearMe,
+                            icon: Icon(
+                              _hasLocationPermission
+                                  ? Icons.my_location
+                                  : Icons.my_location_outlined,
                             ),
+                          ),
                         ],
                       ),
                       PlaceCatalogStatusIndicator(loadState: _loadState),
@@ -488,6 +515,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                                   selectedPlaceId: _selectedPlaceId,
                                   userLatitude: _userLat,
                                   userLongitude: _userLng,
+                                  onTileError: _onTileError,
                                 ),
                               ),
                               if (_loadState ==
