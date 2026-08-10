@@ -19,6 +19,7 @@ class SyncingAtRepository extends AtRepository {
     SupabaseAtRepository? remote,
     AtlasEnv? env,
     String? Function()? userIdProvider,
+    bool Function()? isSignedInProvider,
     @visibleForTesting this.syncEnabledOverride = false,
   })  : _local = local ?? LocalAtRepository(store: store),
         _store = store ?? const AtPreferencesStore(),
@@ -27,6 +28,7 @@ class SyncingAtRepository extends AtRepository {
         _userIdProvider = userIdProvider ??
             (() =>
                 SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id),
+        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
         super.base() {
     _local.addListener(notifyListeners);
   }
@@ -36,10 +38,13 @@ class SyncingAtRepository extends AtRepository {
   final SupabaseAtRepository _remote;
   final AtlasEnv _env;
   final String? Function() _userIdProvider;
+  final bool Function() _isSignedInProvider;
   @visibleForTesting
   final bool syncEnabledOverride;
 
   bool _syncInProgress = false;
+
+  static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
   @override
   bool get isLoaded => _local.isLoaded;
@@ -130,7 +135,10 @@ class SyncingAtRepository extends AtRepository {
 
   bool get _canSync =>
       syncEnabledOverride ||
-      (_env.isConfigured && SupabaseBootstrap.isInitialized);
+      (_env.isConfigured &&
+          SupabaseBootstrap.isInitialized &&
+          _userIdProvider() != null &&
+          _isSignedInProvider());
 
   static bool _vehiclesEqual(List<AtVehicle> a, List<AtVehicle> b) {
     if (a.length != b.length) return false;

@@ -27,12 +27,14 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     SupabaseFavoritesRepository? remote,
     AtlasEnv? env,
     String? Function()? userIdProvider,
+    bool Function()? isSignedInProvider,
     Duration? syncTimeout,
     @visibleForTesting this.syncEnabledOverride = false,
   })  : _store = store ?? const FavoritesPreferencesStore(),
         _remote = remote ?? const SupabaseFavoritesRepository(),
         _env = env ?? AtlasEnv.fromCompileTime(),
         _userIdProvider = userIdProvider ?? _defaultUserId,
+        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
         _syncTimeout = syncTimeout ?? const Duration(seconds: 5),
         super.base();
 
@@ -40,6 +42,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
   final SupabaseFavoritesRepository _remote;
   final AtlasEnv _env;
   final String? Function() _userIdProvider;
+  final bool Function() _isSignedInProvider;
   final Duration _syncTimeout;
   @visibleForTesting
   final bool syncEnabledOverride;
@@ -58,6 +61,8 @@ class SyncingFavoritesRepository extends FavoritesRepository {
   static String? _defaultUserId() {
     return SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id;
   }
+
+  static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
   @override
   bool isFavorite({
@@ -273,7 +278,8 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       syncEnabledOverride ||
       (_env.isConfigured &&
           SupabaseBootstrap.isInitialized &&
-          _userIdProvider() != null);
+          _userIdProvider() != null &&
+          _isSignedInProvider());
 
   static List<FavoriteRecord> _upsertRecord(
     List<FavoriteRecord> records,

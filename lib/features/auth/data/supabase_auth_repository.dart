@@ -10,6 +10,7 @@ import '../domain/auth_action_result.dart';
 import '../domain/auth_repository.dart';
 import '../domain/auth_session.dart';
 import 'auth_credentials_validator.dart';
+import 'auth_error_mapper.dart';
 
 /// Authentification Supabase — e-mail, OAuth, reset, suppression.
 ///
@@ -30,6 +31,7 @@ class SupabaseAuthRepository extends AuthRepository {
 
   AuthSession _session = const AuthSession.unavailable();
   bool _isLoaded = false;
+  bool _passwordRecoveryPending = false;
   StreamSubscription<AuthState>? _authSubscription;
 
   static GoTrueClient? _defaultAuthProvider() {
@@ -46,6 +48,9 @@ class SupabaseAuthRepository extends AuthRepository {
   @override
   bool get isLoaded => _isLoaded;
 
+  @override
+  bool get isPasswordRecoveryPending => _passwordRecoveryPending;
+
   GoTrueClient? _auth() => _authProvider?.call();
 
   SupabaseClient? _client() => _clientProvider?.call();
@@ -60,10 +65,17 @@ class SupabaseAuthRepository extends AuthRepository {
     if (auth == null) return;
 
     await _authSubscription?.cancel();
-    _authSubscription = auth.onAuthStateChange.listen((_) {
-      _refreshSession();
-      notifyListeners();
-    });
+    _authSubscription = auth.onAuthStateChange.listen(_onAuthStateChanged);
+  }
+
+  void _onAuthStateChanged(AuthState data) {
+    if (data.event == AuthChangeEvent.passwordRecovery) {
+      _passwordRecoveryPending = true;
+    } else if (data.event == AuthChangeEvent.signedOut) {
+      _passwordRecoveryPending = false;
+    }
+    _refreshSession();
+    notifyListeners();
   }
 
   @override
@@ -106,7 +118,8 @@ class SupabaseAuthRepository extends AuthRepository {
 
       _refreshSession();
       notifyListeners();
-      return AuthActionResult.success();
+      // updateUser(email) déclenche toujours une confirmation e-mail côté Auth.
+      return AuthActionResult.success(requiresEmailConfirmation: true);
     } on AuthException catch (error) {
       return AuthActionResult.failure(_mapAuthError(error));
     } catch (_) {
@@ -205,10 +218,19 @@ class SupabaseAuthRepository extends AuthRepository {
     }
 
     try {
+      // Ne pas remplacer par updateUser — recovery uniquement.
+      // redirectTo doit être allow-listé côté Dashboard (sinon → Site URL /
+      // localhost dans l'e-mail et Safari au lieu d'Atlas).
+      if (kDebugMode) {
+        debugPrint(
+          '[Atlas] resetPasswordForEmail redirectTo=${AtlasAuthRedirect.url}',
+        );
+      }
       await auth.resetPasswordForEmail(
         sanitized,
         redirectTo: kIsWeb ? null : AtlasAuthRedirect.url,
       );
+      // Message anti-énumération côté UI ; succès même si le compte n'existe pas.
       return AuthActionResult.success();
     } on AuthException catch (error) {
       return AuthActionResult.failure(_mapAuthError(error));
@@ -220,6 +242,89 @@ class SupabaseAuthRepository extends AuthRepository {
   }
 
   @override
+  Future<AuthActionResult> updatePassword({
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final validationError = AuthCredentialsValidator.validatePasswordUpdate(
+      newPassword: newPassword,
+      confirmPassword: confirmPassword,
+    );
+    if (validationError != null) {
+      return AuthActionResult.failure(validationError);
+    }
+
+    final auth = _auth();
+    if (!_isBackendReady || auth == null) {
+      return AuthActionResult.backendUnavailable();
+    }
+    if (!_passwordRecoveryPending) {
+      return AuthActionResult.failure(
+        'Ouvrez le lien de réinitialisation reçu par e-mail pour continuer.',
+      );
+    }
+
+    // updateUser(password) exige la session recovery encore authentifiée
+    // (pas resetPasswordForEmail, pas une session anonyme).
+    final user = auth.currentUser;
+    final session = auth.currentSession;
+    if (session == null || user == null || user.isAnonymous) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Atlas] recovery updatePassword: session invalide '
+          '(session=${session != null}, user=${user?.id}, '
+          'anonymous=${user?.isAnonymous})',
+        );
+      }
+      _passwordRecoveryPending = false;
+      notifyListeners();
+      return AuthActionResult.failure(
+        'La session de réinitialisation a expiré. '
+        'Demandez un nouveau lien.',
+      );
+    }
+
+    try {
+      await auth.updateUser(UserAttributes(password: newPassword));
+      _passwordRecoveryPending = false;
+      // Quitte la session recovery : l'utilisateur se reconnecte ensuite.
+      await auth.signOut();
+      await auth.signInAnonymously();
+      _refreshSession();
+      notifyListeners();
+      return AuthActionResult.success();
+    } on AuthException catch (error) {
+      if (kDebugMode) {
+        final reasons = error is AuthWeakPasswordException
+            ? error.reasons.join(',')
+            : '';
+        debugPrint(
+          '[Atlas] recovery updatePassword failed: '
+          'code=${error.code} message=${error.message}'
+          '${reasons.isEmpty ? '' : ' reasons=$reasons'}',
+        );
+      }
+      // Pending conservé : l'utilisateur peut réessayer sans nouveau lien.
+      return AuthActionResult.failure(_mapAuthError(error));
+    } catch (_) {
+      return AuthActionResult.failure(
+        'Impossible de mettre à jour le mot de passe. Réessayez.',
+      );
+    }
+  }
+
+  @override
+  Future<AuthActionResult> cancelPasswordRecovery() async {
+    if (!_passwordRecoveryPending) {
+      return AuthActionResult.success();
+    }
+    _passwordRecoveryPending = false;
+    final result = await signOut();
+    notifyListeners();
+    return result;
+  }
+
+  @override
   Future<AuthActionResult> signOut() async {
     final auth = _auth();
     if (!_isBackendReady || auth == null) {
@@ -227,6 +332,7 @@ class SupabaseAuthRepository extends AuthRepository {
     }
 
     try {
+      _passwordRecoveryPending = false;
       await auth.signOut();
       await auth.signInAnonymously();
       _refreshSession();
@@ -325,22 +431,6 @@ class SupabaseAuthRepository extends AuthRepository {
   }
 
   static String _mapAuthError(AuthException error) {
-    final message = error.message.toLowerCase();
-    if (message.contains('invalid login credentials')) {
-      return 'E-mail ou mot de passe incorrect.';
-    }
-    if (message.contains('user already registered')) {
-      return 'Un compte existe déjà avec cet e-mail.';
-    }
-    if (message.contains('email not confirmed')) {
-      return 'Confirmez votre e-mail avant de vous connecter.';
-    }
-    if (message.contains('password')) {
-      return 'Mot de passe invalide.';
-    }
-    if (message.contains('provider is not enabled')) {
-      return 'Ce mode de connexion n\'est pas encore activé.';
-    }
-    return 'Authentification impossible. Réessayez.';
+    return AuthErrorMapper.map(error);
   }
 }

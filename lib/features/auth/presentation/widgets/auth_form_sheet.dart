@@ -128,20 +128,27 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
       ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(_successMessage),
+          content: Text(_successMessageFor(result)),
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
+          duration: Duration(
+            seconds: result.requiresEmailConfirmation ? 5 : 3,
+          ),
         ),
       );
   }
 
-  String get _successMessage => switch (_mode) {
-        AuthFormMode.signUp =>
-          'Compte créé — vos données restent sur cet appareil.',
-        AuthFormMode.signIn => 'Connexion réussie.',
-        AuthFormMode.resetPassword =>
-          'Lien de réinitialisation envoyé si le compte existe.',
-      };
+  String _successMessageFor(AuthActionResult result) {
+    if (_mode == AuthFormMode.resetPassword) {
+      return 'Lien de réinitialisation envoyé si le compte existe.';
+    }
+    if (_mode == AuthFormMode.signUp || result.requiresEmailConfirmation) {
+      return 'Vérifiez votre e-mail pour confirmer le compte, '
+          'puis connectez-vous. '
+          'Le message peut parler de confirmation d\'adresse '
+          '(pas seulement de mot de passe).';
+    }
+    return 'Connexion réussie.';
+  }
 
   Future<void> _oauth(Future<AuthActionResult> Function() action) async {
     setState(() {
@@ -190,11 +197,15 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
             const SizedBox(height: AtlasSpacing.sm),
             Text(
               isReset
-                  ? 'Nous vous enverrons un lien sécurisé par e-mail.'
+                  ? 'Nous enverrons un lien sécurisé si un compte est associé '
+                      'à cette adresse. Ouvrez-le sur cet appareil pour choisir '
+                      'un nouveau mot de passe.'
                   : isSignUp
-                      ? 'Liez votre session invitée à un e-mail pour retrouver '
-                          'vos favoris sur d\'autres appareils.'
-                      : 'Connectez-vous pour synchroniser vos données Atlas.',
+                      ? 'Liez la session invitée à un e-mail. Un message de '
+                          'confirmation d\'adresse sera envoyé — validez-le '
+                          'avant de vous connecter pleinement.'
+                      : 'Connectez-vous pour synchroniser vos données Atlas. '
+                          'E-mail non confirmé ? Validez d\'abord le lien reçu.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.45,

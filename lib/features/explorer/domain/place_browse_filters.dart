@@ -95,6 +95,16 @@ class PlaceBrowseFilters extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
+  /// Remet les filtres UI à zéro (changement d'identité ou tests).
+  void clearForIdentityChange() {
+    _cityName = '';
+    _category = null;
+    _searchText = '';
+    _favoritesOnly = false;
+    _focusPlaceId = null;
+    notifyListeners();
+  }
+
   @visibleForTesting
   static void resetForTest() {
     instance._cityName = '';

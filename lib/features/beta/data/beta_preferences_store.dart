@@ -30,4 +30,10 @@ class BetaPreferencesStore {
       await prefs.setString(pendingFeedbackKey, json);
     }
   }
+
+  /// Efface uniquement la file feedback (conserve What's New).
+  Future<void> clearPendingFeedback() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(pendingFeedbackKey);
+  }
 }

@@ -9,6 +9,8 @@ Future<T?> showAtlasBottomSheet<T>({
   bool isScrollControlled = false,
   bool showDragHandle = true,
   bool useSafeArea = true,
+  bool isDismissible = true,
+  bool enableDrag = true,
 }) {
   final reduce = AtlasMotion.reduceMotionOf(context);
   return showModalBottomSheet<T>(
@@ -16,6 +18,8 @@ Future<T?> showAtlasBottomSheet<T>({
     isScrollControlled: isScrollControlled,
     showDragHandle: showDragHandle,
     useSafeArea: useSafeArea,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
     sheetAnimationStyle: AnimationStyle(
       duration: reduce ? Duration.zero : AtlasMotion.sheetDuration,
       reverseDuration:

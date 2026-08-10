@@ -10,9 +10,9 @@ L’app est préparée côté code (`app.atlas.maroc`, entitlements, deep links,
 | Bundle ID | `app.atlas.maroc` |
 | Signing style | Automatic (Team **non** hardcodé — choisir dans Xcode) |
 | Entitlements Sign in with Apple | `ios/Runner/Runner.entitlements` |
-| URL scheme OAuth | `io.supabase.atlas` → `ios/Runner/Info.plist` |
-| Redirect Dart | `AtlasAuthRedirect.url` = `io.supabase.atlas://login-callback/` |
-| Deep links Flutter | `FlutterDeepLinkingEnabled` + `detectSessionInUri: true` |
+| URL scheme OAuth / recovery | `io.supabase.atlas` → `ios/Runner/Info.plist` |
+| Redirect Dart | `AtlasAuthRedirect.url` = `io.supabase.atlas://login-callback` |
+| Deep links | `FlutterDeepLinkingEnabled=false` + `detectSessionInUri: true` (app_links) |
 | Location | `NSLocationWhenInUseUsageDescription` |
 | Calendar (écriture) | `NSCalendarsUsageDescription` + `NSCalendarsWriteOnlyAccessUsageDescription` |
 | Photos / caméra | **Non demandés** (capture feedback via RepaintBoundary) |
@@ -36,24 +36,84 @@ L’app est préparée côté code (`app.atlas.maroc`, entitlements, deep links,
 
 > Le Team ID reste dans Xcode / le portail — **jamais** commit dans `project.pbxproj`.
 
-## Supabase Dashboard (Auth)
+## Supabase Dashboard (Auth) — obligatoire pour recovery iPhone
 
-Dans **Authentication → URL Configuration** :
+Ouvrir **Authentication → URL Configuration** :
 
-- Ajouter aux **Additional Redirect URLs** (exact) :
-  ```
-  io.supabase.atlas://login-callback/
-  ```
-- Vérifier aussi Site URL (web) si vous testez le web en parallèle.
+### Site URL
 
-Dans **Authentication → Providers** :
+Pour Atlas (app mobile-first, pas de site web produit) :
+
+```
+io.supabase.atlas://login-callback
+```
+
+Si **Site URL** reste `http://localhost:3000` (défaut) et que `redirectTo`
+n’est pas allow-listé, le lien « Reset password » redirige Safari vers
+**localhost** → « Impossible d’ouvrir la page ».
+
+### Additional Redirect URLs
+
+Ajouter **exactement** ces deux lignes (correspondance exacte côté Auth) :
+
+```
+io.supabase.atlas://login-callback
+io.supabase.atlas://login-callback/
+```
+
+Le code envoie `io.supabase.atlas://login-callback` (sans slash final).
+
+### Authentication → Email Templates → Reset password
+
+Le bouton / lien doit utiliser **`{{ .ConfirmationURL }}`** (pas un lien
+construit seulement avec `{{ .SiteURL }}`).
+
+Exemple sûr (template par défaut Supabase) :
+
+```html
+<h2>Reset Password</h2>
+<p>Follow this link to reset the password for your user:</p>
+<p><a href="{{ .ConfirmationURL }}">Reset Password</a></p>
+```
+
+### Providers
 
 - **Anonymous** : activé (mode local / anonyme Atlas)
 - **Email** : activé (signup / login / reset)
 - **Apple** : activé + Services ID / Key / Team configurés
 - **Google** : activé + Client ID / Secret Google Cloud
 
-> Si `io.supabase.atlas://login-callback/` n’est **pas** encore enregistré côté projet distant, l’app compile quand même ; OAuth / reset password échoueront jusqu’à l’ajout de cette URL. **Ne bloque pas** l’implémentation locale.
+### Pourquoi Safari ouvre localhost
+
+1. L’e-mail ouvre d’abord `https://<project>.supabase.co/auth/v1/verify?…`
+2. Auth redirige ensuite vers `redirect_to`
+3. Si `redirect_to` n’est **pas** dans Additional Redirect URLs → Auth utilise
+   **Site URL** (souvent `http://localhost:3000`)
+4. Safari reste sur localhost ; Atlas ne reçoit jamais le deep link
+
+Après correction Dashboard : un **nouvel** e-mail de reset est requis
+(l’ancien lien conserve l’ancien `redirect_to`).
+
+> Sans ces réglages Dashboard, l’app compile et le reset envoie un e-mail,
+> mais le deep link iPhone échoue. Ce n’est **pas** contournable depuis le
+> dépôt Git seul.
+
+### Authentication → Providers → Email → Password (update après recovery)
+
+Atlas valide localement **≥ 6 caractères**. Si « Enregistrer le mot de passe »
+échoue alors que la feuille recovery s’ouvre, vérifier **exactement** ces
+réglages Dashboard (ne pas affaiblir le code Atlas pour contourner) :
+
+| Setting | Où | Effet si trop strict |
+| --- | --- | --- |
+| **Minimum password length** | Auth → Providers → Email | `weak_password` / reason `length` |
+| **Password Requirements** (digits / lower / upper / symbols) | idem | `weak_password` / reason `characters` |
+| **Leaked password protection** | idem (Pro+) | `weak_password` / reason `pwned` |
+| **Secure password change** (reauthentication) | Auth → password security | `reauthentication_needed` si session trop vieille |
+| **Require current password when updating** | idem | doit être ignoré pour une vraie session recovery ; sinon demander un **nouveau** lien |
+
+L’écran recovery appelle uniquement `updateUser(password: …)` sur la session
+`PASSWORD_RECOVERY` — **pas** `resetPasswordForEmail`.
 
 ## Google Cloud (OAuth navigateur via Supabase)
 

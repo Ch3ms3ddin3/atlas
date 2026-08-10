@@ -43,4 +43,11 @@ class ItineraryLocalStore {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(syncPendingKey, value);
   }
+
+  /// Efface les itinéraires locaux (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(tripsKey);
+    await prefs.remove(syncPendingKey);
+  }
 }

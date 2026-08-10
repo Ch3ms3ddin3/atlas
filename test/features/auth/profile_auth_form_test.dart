@@ -1,24 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/features/auth/domain/auth_action_result.dart';
 import 'package:atlas/features/auth/domain/auth_repository.dart';
 import 'package:atlas/features/auth/domain/auth_session.dart';
 import 'package:atlas/features/auth/presentation/auth_scope.dart';
-import 'package:atlas/features/profile/data/local_profile_repository.dart';
-import 'package:atlas/features/profile/presentation/pages/profile_page.dart';
-import 'package:atlas/features/profile/presentation/profile_scope.dart';
+import 'package:atlas/features/auth/presentation/widgets/auth_form_sheet.dart';
 
 void main() {
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-    ensurePrayerNotificationCoordinatorForTests();
-  });
-
   testWidgets(
-    'ProfilePage soumet la création de compte via AuthFormSheet',
+    'AuthFormSheet inscription affiche un succès honnête (confirmation e-mail)',
     (WidgetTester tester) async {
       final authRepository = _RecordingAuthRepository(
         session: const AuthSession(
@@ -26,20 +17,27 @@ void main() {
           userId: 'guest-1',
         ),
       );
-      final profileRepository = LocalProfileRepository();
-      await profileRepository.load();
 
-      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      await tester.binding.setSurfaceSize(const Size(400, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
         MaterialApp(
           home: AuthScope(
             repository: authRepository,
-            child: ProfileScope(
-              repository: profileRepository,
-              child: const Scaffold(
-                body: ProfilePage(),
+            child: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  return Center(
+                    child: FilledButton(
+                      onPressed: () => AuthFormSheet.show(
+                        context,
+                        initialMode: AuthFormMode.signUp,
+                      ),
+                      child: const Text('Ouvrir inscription'),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -47,12 +45,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final createAccountButton = find.text('Créer un compte');
-      await tester.ensureVisible(createAccountButton);
-      await tester.tap(createAccountButton);
+      await tester.tap(find.text('Ouvrir inscription'));
       await tester.pumpAndSettle();
 
       expect(find.text('Créer mon compte'), findsOneWidget);
+      expect(
+        find.textContaining('confirmation d\'adresse'),
+        findsOneWidget,
+      );
 
       final authFields = find.descendant(
         of: find.byType(BottomSheet),
@@ -64,13 +64,14 @@ void main() {
       await tester.enterText(authFields.at(1), 'secret12');
       await tester.enterText(authFields.at(2), 'secret12');
 
+      await tester.ensureVisible(find.text('Créer mon compte'));
       await tester.tap(find.text('Créer mon compte'));
       await tester.pumpAndSettle();
 
       expect(authRepository.signUpCalls, 1);
       expect(authRepository.lastSignUpEmail, 'salma@exemple.com');
       expect(
-        find.text('Compte créé — vos données restent sur cet appareil.'),
+        find.textContaining('Vérifiez votre e-mail pour confirmer le compte'),
         findsOneWidget,
       );
       expect(find.text('Créer mon compte'), findsNothing);
@@ -90,6 +91,9 @@ class _RecordingAuthRepository extends AuthRepository {
 
   @override
   bool get isLoaded => true;
+
+  @override
+  bool get isPasswordRecoveryPending => false;
 
   @override
   Future<void> load() async {}
@@ -120,7 +124,7 @@ class _RecordingAuthRepository extends AuthRepository {
       email: email,
     );
     notifyListeners();
-    return AuthActionResult.success();
+    return AuthActionResult.success(requiresEmailConfirmation: true);
   }
 
   @override
@@ -130,6 +134,19 @@ class _RecordingAuthRepository extends AuthRepository {
 
   @override
   Future<AuthActionResult> signInWithGoogle() async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> updatePassword({
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> cancelPasswordRecovery() async {
     return AuthActionResult.success();
   }
 

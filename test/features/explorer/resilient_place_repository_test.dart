@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:atlas/core/editorial/editorial_catalog_load_state.dart';
 import 'package:atlas/features/explorer/data/local_place_repository.dart';
 import 'package:atlas/features/explorer/data/place_catalog.dart';
-import 'package:atlas/features/explorer/data/place_mapper.dart';
 import 'package:atlas/features/explorer/data/place_record_mapper.dart';
 import 'package:atlas/features/explorer/data/resilient_place_repository.dart';
 import 'package:atlas/features/explorer/domain/models/place_models.dart';

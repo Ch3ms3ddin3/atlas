@@ -21,4 +21,10 @@ class NotificationPreferencesStore {
     }
     await prefs.setString(_key, leadTime.name);
   }
+
+  /// Efface le rappel prière local (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
 }

@@ -47,4 +47,11 @@ class AssistantHistoryStore {
       await prefs.setString(activeIdKey, activeId);
     }
   }
+
+  /// Efface l'historique local (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(conversationsKey);
+    await prefs.remove(activeIdKey);
+  }
 }

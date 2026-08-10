@@ -22,6 +22,7 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
     CloudSyncStatusStore? syncStatusStore,
     AtlasEnv? env,
     String? Function()? userIdProvider,
+    bool Function()? isSignedInProvider,
     @visibleForTesting this.syncEnabledOverride = false,
   })  : _store = store ?? const UserPreferencesStore(),
         _remote = remote ?? const SupabaseUserPreferencesRepository(),
@@ -31,7 +32,8 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
         _env = env ?? AtlasEnv.fromCompileTime(),
         _userIdProvider = userIdProvider ??
             (() =>
-                SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id);
+                SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id),
+        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn;
 
   final UserPreferencesStore _store;
   final SupabaseUserPreferencesRepository _remote;
@@ -40,11 +42,14 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
   final CloudSyncStatusStore _syncStatusStore;
   final AtlasEnv _env;
   final String? Function() _userIdProvider;
+  final bool Function() _isSignedInProvider;
   @visibleForTesting
   final bool syncEnabledOverride;
 
   CloudSyncStatus _status = const CloudSyncStatus.idle();
   bool _loaded = false;
+
+  static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
   CloudSyncStatus get status => _status;
   bool get isLoaded => _loaded;
@@ -159,5 +164,8 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
 
   bool get _canSync =>
       syncEnabledOverride ||
-      (_env.isConfigured && SupabaseBootstrap.isInitialized);
+      (_env.isConfigured &&
+          SupabaseBootstrap.isInitialized &&
+          _userIdProvider() != null &&
+          _isSignedInProvider());
 }

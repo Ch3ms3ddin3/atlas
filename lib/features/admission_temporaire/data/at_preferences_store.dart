@@ -84,4 +84,13 @@ class AtPreferencesStore {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(syncPendingKey, pending);
   }
+
+  /// Efface les véhicules AT et flags locaux (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(vehiclesKey);
+    await prefs.remove(notificationsEnabledKey);
+    await prefs.remove(notificationPromptShownKey);
+    await prefs.remove(syncPendingKey);
+  }
 }

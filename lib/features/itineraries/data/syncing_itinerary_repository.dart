@@ -28,12 +28,14 @@ class SyncingItineraryRepository extends ItineraryRepository {
     LocalItineraryDraftBuilder? draftBuilder,
     AtlasEnv? env,
     String? Function()? userIdProvider,
+    bool Function()? isSignedInProvider,
     @visibleForTesting this.syncEnabledOverride = false,
   })  : _store = store ?? const ItineraryLocalStore(),
         _remote = remote ?? const SupabaseItineraryRepository(),
         _env = env ?? AtlasEnv.fromCompileTime(),
         _userIdProvider = userIdProvider ??
             (() => SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id),
+        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
         _draftBuilder = draftBuilder ??
             LocalItineraryDraftBuilder(
               favoritesRepository: favoritesRepository,
@@ -47,6 +49,7 @@ class SyncingItineraryRepository extends ItineraryRepository {
   final SupabaseItineraryRepository _remote;
   final AtlasEnv _env;
   final String? Function() _userIdProvider;
+  final bool Function() _isSignedInProvider;
   final LocalItineraryDraftBuilder _draftBuilder;
   late final ItineraryAiPlanner _aiPlanner;
   @visibleForTesting
@@ -55,6 +58,8 @@ class SyncingItineraryRepository extends ItineraryRepository {
   bool _loaded = false;
   List<Trip> _trips = [];
   bool _syncInProgress = false;
+
+  static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
   @override
   bool get isLoaded => _loaded;
@@ -228,7 +233,10 @@ class SyncingItineraryRepository extends ItineraryRepository {
 
   bool get _canSync =>
       syncEnabledOverride ||
-      (_env.isConfigured && SupabaseBootstrap.isInitialized);
+      (_env.isConfigured &&
+          SupabaseBootstrap.isInitialized &&
+          _userIdProvider() != null &&
+          _isSignedInProvider());
 
   Future<void> _sync() async {
     if (_syncInProgress || !_canSync) return;

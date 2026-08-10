@@ -11,6 +11,9 @@ abstract class AuthRepository extends ChangeNotifier {
 
   bool get isLoaded;
 
+  /// `true` après un deep link / événement `PASSWORD_RECOVERY` Supabase.
+  bool get isPasswordRecoveryPending;
+
   Future<void> load();
 
   Future<AuthActionResult> signUp({
@@ -28,6 +31,15 @@ abstract class AuthRepository extends ChangeNotifier {
   Future<AuthActionResult> signInWithGoogle();
 
   Future<AuthActionResult> resetPassword({required String email});
+
+  /// Définit un nouveau mot de passe pendant une session de recovery.
+  Future<AuthActionResult> updatePassword({
+    required String newPassword,
+    required String confirmPassword,
+  });
+
+  /// Abandonne le flux recovery (nouvelle session anonyme).
+  Future<AuthActionResult> cancelPasswordRecovery();
 
   Future<AuthActionResult> signOut();
 

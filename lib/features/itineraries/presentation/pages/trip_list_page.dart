@@ -61,9 +61,13 @@ class _TripListPageState extends State<TripListPage> {
   Future<void> _create() async {
     final id = await TripCreateSheet.show(context);
     if (!mounted || id == null) return;
-    await Navigator.of(
-      context,
-    ).push(AtlasPageRoute(page: TripDetailPage(tripId: id)));
+    final repository = ItineraryScope.read(context);
+    await Navigator.of(context).push(
+      AtlasPageRoute(
+        page: TripDetailPage(tripId: id),
+        wrapPage: (child) => wrapWithItineraryScope(repository, child),
+      ),
+    );
   }
 
   @override
@@ -126,8 +130,13 @@ class _TripListPageState extends State<TripListPage> {
                   return _TripTile(
                     trip: trip,
                     onOpen: () {
+                      final repository = ItineraryScope.read(context);
                       Navigator.of(context).push(
-                        AtlasPageRoute(page: TripDetailPage(tripId: trip.id)),
+                        AtlasPageRoute(
+                          page: TripDetailPage(tripId: trip.id),
+                          wrapPage: (child) =>
+                              wrapWithItineraryScope(repository, child),
+                        ),
                       );
                     },
                     onDelete: () => repo.deleteTrip(trip.id),

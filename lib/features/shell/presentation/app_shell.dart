@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../core/errors/atlas_error_ui.dart';
+import '../../../core/network/atlas_connectivity.dart';
 import '../../../core/performance/atlas_performance.dart';
 import '../../../core/platform/atlas_build_info.dart';
 import '../../../design_system/motion/atlas_haptics.dart';
@@ -11,8 +14,10 @@ import '../../../design_system/theme/atlas_spacing.dart';
 import '../../assistant/data/local_assistant_repository.dart';
 import '../../assistant/domain/assistant_repository.dart';
 import '../../assistant/presentation/assistant_scope.dart';
+import '../../auth/data/local_user_data_isolator.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
+import '../../auth/domain/auth_session.dart';
 import '../../auth/presentation/auth_scope.dart';
 import '../../admission_temporaire/data/at_bootstrap.dart';
 import '../../admission_temporaire/domain/at_repository.dart';
@@ -45,7 +50,6 @@ import '../../prices/presentation/pages/prices_page.dart';
 import '../../procedures/presentation/pages/procedures_page.dart';
 import '../../profile/presentation/pages/profile_page.dart';
 import '../../sync/data/syncing_user_preferences_repository.dart';
-import '../../sync/domain/cloud_sync_status.dart';
 import '../../sync/presentation/sync_scope.dart';
 import 'atlas_bottom_nav.dart';
 import 'shell_navigation_scope.dart';
@@ -55,9 +59,15 @@ import 'shell_tab_transition.dart';
 class AppShell extends StatefulWidget {
   const AppShell({
     super.key,
+    this.authRepository,
+    this.profileRepository,
     this.favoritesRepository,
     this.contentReportsRepository,
   });
+
+  /// Shared with [StartupGate] so recovery deep links use one auth listener.
+  final AuthRepository? authRepository;
+  final ProfileRepository? profileRepository;
 
   /// When set (via [AtlasApp]), shares the app-level repository.
   /// Otherwise creates a local instance (e.g. StartupGate in isolation).
@@ -69,8 +79,10 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final AuthRepository _authRepository = SupabaseAuthRepository();
-  final ProfileRepository _profileRepository = SyncingProfileRepository();
+  late final AuthRepository _authRepository;
+  late final bool _ownsAuthRepository;
+  late final ProfileRepository _profileRepository;
+  late final bool _ownsProfileRepository;
   late final FavoritesRepository _favoritesRepository;
   late final bool _ownsFavoritesRepository;
   late final ContentReportsRepository _contentReportsRepository;
@@ -86,6 +98,10 @@ class _AppShellState extends State<AppShell> {
   int _bannerTapCount = 0;
   DateTime? _bannerTapWindowStart;
   AtlasBuildInfo? _buildInfo;
+  AuthSessionKind? _boundAuthKind;
+  String? _boundUserId;
+  bool _authBoundaryInProgress = false;
+  late final AtlasConnectivity _connectivity;
 
   static const _tabNames = {
     AtlasShellTab.home: 'home',
@@ -99,6 +115,11 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    _ownsAuthRepository = widget.authRepository == null;
+    _authRepository = widget.authRepository ?? SupabaseAuthRepository();
+    _ownsProfileRepository = widget.profileRepository == null;
+    _profileRepository =
+        widget.profileRepository ?? SyncingProfileRepository();
     _ownsFavoritesRepository = widget.favoritesRepository == null;
     _favoritesRepository =
         widget.favoritesRepository ?? SyncingFavoritesRepository();
@@ -120,8 +141,15 @@ class _AppShellState extends State<AppShell> {
     );
     _authRepository.addListener(_onAuthSessionChanged);
     PlaceBrowseFilters.instance.addListener(_onExplorerFiltersChanged);
-    _authRepository.load();
-    _profileRepository.load();
+    _connectivity = AtlasConnectivity();
+    _connectivity.addListener(_onConnectivityChanged);
+    unawaited(_connectivity.start());
+    if (!_authRepository.isLoaded) {
+      _authRepository.load();
+    }
+    if (!_profileRepository.isLoaded) {
+      _profileRepository.load();
+    }
     _favoritesRepository.load();
     _contentReportsRepository.load();
     _preferencesRepository.load();
@@ -164,8 +192,14 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     PlaceBrowseFilters.instance.removeListener(_onExplorerFiltersChanged);
     _authRepository.removeListener(_onAuthSessionChanged);
-    _authRepository.dispose();
-    _profileRepository.dispose();
+    _connectivity.removeListener(_onConnectivityChanged);
+    _connectivity.dispose();
+    if (_ownsAuthRepository) {
+      _authRepository.dispose();
+    }
+    if (_ownsProfileRepository) {
+      _profileRepository.dispose();
+    }
     if (_ownsFavoritesRepository) {
       _favoritesRepository.dispose();
     }
@@ -196,14 +230,53 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onAuthSessionChanged() {
-    _profileRepository.load();
-    _favoritesRepository.load();
-    _contentReportsRepository.load();
-    _preferencesRepository.load();
-    _atRepository.load();
-    _assistantRepository.refreshSuggestions();
-    _itineraryRepository.load();
-    _feedbackRepository.flushPending();
+    unawaited(_handleAuthSessionChanged());
+  }
+
+  Future<void> _handleAuthSessionChanged() async {
+    if (_authBoundaryInProgress) return;
+    _authBoundaryInProgress = true;
+    try {
+      final session = _authRepository.session;
+      final persisted = await LocalUserDataIsolator.loadBoundIdentity();
+      final previousKind = _boundAuthKind ?? persisted.kind;
+      final previousUserId = _boundUserId ?? persisted.userId;
+
+      final shouldClear = LocalUserDataIsolator.shouldClearLocal(
+        previousKind: previousKind,
+        previousUserId: previousUserId,
+        nextKind: session.kind,
+        nextUserId: session.userId,
+      );
+
+      if (shouldClear) {
+        await LocalUserDataIsolator.clearPersistedUserData();
+      }
+
+      _boundAuthKind = session.kind;
+      _boundUserId = session.userId;
+      await LocalUserDataIsolator.saveBoundIdentity(
+        kind: session.kind,
+        userId: session.userId,
+      );
+
+      await Future.wait([
+        _profileRepository.load(),
+        _favoritesRepository.load(),
+        _contentReportsRepository.load(),
+        _preferencesRepository.load(),
+        _atRepository.load(),
+        _itineraryRepository.load(),
+        _assistantRepository.load(),
+        _feedbackRepository.load(),
+      ]);
+    } finally {
+      _authBoundaryInProgress = false;
+    }
+  }
+
+  void _onConnectivityChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onExplorerFiltersChanged() {
@@ -244,9 +317,43 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final mapActive = _currentIndex == AtlasShellTab.map;
-    final syncStatus = _preferencesRepository.status;
-    final showOffline = syncStatus.phase == CloudSyncPhase.offline ||
-        syncStatus.phase == CloudSyncPhase.error;
+    // Bandeau réseau réel (Airplane Mode, etc.) — pas CloudSyncPhase.offline
+    // qui signifie « sync réservée au compte » depuis P7.
+    final showOffline = _connectivity.isOffline;
+    final showBeta = kDebugMode && _buildInfo != null;
+    // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
+    // pour ne pas le rejouer dans Home/Explorer (SafeArea des onglets).
+    final hasTopChrome = showBeta || showOffline;
+
+    final tabStack = IndexedStack(
+      index: _currentIndex,
+      children: [
+        ShellTabTransition(
+          isActive: _currentIndex == AtlasShellTab.home,
+          child: const HomePage(),
+        ),
+        ShellTabTransition(
+          isActive: _currentIndex == AtlasShellTab.explorer,
+          child: const ExplorerPage(),
+        ),
+        ShellTabTransition(
+          isActive: mapActive,
+          child: AtlasMapPage(isActive: mapActive),
+        ),
+        ShellTabTransition(
+          isActive: _currentIndex == AtlasShellTab.procedures,
+          child: const ProceduresPage(),
+        ),
+        ShellTabTransition(
+          isActive: _currentIndex == AtlasShellTab.prices,
+          child: const PricesPage(),
+        ),
+        ShellTabTransition(
+          isActive: _currentIndex == AtlasShellTab.profile,
+          child: const ProfilePage(),
+        ),
+      ],
+    );
 
     Widget shell = SyncScope(
       repository: _preferencesRepository,
@@ -277,12 +384,20 @@ class _AppShellState extends State<AppShell> {
                       : null,
                   body: Column(
                     children: [
-                      if (kDebugMode && _buildInfo != null)
+                      if (showBeta)
                         AtlasBetaBanner(
                           buildInfo: _buildInfo!,
                           onSecretTap: _onBannerTap,
                         ),
-                      if (showOffline) const AtlasOfflineNotice(),
+                      if (showOffline)
+                        SafeArea(
+                          // Beta banner déjà sous le status bar → ne pas doubler.
+                          top: !showBeta,
+                          bottom: false,
+                          left: false,
+                          right: false,
+                          child: const AtlasOfflineNotice(),
+                        ),
                       Expanded(
                         child: Padding(
                           // Évite que le FAB masque le bas des listes.
@@ -292,40 +407,13 @@ class _AppShellState extends State<AppShell> {
                           ),
                           child: RepaintBoundary(
                             key: _screenshotKey,
-                            child: IndexedStack(
-                              index: _currentIndex,
-                              children: [
-                                ShellTabTransition(
-                                  isActive:
-                                      _currentIndex == AtlasShellTab.home,
-                                  child: const HomePage(),
-                                ),
-                                ShellTabTransition(
-                                  isActive:
-                                      _currentIndex == AtlasShellTab.explorer,
-                                  child: const ExplorerPage(),
-                                ),
-                                ShellTabTransition(
-                                  isActive: mapActive,
-                                  child: AtlasMapPage(isActive: mapActive),
-                                ),
-                                ShellTabTransition(
-                                  isActive: _currentIndex ==
-                                      AtlasShellTab.procedures,
-                                  child: const ProceduresPage(),
-                                ),
-                                ShellTabTransition(
-                                  isActive:
-                                      _currentIndex == AtlasShellTab.prices,
-                                  child: const PricesPage(),
-                                ),
-                                ShellTabTransition(
-                                  isActive:
-                                      _currentIndex == AtlasShellTab.profile,
-                                  child: const ProfilePage(),
-                                ),
-                              ],
-                            ),
+                            child: hasTopChrome
+                                ? MediaQuery.removePadding(
+                                    context: context,
+                                    removeTop: true,
+                                    child: tabStack,
+                                  )
+                                : tabStack,
                           ),
                         ),
                       ),

@@ -23,11 +23,12 @@ class CloudSyncStatus {
   final String? errorMessage;
 
   String get labelFr => switch (phase) {
-        CloudSyncPhase.idle => 'Synchronisation en attente',
-        CloudSyncPhase.syncing => 'Synchronisation…',
-        CloudSyncPhase.synced => 'À jour',
-        CloudSyncPhase.offline => 'Hors ligne — données locales',
-        CloudSyncPhase.error => 'Synchronisation interrompue',
+        CloudSyncPhase.idle => 'Préférences en attente de sync',
+        CloudSyncPhase.syncing => 'Synchronisation des préférences…',
+        CloudSyncPhase.synced => 'Préférences synchronisées',
+        CloudSyncPhase.offline =>
+          'Mode local — sync cloud réservée au compte',
+        CloudSyncPhase.error => 'Sync préférences interrompue',
       };
 }
 
@@ -47,5 +48,11 @@ class CloudSyncStatusStore {
   Future<void> markSynced(DateTime at) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(lastSyncedAtKey, at.toUtc().toIso8601String());
+  }
+
+  /// Efface l'horodatage de sync (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(lastSyncedAtKey);
   }
 }

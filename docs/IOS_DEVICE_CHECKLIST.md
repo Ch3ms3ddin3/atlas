@@ -1,7 +1,8 @@
 # Atlas — Checklist iPhone (private beta)
 
 Bundle ID: `app.atlas.maroc` · Version: `1.0.0+2`  
-Redirect OAuth: `io.supabase.atlas://login-callback/`
+Redirect OAuth / recovery: `io.supabase.atlas://login-callback`  
+(Must also be allow-listed in Supabase Auth URL Configuration — see `IOS_APPLE_PORTAL_SETUP.md`.)
 
 Install via Xcode / `flutter run` with Automatic Signing (Team choisi dans Xcode).  
 Env: `--dart-define-from-file=.env.development` (ou staging/production).
@@ -26,7 +27,11 @@ Env: `--dart-define-from-file=.env.development` (ou staging/production).
 - [ ] Connexion e-mail + mot de passe
 - [ ] Continuer avec Apple (retour app + session active)
 - [ ] Continuer avec Google (navigateur / ASWebAuthentication → retour app)
-- [ ] Réinitialisation mot de passe (e-mail reçu → lien ouvre Atlas)
+- [ ] Réinitialisation mot de passe :
+  - [ ] Dashboard : Site URL + Redirect URLs = `io.supabase.atlas://login-callback` (± `/`)
+  - [ ] E-mail reçu : long-press / inspecter le lien → `redirect_to` contient `io.supabase.atlas`, **pas** `localhost`
+  - [ ] Tap « Reset password » → Atlas s’ouvre (pas Safari bloqué sur localhost)
+  - [ ] Feuille « Nouveau mot de passe » → enregistrement → reconnexion OK
 - [ ] Déconnexion → session anonyme sans crash
 - [ ] Force-quit puis relance : session conservée
 

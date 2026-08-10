@@ -31,7 +31,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- OAuth deep link: io.supabase.atlas://login-callback/ -->
+            <!-- OAuth / recovery deep link: io.supabase.atlas://login-callback -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

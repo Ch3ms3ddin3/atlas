@@ -103,6 +103,18 @@ class UserPreferencesStore {
     }
   }
 
+  /// Efface les préférences synchronisables (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(prayerKey);
+    await prefs.remove(atNotificationsKey);
+    await prefs.remove(explorerCityKey);
+    await prefs.remove(explorerCategoryKey);
+    await prefs.remove(explorerFavoritesKey);
+    await prefs.remove(localUpdatedAtKey);
+    await prefs.remove(syncPendingKey);
+  }
+
   /// Applique le snapshot aux filtres Explorer en mémoire.
   void applyExplorerFilters(UserPreferencesSnapshot snapshot) {
     PlaceBrowseFilters.instance.update(

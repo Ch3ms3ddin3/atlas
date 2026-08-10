@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../auth/domain/auth_repository.dart';
-import '../../auth/domain/auth_session.dart';
 import '../domain/models/beta_feedback.dart';
 import 'beta_preferences_store.dart';
 import 'supabase_beta_feedback_repository.dart';
@@ -50,7 +49,7 @@ class BetaFeedbackRepository extends ChangeNotifier {
   Future<bool> submit(BetaFeedback feedback) async {
     final session = _authRepository.session;
     final userId = session.userId;
-    if (userId == null || session.kind == AuthSessionKind.unavailable) {
+    if (userId == null || !session.isSignedIn) {
       await _enqueue(feedback);
       return false;
     }
@@ -67,6 +66,7 @@ class BetaFeedbackRepository extends ChangeNotifier {
   Future<void> flushPending() async {
     if (_pending.isEmpty) return;
     final session = _authRepository.session;
+    if (!session.isSignedIn) return;
     final userId = session.userId;
     if (userId == null) return;
 

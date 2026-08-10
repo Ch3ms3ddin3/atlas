@@ -37,6 +37,13 @@ class ContentReportsPreferencesStore {
     await prefs.remove(syncPendingKey);
   }
 
+  /// Efface les signalements locaux (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(reportsKey);
+    await prefs.remove(syncPendingKey);
+  }
+
   static List<ContentReport> _decodeReports(String? raw) {
     if (raw == null || raw.isEmpty) return const [];
 

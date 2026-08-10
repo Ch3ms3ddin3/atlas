@@ -23,6 +23,7 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
     SupabaseContentReportsRepository? remote,
     AtlasEnv? env,
     String? Function()? userIdProvider,
+    bool Function()? isSignedInProvider,
     String Function()? idProvider,
     Duration? syncTimeout,
     @visibleForTesting this.syncEnabledOverride = false,
@@ -30,6 +31,7 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
         _remote = remote ?? const SupabaseContentReportsRepository(),
         _env = env ?? AtlasEnv.fromCompileTime(),
         _userIdProvider = userIdProvider ?? _defaultUserId,
+        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
         _idProvider = idProvider ?? AtlasUuid.v4,
         _syncTimeout = syncTimeout ?? const Duration(seconds: 5),
         super.base();
@@ -38,6 +40,7 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
   final SupabaseContentReportsRepository _remote;
   final AtlasEnv _env;
   final String? Function() _userIdProvider;
+  final bool Function() _isSignedInProvider;
   final String Function() _idProvider;
   final Duration _syncTimeout;
   @visibleForTesting
@@ -56,6 +59,8 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
   static String? _defaultUserId() {
     return SupabaseBootstrap.clientOrNull()?.auth.currentUser?.id;
   }
+
+  static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
   @override
   Future<void> load() async {
@@ -194,5 +199,6 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
       syncEnabledOverride ||
       (_env.isConfigured &&
           SupabaseBootstrap.isInitialized &&
-          _userIdProvider() != null);
+          _userIdProvider() != null &&
+          _isSignedInProvider());
 }

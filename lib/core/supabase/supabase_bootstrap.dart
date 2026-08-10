@@ -37,6 +37,12 @@ abstract final class SupabaseBootstrap {
     return Supabase.instance.client;
   }
 
+  /// Compte authentifié (non anonyme) — seule identité autorisée pour la sync cloud.
+  static bool get isSignedInUser {
+    final user = clientOrNull()?.auth.currentUser;
+    return user != null && !user.isAnonymous;
+  }
+
   /// Initialise Supabase sans bloquer le démarrage de l'app en cas d'échec.
   static Future<SupabaseBootstrapResult> initialize({
     AtlasEnv? env,
@@ -56,8 +62,9 @@ abstract final class SupabaseBootstrap {
     }
 
     try {
-      // detectSessionInUri: true (défaut) — observe les deep links OAuth /
-      // reset password via app_links (schéma io.supabase.atlas).
+      // detectSessionInUri: true — app_links observe io.supabase.atlas://…
+      // FlutterDeepLinkingEnabled doit rester false (Info.plist) pour ne pas
+      // voler les liens à app_links / supabase_flutter.
       await Supabase.initialize(
         url: config.supabaseUrl,
         publishableKey: config.supabaseAnonKey,

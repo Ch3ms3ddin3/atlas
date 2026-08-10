@@ -47,5 +47,25 @@ void main() {
         'salma@exemple.com',
       );
     });
+
+    test('valide une mise à jour de mot de passe', () {
+      expect(
+        AuthCredentialsValidator.validatePasswordUpdate(
+          newPassword: 'secret12',
+          confirmPassword: 'secret12',
+        ),
+        isNull,
+      );
+    });
+
+    test('rejette une confirmation différente en recovery', () {
+      expect(
+        AuthCredentialsValidator.validatePasswordUpdate(
+          newPassword: 'secret12',
+          confirmPassword: 'autre',
+        ),
+        isNotNull,
+      );
+    });
   });
 }

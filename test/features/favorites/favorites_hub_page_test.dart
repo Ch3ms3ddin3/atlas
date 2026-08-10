@@ -134,6 +134,23 @@ class _StubAuth extends AuthRepository {
   Future<AuthActionResult> signInWithGoogle() async =>
       AuthActionResult.success();
 
+
+  @override
+  bool get isPasswordRecoveryPending => false;
+
+  @override
+  Future<AuthActionResult> updatePassword({
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    return AuthActionResult.success();
+  }
+
+  @override
+  Future<AuthActionResult> cancelPasswordRecovery() async {
+    return AuthActionResult.success();
+  }
+
   @override
   Future<AuthActionResult> resetPassword({required String email}) async =>
       AuthActionResult.success();

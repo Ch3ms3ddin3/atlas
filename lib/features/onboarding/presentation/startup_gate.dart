@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_scope.dart';
+import '../../auth/presentation/widgets/auth_password_recovery_listener.dart';
 import '../../content_reports/domain/content_reports_repository.dart';
 import '../../favorites/domain/favorites_repository.dart';
 import '../../profile/data/syncing_profile_repository.dart';
@@ -42,12 +43,16 @@ class StartupGate extends StatefulWidget {
 class _StartupGateState extends State<StartupGate> {
   late final AuthRepository _authRepository;
   late final ProfileRepository _profileRepository;
+  late final bool _ownsAuthRepository;
+  late final bool _ownsProfileRepository;
 
   _StartupDestination _destination = _StartupDestination.splash;
 
   @override
   void initState() {
     super.initState();
+    _ownsAuthRepository = widget.authRepository == null;
+    _ownsProfileRepository = widget.profileRepository == null;
     _authRepository = widget.authRepository ?? SupabaseAuthRepository();
     _profileRepository =
         widget.profileRepository ?? SyncingProfileRepository();
@@ -80,11 +85,10 @@ class _StartupGateState extends State<StartupGate> {
 
   @override
   void dispose() {
-    // AppShell possède ses propres dépôts ; on libère ceux du gate si créés ici.
-    if (widget.authRepository == null) {
+    if (_ownsAuthRepository) {
       _authRepository.dispose();
     }
-    if (widget.profileRepository == null) {
+    if (_ownsProfileRepository) {
       _profileRepository.dispose();
     }
     super.dispose();
@@ -99,29 +103,33 @@ class _StartupGateState extends State<StartupGate> {
 
     final child = switch (_destination) {
       _StartupDestination.splash => AtlasSplashView(reduceMotion: reduceMotion),
-      _StartupDestination.onboarding => AuthScope(
-          repository: _authRepository,
-          child: ProfileScope(
-            repository: _profileRepository,
-            child: OnboardingFlow(
-              onboardingStore: widget.onboardingStore,
-              onCompleted: _onOnboardingCompleted,
-            ),
+      _StartupDestination.onboarding => ProfileScope(
+          repository: _profileRepository,
+          child: OnboardingFlow(
+            onboardingStore: widget.onboardingStore,
+            onCompleted: _onOnboardingCompleted,
           ),
         ),
       _StartupDestination.home => AppShell(
+          authRepository: _authRepository,
+          profileRepository: _profileRepository,
           favoritesRepository: widget.favoritesRepository,
           contentReportsRepository: widget.contentReportsRepository,
         ),
     };
 
-    return AnimatedSwitcher(
-      duration: reduceMotion
-          ? Duration.zero
-          : const Duration(milliseconds: 280),
-      child: KeyedSubtree(
-        key: ValueKey(_destination),
-        child: child,
+    return AuthScope(
+      repository: _authRepository,
+      child: AuthPasswordRecoveryListener(
+        child: AnimatedSwitcher(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 280),
+          child: KeyedSubtree(
+            key: ValueKey(_destination),
+            child: child,
+          ),
+        ),
       ),
     );
   }

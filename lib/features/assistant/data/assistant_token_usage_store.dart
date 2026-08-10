@@ -53,4 +53,10 @@ class AssistantTokenUsageStore {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(dailyKey, jsonEncode(daily.toJson()));
   }
+
+  /// Efface l'usage tokens local (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(dailyKey);
+  }
 }

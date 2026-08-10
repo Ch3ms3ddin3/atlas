@@ -394,7 +394,10 @@ Unique: `(user_id, entity_type, entity_slug)`.
 
 Anonymous sessions are created in `SupabaseBootstrap` when Supabase is configured and auth is enabled on the project.
 
-**Mobile redirect (iOS / Android):** register `io.supabase.atlas://login-callback/` in Supabase → Authentication → Additional Redirect URLs. See `docs/IOS_APPLE_PORTAL_SETUP.md`.
+**Mobile redirect (iOS / Android):** register `io.supabase.atlas://login-callback`
+(and optionally `…/login-callback/`) in Supabase → Authentication → Additional
+Redirect URLs. Set **Site URL** to the same deep link for mobile-first projects
+(avoid leaving the default `http://localhost:3000`). See `docs/IOS_APPLE_PORTAL_SETUP.md`.
 
 ---
 

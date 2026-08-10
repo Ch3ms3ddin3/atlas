@@ -55,5 +55,17 @@ abstract final class AuthCredentialsValidator {
     return validatePassword(password);
   }
 
+  static String? validatePasswordUpdate({
+    required String newPassword,
+    required String confirmPassword,
+  }) {
+    final passwordError = validatePassword(newPassword);
+    if (passwordError != null) return passwordError;
+    if (newPassword != confirmPassword) {
+      return 'Les mots de passe ne correspondent pas.';
+    }
+    return null;
+  }
+
   static String sanitizeEmail(String email) => email.trim().toLowerCase();
 }

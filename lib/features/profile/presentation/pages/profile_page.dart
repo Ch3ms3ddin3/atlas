@@ -785,7 +785,7 @@ class _SyncStatusCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Synchronisation',
+                  'Préférences cloud',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -800,7 +800,7 @@ class _SyncStatusCard extends StatelessWidget {
                 if (status.lastSyncedAt != null) ...[
                   const SizedBox(height: AtlasSpacing.xs),
                   Text(
-                    'Dernière sync : '
+                    'Dernière sync préférences : '
                     '${CasablancaDateFormatter.formatLongDate(status.lastSyncedAt!)}',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AtlasTextStyles.metadata(theme.colorScheme),

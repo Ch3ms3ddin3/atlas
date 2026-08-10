@@ -36,6 +36,13 @@ class FavoritesPreferencesStore {
     await prefs.remove(syncPendingKey);
   }
 
+  /// Efface tous les favoris locaux (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(recordsKey);
+    await prefs.remove(syncPendingKey);
+  }
+
   static List<FavoriteRecord> _decodeRecords(String? raw) {
     if (raw == null || raw.isEmpty) return const [];
 

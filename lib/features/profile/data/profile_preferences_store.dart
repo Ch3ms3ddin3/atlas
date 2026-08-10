@@ -71,4 +71,17 @@ class ProfilePreferencesStore {
     }
     await prefs.remove(syncPendingKey);
   }
+
+  /// Efface le profil local (changement d'identité).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(firstNameKey);
+    await prefs.remove(preferredCityKey);
+    await prefs.remove(languageKey);
+    await prefs.remove(userTypeKey);
+    await prefs.remove(displayNameKey);
+    await prefs.remove(avatarUrlKey);
+    await prefs.remove(localUpdatedAtKey);
+    await prefs.remove(syncPendingKey);
+  }
 }

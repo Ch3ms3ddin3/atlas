@@ -4,14 +4,23 @@ class AuthActionResult {
     required this.success,
     this.errorMessage,
     this.backendUnavailable = false,
+    this.requiresEmailConfirmation = false,
   });
 
   final bool success;
   final String? errorMessage;
   final bool backendUnavailable;
 
-  factory AuthActionResult.success() {
-    return const AuthActionResult._(success: true);
+  /// Succès d'inscription / liaison e-mail : confirmation mail encore requise.
+  final bool requiresEmailConfirmation;
+
+  factory AuthActionResult.success({
+    bool requiresEmailConfirmation = false,
+  }) {
+    return AuthActionResult._(
+      success: true,
+      requiresEmailConfirmation: requiresEmailConfirmation,
+    );
   }
 
   factory AuthActionResult.failure(String message) {
