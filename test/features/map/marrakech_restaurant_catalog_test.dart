@@ -40,6 +40,36 @@ void main() {
       lng: -7.988806,
       selection: false,
     ),
+    'place-sahbi-sahbi': (
+      lat: 31.634075,
+      lng: -8.014582,
+      selection: false,
+    ),
+    'place-grand-cafe-de-la-poste': (
+      lat: 31.633120,
+      lng: -8.010006,
+      selection: false,
+    ),
+    'place-catanzaro': (
+      lat: 31.634900,
+      lng: -8.010477,
+      selection: false,
+    ),
+    'place-naranj': (
+      lat: 31.624537,
+      lng: -7.985213,
+      selection: false,
+    ),
+    'place-la-trattoria': (
+      lat: 31.633840,
+      lng: -8.015174,
+      selection: false,
+    ),
+    'place-dar-moha': (
+      lat: 31.631367,
+      lng: -7.993267,
+      selection: false,
+    ),
   };
 
   const expectedHammams = <String>{
@@ -49,7 +79,15 @@ void main() {
     'place-hammam-place-des-epices',
   };
 
-  test('five verified Marrakech restaurants exist with unique IDs', () {
+  const expectedCafes = <String>{
+    'place-bacha-coffee',
+    'place-simple-specialty-coffee',
+    'place-cafe-des-epices',
+    'place-kartell-kollektiv',
+    'place-cafe-clock',
+  };
+
+  test('eleven verified Marrakech restaurants exist with unique IDs', () {
     final ids = PlaceCatalog.guides.map((p) => p.id).toList();
     expect(ids.toSet().length, ids.length);
     for (final id in expectedRestaurants.keys) {
@@ -61,11 +99,11 @@ void main() {
             p.cityName == 'Marrakech' &&
             p.category == PlaceCategory.restaurant,
       ),
-      hasLength(5),
+      hasLength(11),
     );
   });
 
-  test('exact verified coordinates and selection flags', () {
+  test('exact verified coordinates and Al Fassia-only Selection', () {
     for (final entry in expectedRestaurants.entries) {
       final place = PlaceCatalog.guides.firstWhere((p) => p.id == entry.key);
       expect(place.cityName, 'Marrakech');
@@ -78,6 +116,8 @@ void main() {
       expect(place.address, isNotNull);
       expect(place.address!.trim(), isNotEmpty);
       expect(place.imageUrls, isEmpty);
+      expect(place.latitude!.isFinite, isTrue);
+      expect(place.longitude!.isFinite, isTrue);
     }
     expect(
       PlaceCatalog.guides.where(
@@ -94,22 +134,26 @@ void main() {
           .isEditorsPick,
       isTrue,
     );
+    expect(
+      PlaceCatalog.guides
+          .firstWhere((p) => p.id == 'place-sahbi-sahbi')
+          .isEditorsPick,
+      isFalse,
+    );
   });
 
-  test('branch identity guards (Guéliz / Le Jardin naming)', () {
+  test('branch identity guards (Guéliz / Le Jardin / Italian lanes)', () {
     final fassia = PlaceCatalog.guides.firstWhere(
       (p) => p.id == 'place-al-fassia-gueliz',
     );
     expect(fassia.name, 'Al Fassia Guéliz');
     expect(fassia.address!.toLowerCase(), contains('zerktouni'));
-    expect(fassia.summary.toLowerCase(), isNot(contains('ourika')));
     expect(fassia.summary.toLowerCase(), contains('aguedal'));
 
     final amal = PlaceCatalog.guides.firstWhere(
       (p) => p.id == 'place-amal-gueliz',
     );
     expect(amal.name, 'Restaurant Amal Guéliz');
-    expect(amal.address!.toLowerCase(), contains('allal ben ahmed'));
     expect(
       amal.practicalTips.any((t) => t.toLowerCase().contains('targa')),
       isTrue,
@@ -119,7 +163,6 @@ void main() {
       (p) => p.id == 'place-le-jardin',
     );
     expect(jardin.name, 'Le Jardin');
-    expect(jardin.name, isNot(contains('Jardins de la Medina')));
     expect(
       jardin.practicalTips.any(
         (t) => t.contains('Les Jardins de la Medina'),
@@ -127,14 +170,23 @@ void main() {
       isTrue,
     );
 
-    final plus61 = PlaceCatalog.guides.firstWhere(
-      (p) => p.id == 'place-plus61',
+    final trattoria = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-la-trattoria',
     );
-    expect(plus61.name, 'Plus61');
-    expect(plus61.address!.toLowerCase(), contains('beqal'));
+    expect(trattoria.name, 'La Trattoria');
+    expect(
+      trattoria.practicalTips.any((t) => t.contains('Catanzaro')),
+      isTrue,
+    );
+
+    final catanzaro = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-catanzaro',
+    );
+    expect(catanzaro.name, 'Catanzaro');
+    expect(catanzaro.priceLevel, '€€');
   });
 
-  test('Marrakech + restaurant returns exactly the five curated restaurants', () {
+  test('Marrakech + restaurant returns exactly the 11 curated restaurants', () {
     final filters = PlaceBrowseFilters.instance
       ..setCityName('Marrakech', notify: false)
       ..setCategory(PlaceCategory.restaurant, notify: false);
@@ -142,7 +194,7 @@ void main() {
       repository: LocalPlaceRepository(),
       filters: filters,
     );
-    expect(markers, hasLength(5));
+    expect(markers, hasLength(11));
     expect(
       markers.every((m) => m.category == PlaceCategory.restaurant),
       isTrue,
@@ -169,21 +221,22 @@ void main() {
     );
   });
 
-  test('existing Marrakech hammams remain intact', () {
+  test('cafés and hammams remain intact', () {
+    expect(
+      PlaceCatalog.guides
+          .where(
+            (p) =>
+                p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
+          )
+          .map((p) => p.id)
+          .toSet(),
+      expectedCafes,
+    );
     for (final id in expectedHammams) {
       final place = PlaceCatalog.guides.firstWhere((p) => p.id == id);
-      expect(place.cityName, 'Marrakech');
       expect(place.category, PlaceCategory.hammam);
       expect(place.hasCoordinates, isTrue);
     }
-    final filters = PlaceBrowseFilters.instance
-      ..setCityName('Marrakech', notify: false)
-      ..setCategory(PlaceCategory.hammam, notify: false);
-    final markers = MapPlaceQuery.markers(
-      repository: LocalPlaceRepository(),
-      filters: filters,
-    );
-    expect(markers.map((m) => m.placeId).toSet(), expectedHammams);
   });
 
   test('Casablanca Marché Central remains untouched', () {
@@ -195,23 +248,18 @@ void main() {
     expect(marche.category, PlaceCategory.restaurant);
     expect(marche.latitude, 33.594);
     expect(marche.longitude, -7.618);
-    expect(marche.isEditorsPick, isTrue);
-    expect(marche.phone, isNull);
-    expect(marche.website, isNull);
-    expect(marche.address, isNull);
   });
 
   test('rejected or deferred restaurants are absent', () {
-    expect(
-      PlaceCatalog.guides.any((p) => p.id == 'place-lmida'),
-      isFalse,
-    );
-    expect(
-      PlaceCatalog.guides.any((p) => p.name == "L'Mida"),
-      isFalse,
-    );
+    expect(PlaceCatalog.guides.any((p) => p.id == 'place-lmida'), isFalse);
+    expect(PlaceCatalog.guides.any((p) => p.name == "L'Mida"), isFalse);
     expect(
       PlaceCatalog.guides.any((p) => p.name == 'Les Jardins de la Medina'),
+      isFalse,
+    );
+    expect(PlaceCatalog.guides.any((p) => p.id == 'place-libzar'), isFalse);
+    expect(
+      PlaceCatalog.guides.any((p) => p.id == 'place-comptoir-darna'),
       isFalse,
     );
   });

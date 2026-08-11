@@ -225,7 +225,7 @@ void main() {
     });
 
     test('catalog size and categories remain honest after Marrakech monuments V1', () {
-      expect(PlaceCatalog.guides, hasLength(32));
+      expect(PlaceCatalog.guides, hasLength(38));
       expect(
         PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
         isFalse,
@@ -256,7 +256,7 @@ void main() {
               p.cityName == 'Marrakech' &&
               p.category == PlaceCategory.restaurant,
         ),
-        hasLength(5),
+        hasLength(11),
       );
       expect(
         PlaceCatalog.guides.where(

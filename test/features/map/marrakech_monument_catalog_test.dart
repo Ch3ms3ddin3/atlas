@@ -42,7 +42,7 @@ void main() {
   test('six V1 records exist once — no Bahia/YSL duplicates', () {
     final ids = PlaceCatalog.guides.map((p) => p.id).toList();
     expect(ids.toSet().length, ids.length);
-    expect(ids, hasLength(32));
+    expect(ids, hasLength(38));
     for (final id in packageIds) {
       expect(ids.where((x) => x == id), hasLength(1));
     }
@@ -124,7 +124,7 @@ void main() {
             p.cityName == 'Marrakech' &&
             p.category == PlaceCategory.restaurant,
       ),
-      hasLength(5),
+      hasLength(11),
     );
     expect(
       PlaceCatalog.guides.where(

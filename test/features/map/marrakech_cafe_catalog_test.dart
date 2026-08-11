@@ -49,6 +49,12 @@ void main() {
     'place-nomad',
     'place-plus61',
     'place-le-jardin',
+    'place-sahbi-sahbi',
+    'place-grand-cafe-de-la-poste',
+    'place-catanzaro',
+    'place-naranj',
+    'place-la-trattoria',
+    'place-dar-moha',
   };
 
   const expectedHammams = <String>{

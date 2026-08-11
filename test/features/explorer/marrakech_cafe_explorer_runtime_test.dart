@@ -42,6 +42,12 @@ const _restaurantIds = <String>{
   'place-nomad',
   'place-plus61',
   'place-le-jardin',
+  'place-sahbi-sahbi',
+  'place-grand-cafe-de-la-poste',
+  'place-catanzaro',
+  'place-naranj',
+  'place-la-trattoria',
+  'place-dar-moha',
 };
 
 /// Simule Supabase live sans les 5 cafés (vieux seed distant).

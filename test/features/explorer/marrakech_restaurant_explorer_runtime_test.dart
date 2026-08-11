@@ -26,6 +26,12 @@ const _restaurantIds = <String>{
   'place-nomad',
   'place-plus61',
   'place-le-jardin',
+  'place-sahbi-sahbi',
+  'place-grand-cafe-de-la-poste',
+  'place-catanzaro',
+  'place-naranj',
+  'place-la-trattoria',
+  'place-dar-moha',
 };
 
 const _restaurantNames = <String>[
@@ -34,9 +40,15 @@ const _restaurantNames = <String>[
   'Nomad',
   'Plus61',
   'Le Jardin',
+  'Sahbi Sahbi',
+  'Le Grand Café de la Poste',
+  'Catanzaro',
+  'Naranj',
+  'La Trattoria',
+  'Dar Moha',
 ];
 
-/// Simule Supabase live sans les 5 restaurants (vieux seed distant).
+/// Simule Supabase live sans les restaurants Marrakech (vieux seed distant).
 List<PlaceGuide> _oldRemoteWithoutRestaurants() {
   return PlaceCatalog.guides
       .where((place) => !_restaurantIds.contains(place.id))
@@ -81,7 +93,7 @@ void main() {
     );
 
     test(
-      'PlaceMapper: puce Restaurant seule renvoie les 5 restaurants Marrakech',
+      'PlaceMapper: puce Restaurant seule renvoie les 11 restaurants Marrakech',
       () {
         final places = PlaceMapper.filter(
           const PlaceSearchQuery(
@@ -91,11 +103,12 @@ void main() {
           ),
         );
         expect(places.map((p) => p.id).toSet(), _restaurantIds);
+        expect(places, hasLength(11));
       },
     );
 
     test(
-      'ResilientPlaceRepository (chemin Explorer): search après warmUp distant vieux',
+      'ResilientPlaceRepository (chemin Explorer): search restaurant après warmUp distant vieux',
       () async {
         late ResilientPlaceRepository repository;
         PlaceRepository.registerFactory(() {
@@ -109,7 +122,6 @@ void main() {
         final repo = PlaceRepository.instance;
         await repo.warmUp();
 
-        // Exactement la requête construite par ExplorerPage._applyFilters.
         final byText = repo.search(
           const PlaceSearchQuery(
             text: 'restaurant',
@@ -132,19 +144,21 @@ void main() {
         expect(byText.map((p) => p.id).toSet(), _restaurantIds);
         expect(byCategory.map((p) => p.id).toSet(), _restaurantIds);
         expect(byText.map((p) => p.name), containsAll(_restaurantNames));
+        expect(
+          byCategory.where((p) => p.isEditorsPick).map((p) => p.id),
+          ['place-al-fassia-gueliz'],
+        );
       },
     );
   });
 
-  group('ExplorerPage widget — même chemin runtime', () {
+  group('ExplorerPage widget — Marrakech restaurants', () {
     Future<void> pumpExplorer(WidgetTester tester) async {
-      late ResilientPlaceRepository repository;
       PlaceRepository.registerFactory(() {
-        repository = ResilientPlaceRepository(
+        return ResilientPlaceRepository(
           local: LocalPlaceRepository(),
           fetchRemote: () async => _oldRemoteWithoutRestaurants(),
         );
-        return repository;
       });
       await PlaceRepository.instance.warmUp();
 
@@ -153,7 +167,7 @@ void main() {
       await profileRepository.load();
       await favoritesRepository.load();
 
-      await tester.binding.setSurfaceSize(const Size(800, 1600));
+      await tester.binding.setSurfaceSize(const Size(800, 3200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
@@ -175,35 +189,7 @@ void main() {
     }
 
     testWidgets(
-      'Marrakech + puce Hammam sticky + recherche « restaurant » affiche les 5',
-      (tester) async {
-        await pumpExplorer(tester);
-
-        await tester.tap(find.text('Marrakech'));
-        await tester.pumpAndSettle();
-
-        // Simule une puce Hammam encore active (Phase 2 / filtres partagés).
-        expect(find.text('Hammam'), findsWidgets);
-        await tester.tap(find.text('Hammam').first);
-        await tester.pumpAndSettle();
-
-        await tester.enterText(find.byType(TextField), 'restaurant');
-        await tester.pump(const Duration(milliseconds: 250));
-        await tester.pumpAndSettle();
-
-        expect(find.byType(ExplorerEmptyState), findsNothing);
-        for (final name in _restaurantNames) {
-          expect(find.text(name), findsWidgets, reason: name);
-        }
-        expect(
-          find.byType(PlaceGuideCard).evaluate().length,
-          greaterThanOrEqualTo(4),
-        );
-      },
-    );
-
-    testWidgets(
-      'Marrakech + puce Restaurant affiche les 5 restaurants',
+      'Marrakech + puce Restaurant affiche les 11 restaurants',
       (tester) async {
         await pumpExplorer(tester);
 
@@ -211,6 +197,29 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Restaurant').first);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ExplorerEmptyState), findsNothing);
+        expect(find.byType(PlaceGuideCard), findsNWidgets(11));
+        for (final name in _restaurantNames) {
+          expect(find.text(name), findsWidgets, reason: name);
+        }
+      },
+    );
+
+    testWidgets(
+      'Marrakech + puce Hammam sticky + recherche « restaurant » affiche les 11',
+      (tester) async {
+        await pumpExplorer(tester);
+
+        await tester.tap(find.text('Marrakech'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Hammam').first);
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField), 'restaurant');
+        await tester.pump(const Duration(milliseconds: 250));
         await tester.pumpAndSettle();
 
         expect(find.byType(ExplorerEmptyState), findsNothing);

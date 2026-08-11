@@ -466,6 +466,12 @@ void main() {
       'place-nomad',
       'place-plus61',
       'place-le-jardin',
+      'place-sahbi-sahbi',
+      'place-grand-cafe-de-la-poste',
+      'place-catanzaro',
+      'place-naranj',
+      'place-la-trattoria',
+      'place-dar-moha',
       'place-bacha-coffee',
       'place-simple-specialty-coffee',
       'place-cafe-des-epices',
@@ -487,7 +493,7 @@ void main() {
       final ids = PlaceCatalog.guides.map((place) => place.id).toList();
       expect(ids.toSet(), expectedSlugs);
       expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(32));
+      expect(ids, hasLength(38));
       expect(ids, isNot(contains('place-hammam-marrakech')));
       expect(ids, isNot(contains('place-bain-de-kasbah')));
       expect(ids, isNot(contains('place-lmida')));

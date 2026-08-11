@@ -588,6 +588,241 @@ abstract final class PlaceCatalog {
       ],
     ),
     PlaceGuide(
+      id: 'place-sahbi-sahbi',
+      name: 'Sahbi Sahbi',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF8A5A3C),
+      summary:
+          'Cuisine marocaine contemporaine en cuisine ouverte, équipe '
+          'de femmes — table Guéliz pensée comme un atelier de recettes '
+          'régionales, pas un palace.',
+      bestTimeToVisit: 'Dîner sur réservation ; fermé le lundi',
+      address: '37 Boulevard El Mansour Eddahbi, Guéliz, Marrakech',
+      latitude: 31.634075,
+      longitude: -8.014582,
+      website: 'https://www.sahbisahbi.com/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.634075,-8.014582',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '19:00–01:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '19:00–01:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '19:00–01:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '19:00–01:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '19:00–01:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '19:00–01:00'),
+        ],
+        note: 'Service du soir uniquement (site officiel).',
+      ),
+      practicalTips: [
+        'Réservez : dîner uniquement, mardi–dimanche ; fermé le lundi.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-grand-cafe-de-la-poste',
+      name: 'Le Grand Café de la Poste',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF6B5538),
+      summary:
+          'Brasserie Guéliz d\'époque restaurée — cuisine française / '
+          'méditerranéenne dans un décor Studio KO, loin des rooftops Médina.',
+      bestTimeToVisit: 'Sur réservation ; vérifier les créneaux du jour',
+      address:
+          'Angle Boulevard El Mansour Eddahbi et Avenue Imam Malik, '
+          'Guéliz, Marrakech',
+      latitude: 31.633120,
+      longitude: -8.010006,
+      phone: '+212524433038',
+      website: 'https://www.grandcafedelaposte.restaurant/',
+      email: 'contact@grandcafedelaposte.restaurant',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.633120,-8.010006',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Brasserie ouverte petit-déjeuner / déjeuner / dîner — '
+            'horaires exacts à confirmer via le site ou la réservation '
+            '(grandcafedelaposte.restaurant).',
+      ),
+      practicalTips: [
+        'Réservez sur grandcafedelaposte.restaurant ou au '
+            '+212 5 24 43 30 38 ; angle Mansour Eddahbi / Imam Malik.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-catanzaro',
+      name: 'Catanzaro',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFB85A3A),
+      summary:
+          'Trattoria familiale Guéliz depuis 1986 — pizzas au feu de bois '
+          'et pâtes fraîches, adresse de quartier autant que table touristique.',
+      bestTimeToVisit: 'Déjeuner ou dîner ; fermé le dimanche',
+      address: 'Rue Tariq Bnou Ziad, Guéliz, Marrakech',
+      latitude: 31.634900,
+      longitude: -8.010477,
+      website: 'https://en.catanzaro.ma/accueil',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.634900,-8.010477',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(
+            dayLabel: 'Lundi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Mardi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Mercredi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Jeudi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Vendredi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Samedi',
+            hoursLabel: '12:00–15:00 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: 'Fermé'),
+        ],
+      ),
+      practicalTips: [
+        'Réservez aux heures de pointe ; fermé le dimanche '
+            '(site officiel Catanzaro).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-naranj',
+      name: 'Naranj',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFC45A3A),
+      summary:
+          'Cuisine libanaise / levantine en Médina — mezze à partager '
+          'et rooftop, alternative claire aux tables marocaines.',
+      bestTimeToVisit: 'Déjeuner ou dîner ; réservez le rooftop',
+      address: '84 Rue Riad Zitoun el Jdid, Médina, Marrakech',
+      latitude: 31.624537,
+      longitude: -7.985213,
+      phone: '+212671569542',
+      website: 'https://naranj.ma/',
+      email: 'office@naranj.ma',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.624537,-7.985213',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires officiels signalés autour de 12:30–22:30 — '
+            'vérifier le jour même (pages du site parfois Lun–Sam '
+            'vs tous les jours).',
+      ),
+      practicalTips: [
+        '84 Rue Riad Zitoun el Jdid ; réservez via naranj.ma '
+            'pour le rooftop.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-la-trattoria',
+      name: 'La Trattoria',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF4A6B5A),
+      summary:
+          'Institution italienne depuis 1974 dans une villa Art déco — '
+          'dîner jardin / piscine pour une soirée soignée, pas une '
+          'pizza de quartier.',
+      bestTimeToVisit: 'Sur réservation ; lundi dîner uniquement',
+      address: '179 Rue Mohammed el Beqal, Guéliz, Marrakech',
+      latitude: 31.633840,
+      longitude: -8.015174,
+      phone: '+212524432641',
+      website: 'https://www.latrattoriamarrakech.com/',
+      email: 'reservation@latrattoriamarrakech.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.633840,-8.015174',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '18:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '12:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Réservez sur latrattoriamarrakech.com ; distinct de Catanzaro '
+            '(trattoria de quartier, même ville).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-dar-moha',
+      name: 'Dar Moha',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Médina',
+      priceLevel: '€€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF7A4A3A),
+      summary:
+          'Cuisine marocaine gastronomique dans un riad du quartier '
+          'Dar El Bacha — table d\'exception du Chef Moha, hors circuit '
+          'palace.',
+      bestTimeToVisit: 'Déjeuner ou dîner sur réservation',
+      address: '81 Rue Dar El Bacha, Médina, Marrakech',
+      latitude: 31.631367,
+      longitude: -7.993267,
+      phone: '+212524386400',
+      website: 'https://darmoha.ma/',
+      email: 'restaurant@darmoha.ma',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631367,-7.993267',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(
+            dayLabel: 'Tous les jours',
+            hoursLabel: '12:00–16:00 · 19:00–23:00',
+          ),
+        ],
+        note: 'Déjeuner 12:00–16:00 ; dîner 19:00–23:00 (site officiel).',
+      ),
+      practicalTips: [
+        'Réservez sur darmoha.ma ou au +212 5 24 38 64 00 ; '
+            '81 Rue Dar El Bacha (Médina).',
+      ],
+    ),
+    PlaceGuide(
       id: 'place-bacha-coffee',
       name: 'Bacha Coffee',
       cityName: 'Marrakech',
