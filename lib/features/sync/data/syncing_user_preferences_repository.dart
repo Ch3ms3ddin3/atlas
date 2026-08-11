@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/notifications/notification_preferences_store.dart';
+import '../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../admission_temporaire/data/at_preferences_store.dart';
 import '../../explorer/domain/place_browse_filters.dart';
@@ -48,6 +49,8 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
 
   CloudSyncStatus _status = const CloudSyncStatus.idle();
   bool _loaded = false;
+  bool _syncInProgress = false;
+  bool _syncQueued = false;
 
   static bool _defaultIsSignedIn() => SupabaseBootstrap.isSignedInUser;
 
@@ -68,6 +71,22 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
   }
 
   Future<void> sync() async {
+    if (_syncInProgress) {
+      _syncQueued = true;
+      return;
+    }
+    _syncInProgress = true;
+    try {
+      do {
+        _syncQueued = false;
+        await _syncOnce();
+      } while (_syncQueued);
+    } finally {
+      _syncInProgress = false;
+    }
+  }
+
+  Future<void> _syncOnce() async {
     if (!_canSync) {
       _status = CloudSyncStatus(
         phase: CloudSyncPhase.offline,
@@ -125,7 +144,11 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
     }
   }
 
-  Future<void> persistFromUi() async {
+  /// Persists UI prefs and optionally waits for the cloud round-trip.
+  ///
+  /// Prayer lead-time changes must [awaitSync] so a quick sign-out cannot
+  /// clear local state before the upsert lands on Supabase.
+  Future<void> persistFromUi({bool awaitSync = false}) async {
     final prayer = await _prayerStore.load();
     final at = await _atStore.loadSnapshot();
     final snapshot = _store.captureFromFilters(
@@ -134,7 +157,11 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
     );
     await _store.save(snapshot);
     await _store.setSyncPending(true);
-    unawaited(sync());
+    if (awaitSync) {
+      await sync();
+    } else {
+      unawaited(sync());
+    }
   }
 
   Future<UserPreferencesSnapshot> _composeLocalSnapshot() async {
@@ -160,6 +187,8 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
     await _prayerStore.save(snapshot.prayerLeadTime);
     await _atStore.setNotificationsEnabled(snapshot.atNotificationsEnabled);
     _store.applyExplorerFilters(snapshot);
+    // Keep OS prayer schedules aligned with the effective preference.
+    unawaited(prayerNotificationCoordinator.sync(force: true));
   }
 
   bool get _canSync =>

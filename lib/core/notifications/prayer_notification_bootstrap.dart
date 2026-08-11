@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/home/data/prayer/prayer_notification_coordinator.dart';
 import '../../features/home/data/prayer/prayer_repository.dart';
+import 'local_notification_service.dart';
 
 PrayerNotificationCoordinator? _prayerNotificationCoordinator;
 bool _prayerTimeZonesInitialized = false;
@@ -61,13 +62,17 @@ Future<void> bootstrapPrayerNotifications() async {
 /// Provides a coordinator for widget tests without native notification plugins.
 void ensurePrayerNotificationCoordinatorForTests({
   PrayerRepository? prayerRepository,
+  LocalNotificationService? notificationService,
+  Future<void> Function()? cloudPersist,
 }) {
   ensurePrayerTimeZonesInitialized();
   final repository = prayerRepository ?? PrayerRepository();
   PrayerRepository.registerInstance(repository);
   _prayerNotificationCoordinator = PrayerNotificationCoordinator(
     prayerRepository: repository,
+    notificationService: notificationService,
   );
+  _prayerNotificationCoordinator!.bindCloudPersist(cloudPersist);
   _prayerBootstrapInFlight = null;
 }
 

@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../../core/errors/atlas_error_ui.dart';
 import '../../../core/network/atlas_connectivity.dart';
+import '../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../core/performance/atlas_performance.dart';
 import '../../../core/platform/atlas_build_info.dart';
 import '../../../design_system/motion/atlas_haptics.dart';
@@ -144,6 +145,9 @@ class _AppShellState extends State<AppShell> {
     _connectivity = AtlasConnectivity();
     _connectivity.addListener(_onConnectivityChanged);
     unawaited(_connectivity.start());
+    prayerNotificationCoordinator.bindCloudPersist(
+      () => _preferencesRepository.persistFromUi(awaitSync: true),
+    );
     if (!_authRepository.isLoaded) {
       _authRepository.load();
     }
@@ -190,6 +194,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    prayerNotificationCoordinator.bindCloudPersist(null);
     PlaceBrowseFilters.instance.removeListener(_onExplorerFiltersChanged);
     _authRepository.removeListener(_onAuthSessionChanged);
     _connectivity.removeListener(_onConnectivityChanged);
@@ -270,6 +275,9 @@ class _AppShellState extends State<AppShell> {
         _assistantRepository.load(),
         _feedbackRepository.load(),
       ]);
+      // Await prefs sync so cloud prayer lead-time is applied before OS sync.
+      await _preferencesRepository.sync();
+      await prayerNotificationCoordinator.sync(force: true);
     } finally {
       _authBoundaryInProgress = false;
     }

@@ -6,7 +6,9 @@ import '../../../../core/location/user_location.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../../../../core/notifications/notification_preferences_store.dart';
 import '../../../../core/notifications/prayer_notification_lead_time.dart';
+import '../../../explorer/domain/place_browse_filters.dart';
 import '../../../profile/data/profile_preferences_store.dart';
+import '../../../sync/data/user_preferences_store.dart';
 import 'prayer_mapper.dart';
 import 'prayer_notification_scheduler.dart';
 import 'prayer_repository.dart';
@@ -20,6 +22,7 @@ class PrayerNotificationCoordinator {
     LocationRepository? locationRepository,
     PrayerNotificationScheduler? scheduler,
     ProfilePreferencesStore? profilePreferencesStore,
+    UserPreferencesStore? userPreferencesStore,
   })  : _preferencesStore =
             preferencesStore ?? const NotificationPreferencesStore(),
         _notificationService =
@@ -28,7 +31,9 @@ class PrayerNotificationCoordinator {
         _locationRepository = locationRepository ?? LocationRepository(),
         _scheduler = scheduler ?? const PrayerNotificationScheduler(),
         _profilePreferencesStore =
-            profilePreferencesStore ?? const ProfilePreferencesStore();
+            profilePreferencesStore ?? const ProfilePreferencesStore(),
+        _userPreferencesStore =
+            userPreferencesStore ?? const UserPreferencesStore();
 
   final NotificationPreferencesStore _preferencesStore;
   final LocalNotificationService _notificationService;
@@ -36,8 +41,18 @@ class PrayerNotificationCoordinator {
   final LocationRepository _locationRepository;
   final PrayerNotificationScheduler _scheduler;
   final ProfilePreferencesStore _profilePreferencesStore;
+  final UserPreferencesStore _userPreferencesStore;
+
+  /// Invoked after a local lead-time change so signed-in cloud prefs can push.
+  /// Bound by AppShell to [SyncingUserPreferencesRepository.persistFromUi].
+  Future<void> Function()? _cloudPersist;
 
   String? _lastSyncKey;
+
+  /// Registers (or clears) the cloud prefs persist hook without rebuilding.
+  void bindCloudPersist(Future<void> Function()? callback) {
+    _cloudPersist = callback;
+  }
 
   Future<void> bootstrap() async {
     await _notificationService.initialize();
@@ -60,8 +75,44 @@ class PrayerNotificationCoordinator {
     }
 
     await _preferencesStore.save(leadTime);
+    // Stamp user-preferences metadata so a stale remote cannot overwrite this
+    // change (same SharedPreferences prayer key; pending + localUpdatedAt matter).
+    await _markUserPreferencesPending(leadTime);
     await sync(force: true);
+
+    final persist = _cloudPersist;
+    if (persist != null) {
+      await persist();
+    }
     return true;
+  }
+
+  /// Marks the syncable prefs blob pending after a prayer lead-time edit.
+  @visibleForTesting
+  Future<void> markUserPreferencesPendingForTests(
+    PrayerNotificationLeadTime leadTime,
+  ) {
+    return _markUserPreferencesPending(leadTime);
+  }
+
+  Future<void> _markUserPreferencesPending(
+    PrayerNotificationLeadTime leadTime,
+  ) async {
+    final current = await _userPreferencesStore.load();
+    final filters = PlaceBrowseFilters.instance;
+    await _userPreferencesStore.save(
+      UserPreferencesSnapshot(
+        prayerLeadTime: leadTime,
+        atNotificationsEnabled: current.atNotificationsEnabled,
+        explorerCity: filters.cityName.isNotEmpty
+            ? filters.cityName
+            : current.explorerCity,
+        explorerCategory: filters.category ?? current.explorerCategory,
+        explorerFavoritesOnly: filters.favoritesOnly,
+        localUpdatedAt: DateTime.now().toUtc(),
+      ),
+    );
+    await _userPreferencesStore.setSyncPending(true);
   }
 
   Future<void> sync({UserLocation? location, bool force = false}) async {

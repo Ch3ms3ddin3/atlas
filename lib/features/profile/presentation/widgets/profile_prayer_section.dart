@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/notifications/prayer_notification_lead_time.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../home/data/prayer/prayer_notification_coordinator.dart';
+import '../../../sync/data/syncing_user_preferences_repository.dart';
+import '../../../sync/presentation/sync_scope.dart';
 
 /// Sélecteur de rappels de prière — partagé entre l'accueil et le profil.
 class ProfilePrayerSection extends StatefulWidget {
@@ -28,6 +32,7 @@ class _ProfilePrayerSectionState extends State<ProfilePrayerSection> {
   PrayerNotificationLeadTime? _selected;
   bool _isLoading = true;
   bool _isSaving = false;
+  SyncingUserPreferencesRepository? _syncRepository;
 
   static const _options = PrayerNotificationLeadTime.values;
 
@@ -35,6 +40,30 @@ class _ProfilePrayerSectionState extends State<ProfilePrayerSection> {
   void initState() {
     super.initState();
     _loadCurrent();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final sync = SyncScope.maybeOf(context);
+    if (!identical(sync, _syncRepository)) {
+      _syncRepository?.removeListener(_onSyncChanged);
+      _syncRepository = sync;
+      _syncRepository?.addListener(_onSyncChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    _syncRepository?.removeListener(_onSyncChanged);
+    super.dispose();
+  }
+
+  void _onSyncChanged() {
+    if (!mounted || _isSaving) return;
+    // Cloud restore / identity boundary may rewrite the prayer key while this
+    // IndexedStack child stays mounted — refresh the visible selection.
+    unawaited(_loadCurrent());
   }
 
   Future<void> _loadCurrent() async {
