@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../../core/uuid/atlas_uuid.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../../favorites/domain/favorites_repository.dart';
 import '../domain/itinerary_repository.dart';
 import '../domain/models/itinerary_day.dart';
@@ -246,17 +247,41 @@ class SyncingItineraryRepository extends ItineraryRepository {
     _syncInProgress = true;
     try {
       final remote = await _remote.fetchAll(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final merged = ItinerarySyncCoordinator.merge(
         local: _trips,
         remote: remote,
       );
       _trips = merged;
       await _persist();
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
 
       final pending = merged.any((t) => t.syncPending) ||
           await _store.isSyncPending();
       if (pending) {
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _remote.upsertAll(userId, merged);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         _trips = [
           for (final trip in merged) trip.copyWith(syncPending: false),
         ];

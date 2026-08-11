@@ -7,6 +7,7 @@ import '../../../core/notifications/notification_preferences_store.dart';
 import '../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../admission_temporaire/data/at_preferences_store.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../../explorer/domain/place_browse_filters.dart';
 import '../domain/cloud_sync_status.dart';
 import 'supabase_user_preferences_repository.dart';
@@ -107,7 +108,19 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
 
     try {
       final local = await _composeLocalSnapshot();
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final remote = await _remote.fetch(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final merge = UserPreferencesSyncCoordinator.merge(
         local: local,
         remote: remote,
@@ -115,13 +128,31 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
 
       if (merge.changed) {
         await _applySnapshot(merge.snapshot);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
       }
 
       if (merge.shouldPush) {
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         final pushed = await _remote.upsert(
           userId: userId,
           snapshot: merge.snapshot,
         );
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _store.setSyncPending(!pushed);
       } else {
         await _store.setSyncPending(false);
@@ -129,12 +160,24 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
 
       final now = DateTime.now().toUtc();
       await _syncStatusStore.markSynced(now);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       _status = CloudSyncStatus(
         phase: CloudSyncPhase.synced,
         lastSyncedAt: now,
       );
       notifyListeners();
     } catch (_) {
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       _status = CloudSyncStatus(
         phase: CloudSyncPhase.error,
         lastSyncedAt: _status.lastSyncedAt,
@@ -149,6 +192,7 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
   /// Prayer lead-time changes must [awaitSync] so a quick sign-out cannot
   /// clear local state before the upsert lands on Supabase.
   Future<void> persistFromUi({bool awaitSync = false}) async {
+    final userIdAtStart = _userIdProvider();
     final prayer = await _prayerStore.load();
     final at = await _atStore.loadSnapshot();
     final snapshot = _store.captureFromFilters(
@@ -157,6 +201,12 @@ class SyncingUserPreferencesRepository extends ChangeNotifier {
     );
     await _store.save(snapshot);
     await _store.setSyncPending(true);
+    if (!AuthSyncIdentity.isStillCurrent(
+      capturedUserId: userIdAtStart,
+      userIdProvider: _userIdProvider,
+    )) {
+      return;
+    }
     if (awaitSync) {
       await sync();
     } else {

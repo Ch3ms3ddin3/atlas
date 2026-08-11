@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../domain/at_repository.dart';
 import '../domain/models/at_vehicle.dart';
 import 'at_preferences_store.dart';
@@ -116,17 +117,41 @@ class SyncingAtRepository extends AtRepository {
 
       final local = await _store.loadSnapshot();
       final remote = await _remote.fetchAll(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final merged = AtSyncCoordinator.merge(local: local, remote: remote);
 
       if (!_vehiclesEqual(local.vehicles, merged.vehicles)) {
         await _store.saveVehicles(merged.vehicles);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _local.load();
       }
 
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final pushed = await _remote.upsertAll(
         userId: userId,
         vehicles: merged.vehicles,
       );
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       await _store.setSyncPending(!pushed);
     } finally {
       _syncInProgress = false;

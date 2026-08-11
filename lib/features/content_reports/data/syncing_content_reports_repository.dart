@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../../core/uuid/atlas_uuid.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../domain/content_report_entity_type.dart';
 import '../domain/content_report_status.dart';
 import '../domain/content_report_type.dart';
@@ -89,6 +90,7 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
       return false;
     }
 
+    final userIdAtStart = _userIdProvider();
     final now = DateTime.now().toUtc();
     final report = ContentReport(
       id: _idProvider(),
@@ -108,7 +110,16 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
     _reports = reports;
     notifyListeners();
 
-    final pushed = await _pushPendingReports(reports);
+    final pushed = await _pushPendingReports(
+      reports,
+      expectedUserId: userIdAtStart,
+    );
+    if (!AuthSyncIdentity.isStillCurrent(
+      capturedUserId: userIdAtStart,
+      userIdProvider: _userIdProvider,
+    )) {
+      return true;
+    }
     await _store.setSyncPending(!pushed);
     if (pushed) {
       await _markReportsSynced(reports);
@@ -125,6 +136,12 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final merge = ContentReportsSyncCoordinator.merge(
         local: local,
         remote: remote,
@@ -132,13 +149,28 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
 
       if (merge.changed) {
         await _store.saveReports(merge.reports);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         _reports = merge.reports;
         notifyListeners();
       }
 
       if (merge.shouldPushLocal) {
         final snapshot = await _store.loadSnapshot();
-        final pushed = await _pushPendingReports(snapshot.reports);
+        final pushed = await _pushPendingReports(
+          snapshot.reports,
+          expectedUserId: userId,
+        );
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _store.setSyncPending(!pushed);
         if (pushed) {
           await _markReportsSynced(snapshot.reports);
@@ -161,22 +193,35 @@ class SyncingContentReportsRepository extends ContentReportsRepository {
     }
   }
 
-  Future<bool> _pushPendingReports(List<ContentReport> reports) async {
+  Future<bool> _pushPendingReports(
+    List<ContentReport> reports, {
+    String? expectedUserId,
+  }) async {
     if (!_canSync) return false;
 
     final userId = _userIdProvider();
     if (userId == null) return false;
+    if (expectedUserId != null && userId != expectedUserId) return false;
 
     final pending = reports.where((report) => report.syncPending).toList();
     if (pending.isEmpty) return true;
 
     try {
       for (final report in pending) {
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: expectedUserId ?? userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return false;
+        }
         await _remote
             .insert(userId: userId, report: report)
             .timeout(_syncTimeout);
       }
-      return true;
+      return AuthSyncIdentity.isStillCurrent(
+        capturedUserId: expectedUserId ?? userId,
+        userIdProvider: _userIdProvider,
+      );
     } catch (_) {
       return false;
     }

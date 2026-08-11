@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../domain/models/user_profile.dart';
 import '../domain/profile_repository.dart';
 import 'profile_local_snapshot.dart';
@@ -70,12 +71,24 @@ class SyncingProfileRepository extends ProfileRepository {
     final sanitized = ProfileValidator.sanitizeForSave(candidate);
     if (sanitized == null) return false;
 
+    final userIdAtStart = _userIdProvider();
     final now = DateTime.now().toUtc();
     await _store.saveProfile(sanitized, localUpdatedAt: now);
     _profile = sanitized;
     notifyListeners();
 
-    final pushed = await _pushProfile(sanitized);
+    final pushed = await _pushProfile(
+      sanitized,
+      expectedUserId: userIdAtStart,
+    );
+    if (!AuthSyncIdentity.isStillCurrent(
+      capturedUserId: userIdAtStart,
+      userIdProvider: _userIdProvider,
+    )) {
+      // Identity flipped mid-save — leave syncPending for the *new* session
+      // only if local still holds this write; boundary clear resets stores.
+      return true;
+    }
     await _store.setSyncPending(!pushed);
     return true;
   }
@@ -89,11 +102,23 @@ class SyncingProfileRepository extends ProfileRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       // Re-read after the network round-trip. A concurrent [save] can land
       // while fetch is in flight; merging/pushing the load-time snapshot would
       // overwrite a newer preferredCity (and other fields) on remote, then
       // lose them on the next cold start when remote wins by timestamp.
       final latestLocal = await _store.loadSnapshot();
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       final merge = ProfileSyncCoordinator.merge(
         local: latestLocal,
         remote: remote,
@@ -107,13 +132,25 @@ class SyncingProfileRepository extends ProfileRepository {
           remote: remote,
         );
         await _store.saveProfile(merge.profile, localUpdatedAt: localUpdatedAt);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         profile = merge.profile;
         _profile = merge.profile;
         notifyListeners();
       }
 
       if (latestLocal.syncPending || merge.shouldPushLocal) {
-        final pushed = await _pushProfile(profile);
+        final pushed = await _pushProfile(profile, expectedUserId: userId);
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _store.setSyncPending(!pushed);
       }
     } catch (error) {
@@ -143,17 +180,24 @@ class SyncingProfileRepository extends ProfileRepository {
     }
   }
 
-  Future<bool> _pushProfile(UserProfile profile) async {
+  Future<bool> _pushProfile(
+    UserProfile profile, {
+    String? expectedUserId,
+  }) async {
     if (!_canSync) return false;
 
     final userId = _userIdProvider();
     if (userId == null) return false;
+    if (expectedUserId != null && userId != expectedUserId) return false;
 
     try {
       await _remote
           .upsert(userId: userId, profile: profile)
           .timeout(_syncTimeout);
-      return true;
+      return AuthSyncIdentity.isStillCurrent(
+        capturedUserId: expectedUserId ?? userId,
+        userIdProvider: _userIdProvider,
+      );
     } catch (_) {
       return false;
     }

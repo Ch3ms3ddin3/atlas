@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
+import '../../auth/data/auth_sync_identity.dart';
 import '../domain/favorite_entity_type.dart';
 import '../domain/favorites_repository.dart';
 import '../domain/models/favorite_key.dart';
@@ -101,6 +102,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     final key = FavoriteKey(entityType: entityType, entitySlug: sanitizedSlug);
     if (_activeFavorites.contains(key)) return true;
 
+    final userIdAtStart = _userIdProvider();
     final snapshot = await _store.loadSnapshot();
     final now = DateTime.now().toUtc();
     final record = FavoriteRecord(
@@ -116,7 +118,13 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     _activeFavorites = {..._activeFavorites, key};
     notifyListeners();
 
-    final pushed = await _pushRecords(records);
+    final pushed = await _pushRecords(records, expectedUserId: userIdAtStart);
+    if (!AuthSyncIdentity.isStillCurrent(
+      capturedUserId: userIdAtStart,
+      userIdProvider: _userIdProvider,
+    )) {
+      return true;
+    }
     await _store.setSyncPending(!pushed);
     _scheduleFollowUpSync();
     return true;
@@ -138,6 +146,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     final key = FavoriteKey(entityType: entityType, entitySlug: sanitizedSlug);
     if (!_activeFavorites.contains(key)) return true;
 
+    final userIdAtStart = _userIdProvider();
     final snapshot = await _store.loadSnapshot();
     final now = DateTime.now().toUtc();
     final record = FavoriteRecord(
@@ -153,7 +162,13 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     _activeFavorites = {..._activeFavorites}..remove(key);
     notifyListeners();
 
-    final pushed = await _pushRecords(records);
+    final pushed = await _pushRecords(records, expectedUserId: userIdAtStart);
+    if (!AuthSyncIdentity.isStillCurrent(
+      capturedUserId: userIdAtStart,
+      userIdProvider: _userIdProvider,
+    )) {
+      return true;
+    }
     await _store.setSyncPending(!pushed);
     _scheduleFollowUpSync();
     return true;
@@ -191,8 +206,20 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       // Relecture après le fetch : un add/remove peut avoir eu lieu pendant l'attente.
       var localSnapshot = await _store.loadSnapshot();
+      if (!AuthSyncIdentity.isStillCurrent(
+        capturedUserId: userId,
+        userIdProvider: _userIdProvider,
+      )) {
+        return;
+      }
       var merge = FavoritesSyncCoordinator.merge(
         local: localSnapshot,
         remote: remote,
@@ -200,6 +227,12 @@ class SyncingFavoritesRepository extends FavoritesRepository {
 
       if (merge.changed) {
         final latestSnapshot = await _store.loadSnapshot();
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         if (!FavoritesSyncCoordinator.snapshotsEquivalent(
           localSnapshot,
           latestSnapshot,
@@ -214,6 +247,12 @@ class SyncingFavoritesRepository extends FavoritesRepository {
         if (merge.changed) {
           final pruned = _pruneInactive(merge.records);
           await _store.saveRecords(pruned);
+          if (!AuthSyncIdentity.isStillCurrent(
+            capturedUserId: userId,
+            userIdProvider: _userIdProvider,
+          )) {
+            return;
+          }
           _activeFavorites = merge.activeKeys;
           notifyListeners();
         }
@@ -221,7 +260,16 @@ class SyncingFavoritesRepository extends FavoritesRepository {
 
       if (localSnapshot.syncPending || merge.shouldPushLocal) {
         final snapshot = await _store.loadSnapshot();
-        final pushed = await _pushRecords(snapshot.records);
+        final pushed = await _pushRecords(
+          snapshot.records,
+          expectedUserId: userId,
+        );
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return;
+        }
         await _store.setSyncPending(!pushed);
         if (pushed) {
           final pruned = _pruneInactive(snapshot.records);
@@ -248,19 +296,32 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     }
   }
 
-  Future<bool> _pushRecords(List<FavoriteRecord> records) async {
+  Future<bool> _pushRecords(
+    List<FavoriteRecord> records, {
+    String? expectedUserId,
+  }) async {
     if (!_canSync) return false;
 
     final userId = _userIdProvider();
     if (userId == null) return false;
+    if (expectedUserId != null && userId != expectedUserId) return false;
 
     try {
       for (final record in records) {
+        if (!AuthSyncIdentity.isStillCurrent(
+          capturedUserId: expectedUserId ?? userId,
+          userIdProvider: _userIdProvider,
+        )) {
+          return false;
+        }
         await _remote
             .upsert(userId: userId, record: record)
             .timeout(_syncTimeout);
       }
-      return true;
+      return AuthSyncIdentity.isStillCurrent(
+        capturedUserId: expectedUserId ?? userId,
+        userIdProvider: _userIdProvider,
+      );
     } catch (error) {
       _logSyncFailure('écriture distante', error);
       return false;

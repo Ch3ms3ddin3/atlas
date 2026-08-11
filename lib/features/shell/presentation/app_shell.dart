@@ -15,10 +15,9 @@ import '../../../design_system/theme/atlas_spacing.dart';
 import '../../assistant/data/local_assistant_repository.dart';
 import '../../assistant/domain/assistant_repository.dart';
 import '../../assistant/presentation/assistant_scope.dart';
-import '../../auth/data/local_user_data_isolator.dart';
+import '../../auth/data/auth_session_boundary_controller.dart';
 import '../../auth/data/supabase_auth_repository.dart';
 import '../../auth/domain/auth_repository.dart';
-import '../../auth/domain/auth_session.dart';
 import '../../auth/presentation/auth_scope.dart';
 import '../../admission_temporaire/data/at_bootstrap.dart';
 import '../../admission_temporaire/domain/at_repository.dart';
@@ -99,9 +98,7 @@ class _AppShellState extends State<AppShell> {
   int _bannerTapCount = 0;
   DateTime? _bannerTapWindowStart;
   AtlasBuildInfo? _buildInfo;
-  AuthSessionKind? _boundAuthKind;
-  String? _boundUserId;
-  bool _authBoundaryInProgress = false;
+  late final AuthSessionBoundaryController _authBoundary;
   late final AtlasConnectivity _connectivity;
 
   static const _tabNames = {
@@ -139,6 +136,10 @@ class _AppShellState extends State<AppShell> {
     );
     _feedbackRepository = BetaFeedbackRepository(
       authRepository: _authRepository,
+    );
+    _authBoundary = AuthSessionBoundaryController(
+      sessionProvider: () => _authRepository.session,
+      reloadUserScopedData: _reloadUserScopedData,
     );
     _authRepository.addListener(_onAuthSessionChanged);
     PlaceBrowseFilters.instance.addListener(_onExplorerFiltersChanged);
@@ -235,52 +236,27 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onAuthSessionChanged() {
-    unawaited(_handleAuthSessionChanged());
+    unawaited(_authBoundary.handleSessionChanged());
   }
 
-  Future<void> _handleAuthSessionChanged() async {
-    if (_authBoundaryInProgress) return;
-    _authBoundaryInProgress = true;
-    try {
-      final session = _authRepository.session;
-      final persisted = await LocalUserDataIsolator.loadBoundIdentity();
-      final previousKind = _boundAuthKind ?? persisted.kind;
-      final previousUserId = _boundUserId ?? persisted.userId;
-
-      final shouldClear = LocalUserDataIsolator.shouldClearLocal(
-        previousKind: previousKind,
-        previousUserId: previousUserId,
-        nextKind: session.kind,
-        nextUserId: session.userId,
-      );
-
-      if (shouldClear) {
-        await LocalUserDataIsolator.clearPersistedUserData();
-      }
-
-      _boundAuthKind = session.kind;
-      _boundUserId = session.userId;
-      await LocalUserDataIsolator.saveBoundIdentity(
-        kind: session.kind,
-        userId: session.userId,
-      );
-
-      await Future.wait([
-        _profileRepository.load(),
-        _favoritesRepository.load(),
-        _contentReportsRepository.load(),
-        _preferencesRepository.load(),
-        _atRepository.load(),
-        _itineraryRepository.load(),
-        _assistantRepository.load(),
-        _feedbackRepository.load(),
-      ]);
-      // Await prefs sync so cloud prayer lead-time is applied before OS sync.
-      await _preferencesRepository.sync();
-      await prayerNotificationCoordinator.sync(force: true);
-    } finally {
-      _authBoundaryInProgress = false;
-    }
+  /// Reloads every user-scoped store for the *current* auth session.
+  ///
+  /// Called by [AuthSessionBoundaryController] after optional clear. Always
+  /// re-reads live repositories so a coalesced A→B replay binds B, not A.
+  Future<void> _reloadUserScopedData() async {
+    await Future.wait([
+      _profileRepository.load(),
+      _favoritesRepository.load(),
+      _contentReportsRepository.load(),
+      _preferencesRepository.load(),
+      _atRepository.load(),
+      _itineraryRepository.load(),
+      _assistantRepository.load(),
+      _feedbackRepository.load(),
+    ]);
+    // Await prefs sync so cloud prayer lead-time is applied before OS sync.
+    await _preferencesRepository.sync();
+    await prayerNotificationCoordinator.sync(force: true);
   }
 
   void _onConnectivityChanged() {
