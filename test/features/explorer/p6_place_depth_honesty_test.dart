@@ -224,8 +224,8 @@ void main() {
       );
     });
 
-    test('catalog size and categories remain honest after Marrakech café V1', () {
-      expect(PlaceCatalog.guides, hasLength(28));
+    test('catalog size and categories remain honest after Marrakech monuments V1', () {
+      expect(PlaceCatalog.guides, hasLength(32));
       expect(
         PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
         isFalse,
@@ -247,6 +247,10 @@ void main() {
         contains(PlaceCategory.restaurant),
       );
       expect(
+        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+        contains(PlaceCategory.monument),
+      );
+      expect(
         PlaceCatalog.guides.where(
           (p) =>
               p.cityName == 'Marrakech' &&
@@ -260,6 +264,20 @@ void main() {
               p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
         ),
         hasLength(5),
+      );
+      expect(
+        PlaceCatalog.guides.where(
+          (p) =>
+              p.cityName == 'Marrakech' &&
+              p.category == PlaceCategory.monument,
+        ),
+        hasLength(5),
+      );
+      expect(
+        PlaceCatalog.guides.where(
+          (p) => p.id == 'place-dar-el-bacha' || p.name.contains('Dar El Bacha Musée'),
+        ),
+        isEmpty,
       );
     });
   });

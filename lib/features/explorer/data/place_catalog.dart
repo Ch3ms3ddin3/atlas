@@ -39,16 +39,92 @@ abstract final class PlaceCatalog {
       isEditorsPick: false,
       imageColor: Color(0xFFC4654A),
       summary:
-          'Palais du XIXe siècle aux décors somptueux — '
-          'un des plus beaux exemples d\'architecture andalouse à Marrakech.',
-      bestTimeToVisit: 'En matinée, hors week-end si possible',
-      mapsUrl: 'https://maps.google.com/?q=Palais+de+la+Bahia+Marrakech',
-      latitude: 31.6214,
-      longitude: -7.9836,
+          'Palais viziral du XIXe siècle : enfilade de patios, zellige et '
+          'cèdre sculpté — la visite d\'intérieur la plus claire pour '
+          'comprendre l\'architecture palatiale marrakchie.',
+      bestTimeToVisit: 'À l\'ouverture ; vérifier les horaires le jour même',
+      address: 'Rue Riad Zitoun el Jedid, Médina, Marrakech',
+      latitude: 31.621420,
+      longitude: -7.982689,
+      website: 'https://e-services.minculture.gov.ma/fr/tickets/palais-bahia',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.621420,-7.982689',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires variables — vérifier sur place le jour de la visite '
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
+            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
+      ),
       practicalTips: [
-        'Arrivez à l\'ouverture pour profiter de la lumière dans les patios.',
-        'Prévoyez 1h à 1h30 pour la visite complète.',
-        'Les cours intérieures sont ombragées — idéal en été.',
+        'Arrivez à l\'ouverture : la lumière rase des patios et la file '
+            'sont meilleures avant l\'arrivée des groupes.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-koutoubia',
+      name: 'Mosquée de la Koutoubia',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Médina',
+      priceLevel: '€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF8B6B4A),
+      summary:
+          'Minaret almohade qui oriente toute la Médina — landmark à lire '
+          'depuis l\'extérieur et les jardins, pas comme une visite intérieure.',
+      bestTimeToVisit: 'Fin de journée pour la lumière ; éviter le pic du vendredi midi',
+      address: 'Rue Koutoubia, Médina, Marrakech',
+      latitude: 31.623751,
+      longitude: -7.993358,
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.623751,-7.993358',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Mosquée en activité : pas de billetterie pour l\'extérieur. '
+            'Esplanade et jardins libres d\'accès. '
+            'Salle de prière réservée aux musulmans.',
+      ),
+      practicalTips: [
+        'Pour les non-musulmans : restez sur l\'esplanade et les jardins ; '
+            'n\'essayez pas d\'entrer dans la salle de prière.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-medersa-ben-youssef',
+      name: 'Médersa Ben Youssef',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF5C4A3A),
+      summary:
+          'Ancienne école coranique restaurée : patio de marbre, stucs et '
+          'cellules d\'étudiants — le plus fort moment d\'architecture '
+          'savante de Marrakech.',
+      bestTimeToVisit: 'Dès 9h00, avant l\'affluence',
+      address: 'Rue Assouel / Passage Ecole Ben Youssef, Médina, Marrakech',
+      latitude: 31.631984,
+      longitude: -7.986036,
+      website: 'https://www.medersabenyoussef.ma/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631984,-7.986036',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Tous les jours 09:00–19:00 ; Ramadan 09:00–16:30 '
+            '(site officiel). Billets sur place '
+            '(billetterie en ligne en maintenance). '
+            'Adulte étranger : 50 MAD.',
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Tous les jours', hoursLabel: '09:00–19:00'),
+          PlaceHoursEntry(dayLabel: 'Ramadan', hoursLabel: '09:00–16:30'),
+        ],
+      ),
+      practicalTips: [
+        'Entrez dès 9h : la cour est encore vide et la lumière révèle '
+            'le zellige sans la foule de mi-journée.',
       ],
     ),
     PlaceGuide(
@@ -76,25 +152,109 @@ abstract final class PlaceCatalog {
     ),
     PlaceGuide(
       id: 'place-ysl-museum',
-      name: 'Musée Yves Saint Laurent',
+      name: 'Musée Yves Saint Laurent Marrakech',
       cityName: 'Marrakech',
       category: PlaceCategory.musee,
       categoryLabel: 'Musée',
-      neighborhood: 'Gueliz',
+      neighborhood: 'Guéliz',
       priceLevel: '€€€',
       isEditorsPick: false,
       imageColor: Color(0xFF1A1A2E),
       summary:
-          'Musée dédié à Yves Saint Laurent, voisin du Jardin Majorelle — '
-          'mode, design et héritage culturel.',
-      bestTimeToVisit: 'En semaine, milieu de matinée',
-      mapsUrl: 'https://maps.google.com/?q=Musée+Yves+Saint+Laurent+Marrakech',
-      latitude: 31.6417,
-      longitude: -8.0025,
+          'Musée dédié à l\'œuvre d\'Yves Saint Laurent, à deux pas de '
+          'Majorelle — mode, scénographie et héritage, hors de la boucle '
+          'monuments de la Médina.',
+      bestTimeToVisit: 'Hors mercredi ; réserver en ligne',
+      address: 'Rue Yves Saint Laurent, Guéliz, Marrakech',
+      latitude: 31.642543,
+      longitude: -8.003420,
+      website: 'https://www.museeyslmarrakech.com/fr/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.642543,-8.003420',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Ouvert tous les jours sauf mercredi, 10:00–18:30 '
+            '(dernier accès 18:00). Horaires Ramadan plus courts — '
+            'voir le site officiel. Billets uniquement sur '
+            'tickets.jardinmajorelle.com.',
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:30'),
+        ],
+      ),
       practicalTips: [
-        'Le billet combiné Jardin Majorelle + musée est souvent avantageux.',
-        'La photographie est interdite dans certaines salles.',
-        'Comptez 1h pour la visite du musée seul.',
+        'Fermé le mercredi ; n\'achetez des billets que sur '
+            'tickets.jardinmajorelle.com (QR officiel).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-tombeaux-saadiens',
+      name: 'Tombeaux Saadiens',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF6B5A4A),
+      summary:
+          'Nécropole saadienne redécouverte au XXe siècle : marbre, zellige '
+          'et chambre des Douze Colonnes dans un enclos discret de la Kasbah.',
+      bestTimeToVisit: 'Tôt le matin ; vérifier les horaires le jour même',
+      address: 'Rue de la Kasbah, Kasbah, Marrakech',
+      latitude: 31.617259,
+      longitude: -7.988555,
+      website:
+          'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.617259,-7.988555',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires variables — vérifier sur place le jour de la visite '
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
+            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). '
+            'Possible gêne près de la mosquée de la Kasbah le vendredi midi.',
+      ),
+      practicalTips: [
+        'Cherchez le passage étroit le long de la mosquée de la Kasbah — '
+            'l\'entrée n\'est presque pas signalée.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-el-badi',
+      name: 'Palais El Badi',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF9A7B5A),
+      summary:
+          'Ruines saadiennes à ciel ouvert : l\'échelle du pouvoir du XVIe '
+          'siècle, stork nests inclus — contraste total avec les salons '
+          'intacts de la Bahia.',
+      bestTimeToVisit: 'Matinée ; prévoir soleil et eau',
+      address: 'Ksibat Nhass / Derb Touareg Berrima, Kasbah, Marrakech',
+      latitude: 31.618966,
+      longitude: -7.985704,
+      website: 'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.618966,-7.985704',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires variables — vérifier sur place le jour de la visite '
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
+            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
+      ),
+      practicalTips: [
+        'Combinez avec les Tombeaux Saadiens le même demi-journée Kasbah ; '
+            'prévoyez chapeau et eau.',
       ],
     ),
     PlaceGuide(

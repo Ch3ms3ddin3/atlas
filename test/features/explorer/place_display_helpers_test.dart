@@ -12,13 +12,20 @@ void main() {
       final bahia = PlaceCatalog.guides.firstWhere(
         (p) => p.id == 'place-bahia',
       );
-      expect(PlaceDisplayHelpers.visitDuration(bahia), '1h30');
+      expect(
+        PlaceDisplayHelpers.visitDuration(bahia),
+        isNull,
+        reason: 'Bahia V1 tip has no prévoyez/comptez duration',
+      );
 
       final ysl = PlaceCatalog.guides.firstWhere(
         (p) => p.id == 'place-ysl-museum',
       );
-      expect(PlaceDisplayHelpers.visitDuration(ysl), '1h');
-
+      expect(
+        PlaceDisplayHelpers.visitDuration(ysl),
+        isNull,
+        reason: 'YSL V1 tip has no prévoyez/comptez duration',
+      );
       final majorelle = PlaceCatalog.guides.firstWhere(
         (p) => p.id == 'place-majorelle',
       );

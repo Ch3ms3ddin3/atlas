@@ -418,7 +418,7 @@ void main() {
         // Catalogue local toujours présent après distant partiel.
         expect(repository.findById('place-majorelle'), isNotNull);
         final featuredIds = repository
-            .getFeatured(cityName: 'Marrakech', limit: 20)
+            .getFeatured(cityName: 'Marrakech', limit: 50)
             .map((place) => place.id)
             .toSet();
         expect(featuredIds.contains('place-featured-a'), isTrue);
@@ -457,6 +457,10 @@ void main() {
       'place-hammam-de-la-rose',
       'place-heritage-spa',
       'place-hammam-place-des-epices',
+      'place-medersa-ben-youssef',
+      'place-koutoubia',
+      'place-tombeaux-saadiens',
+      'place-el-badi',
       'place-al-fassia-gueliz',
       'place-amal-gueliz',
       'place-nomad',
@@ -479,15 +483,16 @@ void main() {
       'place-plage-rabat',
     };
 
-    test('catalogue local : slugs stables, uniques, hammams + restaurants + cafés curatés', () {
+    test('catalogue local : slugs stables, uniques, monuments + restaurants + cafés', () {
       final ids = PlaceCatalog.guides.map((place) => place.id).toList();
       expect(ids.toSet(), expectedSlugs);
       expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(28));
+      expect(ids, hasLength(32));
       expect(ids, isNot(contains('place-hammam-marrakech')));
       expect(ids, isNot(contains('place-bain-de-kasbah')));
       expect(ids, isNot(contains('place-lmida')));
       expect(ids, isNot(contains('place-thirty5ive')));
+      expect(ids, isNot(contains('place-dar-el-bacha')));
     });
 
     test(
