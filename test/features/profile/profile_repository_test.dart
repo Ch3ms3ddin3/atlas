@@ -32,6 +32,61 @@ void main() {
         expect(ProfileValidator.validatePreferredCity(city), isNull);
       }
     });
+
+    test('sanitizeForSave conserve displayName et avatarUrl', () {
+      const candidate = UserProfile(
+        firstName: '  Salma  ',
+        preferredCity: 'casablanca',
+        language: AtlasLanguage.french,
+        userType: AtlasUserType.resident,
+        displayName: '  Salma Benali  ',
+        avatarUrl: ' https://cdn.example/a.png ',
+      );
+
+      final sanitized = ProfileValidator.sanitizeForSave(candidate);
+
+      expect(sanitized, isNotNull);
+      expect(sanitized!.firstName, 'Salma');
+      expect(sanitized.preferredCity, 'Casablanca');
+      expect(sanitized.displayName, 'Salma Benali');
+      expect(sanitized.avatarUrl, 'https://cdn.example/a.png');
+    });
+
+    test(
+      'sanitizeForSave normalise les identité optionnelles vides en null',
+      () {
+        const candidate = UserProfile(
+          firstName: 'Salma',
+          preferredCity: 'Marrakech',
+          language: AtlasLanguage.french,
+          userType: AtlasUserType.resident,
+          displayName: '   ',
+          avatarUrl: '',
+        );
+
+        final sanitized = ProfileValidator.sanitizeForSave(candidate);
+
+        expect(sanitized, isNotNull);
+        expect(sanitized!.displayName, isNull);
+        expect(sanitized.avatarUrl, isNull);
+      },
+    );
+
+    test(
+      'sanitizeForSave refuse un prénom invalide sans inventer d\'identité',
+      () {
+        const candidate = UserProfile(
+          firstName: '   ',
+          preferredCity: 'Marrakech',
+          language: AtlasLanguage.french,
+          userType: AtlasUserType.resident,
+          displayName: 'Should not persist',
+          avatarUrl: 'https://cdn.example/a.png',
+        );
+
+        expect(ProfileValidator.sanitizeForSave(candidate), isNull);
+      },
+    );
   });
 
   group('ProfilePreferencesStore', () {
@@ -111,6 +166,78 @@ void main() {
 
       expect(saved, isFalse);
       expect(repository.profile.firstName, UserProfile.defaultFirstName);
+    });
+
+    test('préserve displayName et avatarUrl après save', () async {
+      SharedPreferences.setMockInitialValues({});
+      final repository = LocalProfileRepository();
+      await repository.load();
+
+      final saved = await repository.save(
+        const UserProfile(
+          firstName: 'Yasmine',
+          preferredCity: 'Rabat',
+          language: AtlasLanguage.french,
+          userType: AtlasUserType.mre,
+          displayName: 'Yasmine M.',
+          avatarUrl: 'https://cdn.example/y.png',
+        ),
+      );
+
+      expect(saved, isTrue);
+      expect(repository.profile.displayName, 'Yasmine M.');
+      expect(repository.profile.avatarUrl, 'https://cdn.example/y.png');
+
+      // ProfilePage-style edit: copyWith required fields only.
+      final edited = await repository.save(
+        repository.profile.copyWith(
+          firstName: 'Yasmine',
+          preferredCity: 'Casablanca',
+        ),
+      );
+
+      expect(edited, isTrue);
+      expect(repository.profile.firstName, 'Yasmine');
+      expect(repository.profile.preferredCity, 'Casablanca');
+      expect(repository.profile.displayName, 'Yasmine M.');
+      expect(repository.profile.avatarUrl, 'https://cdn.example/y.png');
+
+      final store = ProfilePreferencesStore();
+      final snapshot = await store.loadSnapshot();
+      expect(snapshot.profile.displayName, 'Yasmine M.');
+      expect(snapshot.profile.avatarUrl, 'https://cdn.example/y.png');
+      expect(snapshot.profile.preferredCity, 'Casablanca');
+
+      // Reload path — city must survive app restart.
+      final reloaded = LocalProfileRepository();
+      await reloaded.load();
+      expect(reloaded.profile.preferredCity, 'Casablanca');
+      expect(reloaded.profile.firstName, 'Yasmine');
+      expect(reloaded.profile.displayName, 'Yasmine M.');
+      expect(reloaded.profile.avatarUrl, 'https://cdn.example/y.png');
+    });
+
+    test('sanitize ne vide pas les champs non liés', () {
+      const candidate = UserProfile(
+        firstName: 'Nour',
+        preferredCity: 'Tanger',
+        language: AtlasLanguage.french,
+        userType: AtlasUserType.tourist,
+        displayName: 'Nour Atlas',
+        avatarUrl: 'https://cdn.example/n.png',
+      );
+
+      final sanitized = ProfileValidator.sanitizeForSave(
+        candidate.copyWith(preferredCity: 'Agadir'),
+      );
+
+      expect(sanitized, isNotNull);
+      expect(sanitized!.preferredCity, 'Agadir');
+      expect(sanitized.firstName, 'Nour');
+      expect(sanitized.displayName, 'Nour Atlas');
+      expect(sanitized.avatarUrl, 'https://cdn.example/n.png');
+      expect(sanitized.language, AtlasLanguage.french);
+      expect(sanitized.userType, AtlasUserType.tourist);
     });
   });
 }

@@ -23,13 +23,13 @@ class SyncingProfileRepository extends ProfileRepository {
     bool Function()? isSignedInProvider,
     Duration? syncTimeout,
     @visibleForTesting this.syncEnabledOverride = false,
-  })  : _store = store ?? const ProfilePreferencesStore(),
-        _remote = remote ?? const SupabaseProfileRepository(),
-        _env = env ?? AtlasEnv.fromCompileTime(),
-        _userIdProvider = userIdProvider ?? _defaultUserId,
-        _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
-        _syncTimeout = syncTimeout ?? const Duration(seconds: 5),
-        super.base();
+  }) : _store = store ?? const ProfilePreferencesStore(),
+       _remote = remote ?? const SupabaseProfileRepository(),
+       _env = env ?? AtlasEnv.fromCompileTime(),
+       _userIdProvider = userIdProvider ?? _defaultUserId,
+       _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
+       _syncTimeout = syncTimeout ?? const Duration(seconds: 5),
+       super.base();
 
   final ProfilePreferencesStore _store;
   final SupabaseProfileRepository _remote;
@@ -62,12 +62,12 @@ class SyncingProfileRepository extends ProfileRepository {
     _profile = snapshot.profile;
     _isLoaded = true;
     notifyListeners();
-    unawaited(_syncAfterLoad(snapshot));
+    unawaited(_syncAfterLoad());
   }
 
   @override
   Future<bool> save(UserProfile candidate) async {
-    final sanitized = _sanitize(candidate);
+    final sanitized = ProfileValidator.sanitizeForSave(candidate);
     if (sanitized == null) return false;
 
     final now = DateTime.now().toUtc();
@@ -80,7 +80,7 @@ class SyncingProfileRepository extends ProfileRepository {
     return true;
   }
 
-  Future<void> _syncAfterLoad(ProfileLocalSnapshot local) async {
+  Future<void> _syncAfterLoad() async {
     if (_syncInProgress || !_canSync) return;
     _syncInProgress = true;
 
@@ -89,13 +89,21 @@ class SyncingProfileRepository extends ProfileRepository {
       if (userId == null) return;
 
       final remote = await _fetchRemote(userId);
-      final merge = ProfileSyncCoordinator.merge(local: local, remote: remote);
+      // Re-read after the network round-trip. A concurrent [save] can land
+      // while fetch is in flight; merging/pushing the load-time snapshot would
+      // overwrite a newer preferredCity (and other fields) on remote, then
+      // lose them on the next cold start when remote wins by timestamp.
+      final latestLocal = await _store.loadSnapshot();
+      final merge = ProfileSyncCoordinator.merge(
+        local: latestLocal,
+        remote: remote,
+      );
 
-      var profile = local.profile;
+      var profile = latestLocal.profile;
 
       if (merge.changed) {
         final localUpdatedAt = _resolvedLocalUpdatedAt(
-          local: local,
+          local: latestLocal,
           remote: remote,
         );
         await _store.saveProfile(merge.profile, localUpdatedAt: localUpdatedAt);
@@ -104,7 +112,7 @@ class SyncingProfileRepository extends ProfileRepository {
         notifyListeners();
       }
 
-      if (local.syncPending || merge.shouldPushLocal) {
+      if (latestLocal.syncPending || merge.shouldPushLocal) {
         final pushed = await _pushProfile(profile);
         await _store.setSyncPending(!pushed);
       }
@@ -157,22 +165,4 @@ class SyncingProfileRepository extends ProfileRepository {
           SupabaseBootstrap.isInitialized &&
           _userIdProvider() != null &&
           _isSignedInProvider());
-
-  UserProfile? _sanitize(UserProfile candidate) {
-    final sanitized = UserProfile(
-      firstName: ProfileValidator.sanitizeFirstName(candidate.firstName),
-      preferredCity:
-          ProfileValidator.sanitizePreferredCity(candidate.preferredCity),
-      language: candidate.language,
-      userType: candidate.userType,
-    );
-
-    if (!ProfileValidator.isFormValid(
-      firstName: sanitized.firstName,
-      preferredCity: sanitized.preferredCity,
-    )) {
-      return null;
-    }
-    return sanitized;
-  }
 }
