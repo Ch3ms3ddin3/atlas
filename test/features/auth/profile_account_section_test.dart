@@ -62,6 +62,36 @@ void main() {
     expect(find.text('Créer un compte'), findsOneWidget);
     expect(find.text('Se connecter'), findsOneWidget);
   });
+
+  testWidgets(
+    'ProfileAccountSection signed-in : footer honnête sur l\'effacement',
+    (WidgetTester tester) async {
+      final repository = _StubAuthRepository(
+        session: const AuthSession(
+          kind: AuthSessionKind.signedIn,
+          userId: 'user-1',
+          email: 'a@example.com',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AuthScope(
+            repository: repository,
+            child: const Scaffold(
+              body: ProfileAccountSection(),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        find.textContaining('la déconnexion efface le local'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('données locales conservées'), findsNothing);
+    },
+  );
 }
 
 class _StubAuthRepository extends AuthRepository {

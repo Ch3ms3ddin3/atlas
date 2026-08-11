@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_card.dart';
 import '../../domain/auth_session.dart';
 import '../../domain/auth_repository.dart';
+import '../auth_isolation_copy.dart';
 import '../auth_scope.dart';
 import 'auth_form_sheet.dart';
 
@@ -42,6 +44,27 @@ class _ProfileAccountSectionState extends State<ProfileAccountSection> {
   }
 
   Future<void> _signOut() async {
+    final confirmed = await showAtlasDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(AuthIsolationCopy.signOutTitle),
+          content: const Text(AuthIsolationCopy.signOutBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(AuthIsolationCopy.signOutConfirm),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _isSigningOut = true);
     final result = await _authRepository!.signOut();
     if (!mounted) return;
@@ -63,7 +86,7 @@ class _ProfileAccountSectionState extends State<ProfileAccountSection> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
-          content: Text('Déconnecté — vos données locales sont conservées.'),
+          content: Text(AuthIsolationCopy.signOutSuccess),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -147,8 +170,7 @@ class _ProfileAccountSectionState extends State<ProfileAccountSection> {
         'Aucun compte · données stockées localement',
       AuthSessionKind.anonymous =>
         'Données locales conservées · synchronisation optionnelle',
-      AuthSessionKind.signedIn =>
-        'Données locales conservées · synchronisation cloud active',
+      AuthSessionKind.signedIn => AuthIsolationCopy.signedInFooter,
     };
   }
 

@@ -17,6 +17,7 @@ import '../../../admission_temporaire/presentation/at_scope.dart';
 import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
 import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../auth/domain/auth_session.dart';
+import '../../../auth/presentation/auth_isolation_copy.dart';
 import '../../../auth/presentation/auth_scope.dart';
 import '../../../auth/presentation/widgets/auth_form_sheet.dart';
 import '../../../events/presentation/pages/events_calendar_page.dart';
@@ -156,11 +157,8 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Supprimer mon compte ?'),
-          content: const Text(
-            'Cette action est définitive. Vos données cloud seront effacées. '
-            'Les données locales restent sur cet appareil.',
-          ),
+          title: const Text(AuthIsolationCopy.deleteAccountTitle),
+          content: const Text(AuthIsolationCopy.deleteAccountBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -168,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Supprimer'),
+              child: const Text(AuthIsolationCopy.deleteAccountConfirm),
             ),
           ],
         );
@@ -186,7 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
         SnackBar(
           content: Text(
             result.success
-                ? 'Compte supprimé — mode local conservé.'
+                ? AuthIsolationCopy.deleteAccountSuccess
                 : result.errorMessage ?? 'Suppression impossible.',
           ),
           behavior: SnackBarBehavior.floating,
@@ -829,6 +827,27 @@ class _AccountCardState extends State<_AccountCard> {
   bool _signingOut = false;
 
   Future<void> _signOut() async {
+    final confirmed = await showAtlasDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(AuthIsolationCopy.signOutTitle),
+          content: const Text(AuthIsolationCopy.signOutBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(AuthIsolationCopy.signOutConfirm),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _signingOut = true);
     final result = await AuthScope.of(context).signOut();
     if (!mounted) return;
@@ -837,7 +856,7 @@ class _AccountCardState extends State<_AccountCard> {
       SnackBar(
         content: Text(
           result.success
-              ? 'Déconnecté — données locales conservées.'
+              ? AuthIsolationCopy.signOutSuccess
               : result.errorMessage ?? 'Déconnexion impossible.',
         ),
         behavior: SnackBarBehavior.floating,
