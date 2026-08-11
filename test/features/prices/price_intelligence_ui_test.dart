@@ -1,5 +1,7 @@
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
+import 'package:atlas/features/home/presentation/widgets/home_optional_section.dart';
+import 'package:atlas/features/prices/data/price_observation_catalog.dart';
 import 'package:atlas/features/prices/data/resilient_price_intelligence_repository.dart';
 import 'package:atlas/features/prices/domain/models/price_observation.dart';
 import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
@@ -39,6 +41,82 @@ void main() {
     );
     expect(find.text('SP95 Marrakech'), findsNothing);
   });
+
+  testWidgets(
+    'highlights Accueil : 2–3 prix city-aware depuis le seed bundlé',
+    (tester) async {
+      PriceIntelligenceRepository.registerFactory(
+        () => ResilientPriceIntelligenceRepository(
+          fetchRemote: () async => throw Exception('offline'),
+          seedItems: PriceObservationCatalog.asObservations,
+        ),
+      );
+
+      final repo = PriceIntelligenceRepository();
+      await repo.warmUp();
+      final highlights = repo.highlights(cityName: 'Marrakech', limit: 3);
+      expect(highlights.length, inInclusiveRange(2, 3));
+      expect(
+        highlights.every(
+          (e) => e.isNational || e.cityName == 'Marrakech',
+        ),
+        isTrue,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AtlasTheme.light,
+          home: Scaffold(
+            body: HomeOptionalSection(
+              title: 'Prix à la une',
+              isEmpty: highlights.isEmpty,
+              child: HomePriceHighlightsSection(
+                observations: highlights,
+                onObservationTap: _noop,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Prix à la une'), findsOneWidget);
+      expect(find.text(highlights.first.itemName), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'highlights Accueil masqués si aucune observation applicable',
+    (tester) async {
+      PriceIntelligenceRepository.registerFactory(
+        () => ResilientPriceIntelligenceRepository(
+          fetchRemote: () async => const [],
+        ),
+      );
+      final repo = PriceIntelligenceRepository();
+      await repo.warmUp();
+      final highlights = repo.highlights(cityName: 'Marrakech', limit: 3);
+      expect(highlights, isEmpty);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AtlasTheme.light,
+          home: Scaffold(
+            body: HomeOptionalSection(
+              title: 'Prix à la une',
+              isEmpty: highlights.isEmpty,
+              child: HomePriceHighlightsSection(
+                observations: highlights,
+                onObservationTap: _noop,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Prix à la une'), findsNothing);
+    },
+  );
 
   testWidgets('liste Intelligence affiche les prix vérifiés', (tester) async {
     PriceIntelligenceRepository.registerFactory(

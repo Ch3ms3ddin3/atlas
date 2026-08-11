@@ -181,8 +181,9 @@ class _PricesPageState extends State<PricesPage> {
                     AtlasPageHeader(
                       title: 'Prix',
                       subtitle:
-                          'Prix vérifiés — transport, parking, forfaits '
-                          'mobile et internet. Aucune valeur inventée.',
+                          'Tarifs vérifiés pour Marrakech — forfaits mobile '
+                          'et internet nationaux, plus les transports '
+                          'publiés ailleurs. Aucune valeur inventée.',
                     ),
                     const SizedBox(height: AtlasSpacing.md),
                     PriceIntelligenceStatusIndicator(loadState: _loadState),

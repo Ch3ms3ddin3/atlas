@@ -47,6 +47,11 @@ import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../admission_temporaire/domain/models/at_vehicle.dart';
 import '../../../admission_temporaire/domain/at_repository.dart';
+import '../../../prices/domain/models/price_observation.dart';
+import '../../../prices/domain/price_intelligence_repository.dart';
+import '../../../prices/presentation/pages/prices_page.dart';
+import '../../../prices/presentation/widgets/home_price_highlights_section.dart';
+import '../widgets/home_optional_section.dart';
 
 /// Home V5 — briefing quotidien premium.
 ///
@@ -69,6 +74,8 @@ class _HomePageState extends State<HomePage> {
   final ExchangeRateRepository _exchangeRateRepository =
       ExchangeRateRepository();
   final EventRepository _eventRepository = EventRepository();
+  final PriceIntelligenceRepository _prices =
+      PriceIntelligenceRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -95,17 +102,20 @@ class _HomePageState extends State<HomePage> {
   List<AtlasEvent> _todayEvents = const [];
   List<AtlasEvent> _upcomingEvents = const [];
   VoidCallback? _eventCatalogListener;
+  VoidCallback? _pricesListener;
 
   @override
   void initState() {
     super.initState();
     _attachEventListener();
+    _attachPricesListener();
     _refreshDerivedDashboardData();
     _refreshEvents();
     _loadWeather();
     _loadPrayerTimes();
     _loadExchangeRate();
     _resolveLocation();
+    unawaited(_prices.warmUp());
     _scheduleDateRollTimer();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
@@ -138,6 +148,7 @@ class _HomePageState extends State<HomePage> {
     _profileRepository?.removeListener(_onProfileChanged);
     _atRepository?.removeListener(_onAtChanged);
     _detachEventListener();
+    _detachPricesListener();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
     super.dispose();
@@ -158,9 +169,29 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _attachPricesListener() {
+    final prices = _prices;
+    if (prices is Listenable) {
+      _pricesListener = _onPricesChanged;
+      (prices as Listenable).addListener(_pricesListener!);
+    }
+  }
+
+  void _detachPricesListener() {
+    final prices = _prices;
+    if (prices is Listenable && _pricesListener != null) {
+      (prices as Listenable).removeListener(_pricesListener!);
+    }
+  }
+
   void _onEventCatalogChanged() {
     if (!mounted) return;
     setState(_refreshEvents);
+  }
+
+  void _onPricesChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _onAtChanged() {
@@ -315,6 +346,7 @@ class _HomePageState extends State<HomePage> {
       _loadWeather(),
       _loadPrayerTimes(),
       _loadExchangeRate(),
+      _prices.refresh(),
     ]);
     if (!mounted) return;
     setState(_refreshEvents);
@@ -381,6 +413,10 @@ class _HomePageState extends State<HomePage> {
     final urgentVehicle = _urgentVehicle;
     final hasEventSections =
         _todayEvents.isNotEmpty || _upcomingEvents.isNotEmpty;
+    final priceHighlights = _prices.highlights(
+      cityName: _location.cityName,
+      limit: 3,
+    );
 
     return SafeArea(
       child: RefreshIndicator(
@@ -445,8 +481,27 @@ class _HomePageState extends State<HomePage> {
                           cityName: _location.cityName,
                         ),
                       ),
+                    // 7. Trusted price highlights — city-aware, hide if empty
+                    AtlasReveal(
+                      delay: AtlasMotion.staggerDelay * 3,
+                      child: HomeOptionalSection(
+                        title: 'Prix à la une',
+                        isEmpty: priceHighlights.isEmpty,
+                        topSpacing: AtlasSpacing.md,
+                        headerSpacing: AtlasSpacing.sm,
+                        actionLabel: 'Voir tout',
+                        onActionTap: () =>
+                            ShellNavigationScope.goToPrices(context),
+                        child: HomePriceHighlightsSection(
+                          observations: priceHighlights,
+                          onObservationTap: (PriceObservation observation) {
+                            openPriceObservation(context, observation);
+                          },
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: AtlasSpacing.md),
-                    // 7. Quick actions
+                    // 8. Quick actions
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 3,
                       child: Column(
@@ -461,7 +516,7 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    // 8. One contextual tip — only when a real signal exists
+                    // 9. One contextual tip — only when a real signal exists
                     if (insight != null) ...[
                       const SizedBox(height: AtlasSpacing.md),
                       AtlasReveal(

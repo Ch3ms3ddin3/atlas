@@ -1,4 +1,6 @@
 import 'package:atlas/core/editorial/editorial_catalog_load_state.dart';
+import 'package:atlas/features/prices/data/price_intelligence_cache_store.dart';
+import 'package:atlas/features/prices/data/price_observation_catalog.dart';
 import 'package:atlas/features/prices/data/price_observation_mapper.dart';
 import 'package:atlas/features/prices/data/price_observation_query.dart';
 import 'package:atlas/features/prices/data/resilient_price_intelligence_repository.dart';
@@ -113,6 +115,53 @@ void main() {
       expect(offline.getAll(cityName: 'Marrakech'), isNotEmpty);
     });
 
+    test(
+      'premier lancement offline : catalogue bundlé Marrakech non vide',
+      () async {
+        final offline = ResilientPriceIntelligenceRepository(
+          fetchRemote: () async => throw Exception('offline'),
+          seedItems: PriceObservationCatalog.asObservations,
+        );
+        await offline.warmUp();
+
+        expect(offline.loadState, EditorialCatalogLoadState.stale);
+        expect(offline.isUsingCacheOnly, isTrue);
+
+        final marrakech = offline.getAll(cityName: 'Marrakech');
+        expect(marrakech, isNotEmpty);
+        expect(
+          marrakech.every(
+            (e) =>
+                e.verificationStatus == PriceVerificationStatus.verified &&
+                (e.isNational || e.cityName == 'Marrakech'),
+          ),
+          isTrue,
+        );
+        expect(
+          marrakech.any((e) => e.category == PriceIntelligenceCategory.mobilePlans),
+          isTrue,
+        );
+        // Seed must not be written to disk until a successful remote fetch.
+        final cache = const PriceIntelligenceCacheStore();
+        expect(await cache.load(), isEmpty);
+      },
+    );
+
+    test('cache distant prioritaire sur le seed au warmUp', () async {
+      const cacheStore = PriceIntelligenceCacheStore();
+      await cacheStore.save(PriceIntelligenceFixtures.sample);
+
+      final repo = ResilientPriceIntelligenceRepository(
+        cacheStore: cacheStore,
+        fetchRemote: () async => throw Exception('offline'),
+        seedItems: const [],
+      );
+      await repo.warmUp();
+
+      expect(repo.findById('sp95-marrakech'), isNotNull);
+      expect(repo.loadState, EditorialCatalogLoadState.stale);
+    });
+
     test('succès vide sans inventer de prix', () async {
       final repo = ResilientPriceIntelligenceRepository(
         fetchRemote: () async => const [],
@@ -121,6 +170,19 @@ void main() {
       expect(repo.loadState, EditorialCatalogLoadState.success);
       expect(repo.getAll(), isEmpty);
       expect(repo.highlights(cityName: 'Marrakech'), isEmpty);
+    });
+
+    test('remote non vide remplace le seed et remplit le cache', () async {
+      final repo = ResilientPriceIntelligenceRepository(
+        fetchRemote: () async => PriceIntelligenceFixtures.sample,
+        seedItems: PriceObservationCatalog.asObservations,
+      );
+      await repo.warmUp();
+
+      expect(repo.loadState, EditorialCatalogLoadState.success);
+      expect(repo.findById('sp95-marrakech'), isNotNull);
+      final cached = await const PriceIntelligenceCacheStore().load();
+      expect(cached.any((e) => e.id == 'sp95-marrakech'), isTrue);
     });
   });
 }

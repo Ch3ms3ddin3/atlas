@@ -107,8 +107,8 @@ class PriceObservationCatalogEntry {
 /// Montants copiés depuis les pages officielles au [retrievedAt] indiqué.
 /// Ne pas importer [PriceCatalog].
 abstract final class PriceObservationCatalog {
-  /// Date de vérification éditoriale de cette vague.
-  static final retrievedAt = DateTime.utc(2026, 8, 9);
+  /// Date de vérification éditoriale de cette vague (re-vérif. Orange 2026-08-11).
+  static final retrievedAt = DateTime.utc(2026, 8, 11);
 
   static const wave1Cities = <String>[
     'Marrakech',
@@ -122,7 +122,7 @@ abstract final class PriceObservationCatalog {
         ..._rabatTram,
         ..._nationalOrangeMobile,
         ..._nationalOrangeInternet,
-        ..._nationalInwiSim,
+        // inwi SIM prépayée retirée : brochure PDF officielle 404 (2026-08-11).
       ]);
 
   static List<PriceObservation> get asObservations =>
@@ -452,22 +452,6 @@ abstract final class PriceObservationCatalog {
     return _nationalOnce(offers);
   }
 
-  static List<PriceObservationCatalogEntry> get _nationalInwiSim {
-    const offer = _NationalOffer(
-      itemKey: 'sim-prepaid-20',
-      itemName: 'Carte SIM prépayée inwi (20 DH de solde initial)',
-      category: PriceIntelligenceCategory.mobilePlans,
-      unitLabel: 'par carte SIM',
-      amount: 20,
-      sourceName: 'inwi — Brochure tarifaire B2C (PDF officiel)',
-      sourceUrl:
-          'https://api.inwi.ma/api/v1/ms-content/media/press/22-00095-Brochure_tarifaire_B2C-39.pdf',
-      atlasScore: 85,
-      sourceType: PriceObservationSourceType.officialCommercialOffer,
-    );
-    return _nationalOnce(const [offer], slugPrefix: 'mobilePlans-inwi');
-  }
-
   /// Une ligne par offre nationale — [PriceNationalCity.name], sans réplication ville.
   static List<PriceObservationCatalogEntry> _nationalOnce(
     List<_NationalOffer> offers, {
@@ -485,7 +469,7 @@ abstract final class PriceObservationCatalog {
           currentAmountMad: offer.amount,
           sourceName: offer.sourceName,
           sourceUrl: offer.sourceUrl,
-          sourceType: offer.sourceType,
+          sourceType: PriceObservationSourceType.officialCommercialOffer,
           retrievedAt: retrievedAt,
           confidence: PriceConfidence.high,
           atlasScore: offer.atlasScore,
@@ -543,7 +527,6 @@ class _NationalOffer {
     required this.sourceName,
     required this.sourceUrl,
     required this.atlasScore,
-    this.sourceType = PriceObservationSourceType.officialCommercialOffer,
   });
 
   final String itemKey;
@@ -554,5 +537,4 @@ class _NationalOffer {
   final String sourceName;
   final String sourceUrl;
   final int atlasScore;
-  final PriceObservationSourceType sourceType;
 }

@@ -10,7 +10,7 @@ void main() {
   test('catalogue Wave 1 valide métadonnées sources et contraintes', () {
     final errors = PriceObservationCatalogValidator.validate();
     expect(errors, isEmpty, reason: errors.join('\n'));
-    expect(PriceObservationCatalog.entries.length, 23);
+    expect(PriceObservationCatalog.entries.length, 22);
   });
 
   test('pas de slugs dupliqués et MAD strict', () {
@@ -29,12 +29,13 @@ void main() {
     final nationals = PriceObservationCatalog.entries
         .where((e) => e.scope == PriceObservationScope.national)
         .toList();
-    expect(nationals.length, 9);
+    expect(nationals.length, 8);
     for (final entry in nationals) {
       expect(entry.cityName, PriceNationalCity.name);
       expect(entry.slug.contains('marrakech'), isFalse);
       expect(entry.slug.contains('casablanca'), isFalse);
       expect(entry.slug.contains('rabat'), isFalse);
+      expect(entry.slug.contains('inwi'), isFalse);
     }
     final productKeys = nationals
         .map((e) => '${e.category.name}|${e.itemName}')
@@ -53,7 +54,7 @@ void main() {
           citySpecific += 1;
       }
     }
-    expect(national, 9);
+    expect(national, 8);
     expect(citySpecific, 14);
     expect(
       PriceObservationCatalog.entries

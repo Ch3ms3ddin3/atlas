@@ -7,7 +7,14 @@ import 'price_intelligence_cache_store.dart';
 import 'price_observation_query.dart';
 import 'supabase_price_intelligence_repository.dart';
 
-/// Price Intelligence : Supabase vérifié + cache disque. Aucun catalogue inventé.
+/// Price Intelligence : seed bundlé → cache disque → Supabase vérifié.
+///
+/// Ordre :
+/// 1. Cache local s'il existe (dernière sync distante réussie).
+/// 2. Sinon seed catalogue vérifié (bootstrap / premier lancement offline).
+/// 3. Remote gagne après un fetch réussi (y compris liste vide).
+/// Le seed n'est jamais poussé vers Supabase ni écrit en cache tant que
+/// le distant n'a pas répondu avec des données.
 class ResilientPriceIntelligenceRepository
     with ChangeNotifier
     implements PriceIntelligenceRepository {
@@ -20,11 +27,13 @@ class ResilientPriceIntelligenceRepository
        _fetchRemote =
            fetchRemote ?? const SupabasePriceIntelligenceRepository().fetchAll,
        _fetchTimeout = fetchTimeout ?? const Duration(seconds: 5),
+       _seedItems = List<PriceObservation>.unmodifiable(seedItems ?? const []),
        _items = List<PriceObservation>.unmodifiable(seedItems ?? const []);
 
   final PriceIntelligenceCacheStore _cacheStore;
   final Future<List<PriceObservation>> Function() _fetchRemote;
   final Duration _fetchTimeout;
+  final List<PriceObservation> _seedItems;
 
   List<PriceObservation> _items;
   EditorialCatalogLoadState _loadState = EditorialCatalogLoadState.idle;
@@ -57,6 +66,13 @@ class ResilientPriceIntelligenceRepository
       _usingCacheOnly = true;
       _setLoadState(EditorialCatalogLoadState.stale);
       notifyListeners();
+    } else if (_seedItems.isNotEmpty) {
+      // Premier lancement / cache vide : peindre le catalogue vérifié bundlé
+      // avant le round-trip réseau (ou en secours hors ligne).
+      _setItems(_seedItems);
+      _usingCacheOnly = true;
+      _setLoadState(EditorialCatalogLoadState.stale);
+      notifyListeners();
     } else {
       _setLoadState(EditorialCatalogLoadState.loading);
     }
@@ -73,6 +89,7 @@ class ResilientPriceIntelligenceRepository
 
     try {
       final remote = await _fetchRemote().timeout(_fetchTimeout);
+      // Remote wins — y compris une liste vide (aucune invention côté client).
       _setItems(remote);
       _usingCacheOnly = false;
       if (remote.isNotEmpty) {
@@ -82,6 +99,10 @@ class ResilientPriceIntelligenceRepository
       notifyListeners();
     } catch (error) {
       _lastError = error;
+      if (_items.isEmpty && _seedItems.isNotEmpty) {
+        // Secours ultime si un refresh a vidé la mémoire sans cache.
+        _setItems(_seedItems);
+      }
       if (_items.isEmpty) {
         _usingCacheOnly = false;
         _setLoadState(EditorialCatalogLoadState.error);

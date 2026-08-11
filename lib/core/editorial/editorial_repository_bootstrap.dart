@@ -5,6 +5,7 @@ import '../../features/explorer/data/local_place_repository.dart';
 import '../../features/explorer/data/resilient_place_repository.dart';
 import '../../features/explorer/domain/place_repository.dart';
 import '../../features/prices/data/local_price_repository.dart';
+import '../../features/prices/data/price_observation_catalog.dart';
 import '../../features/prices/data/resilient_price_intelligence_repository.dart';
 import '../../features/prices/data/resilient_price_repository.dart';
 import '../../features/prices/domain/price_intelligence_repository.dart';
@@ -33,7 +34,10 @@ abstract final class EditorialRepositoryBootstrap {
       ),
     );
     PriceIntelligenceRepository.registerFactory(
-      () => ResilientPriceIntelligenceRepository(),
+      () => ResilientPriceIntelligenceRepository(
+        // Catalogue vérifié bundlé — bootstrap / offline only ; never pushed.
+        seedItems: PriceObservationCatalog.asObservations,
+      ),
     );
     EventRepository.registerFactory(
       () => ResilientEventRepository(

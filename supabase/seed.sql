@@ -147,7 +147,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-majorelle',
   'Jardin Majorelle',
@@ -168,13 +168,11 @@ INSERT INTO places (
   NULL,
   NULL,
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/cover.webp',
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   NULL
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -195,7 +193,7 @@ INSERT INTO places (
   'À l''ouverture ; vérifier les horaires le jour même',
   'https://www.google.com/maps/search/?api=1&query=31.621420,-7.982689',
   'Rue Riad Zitoun el Jedid, Médina, Marrakech',
-  31.621420,
+  31.62142,
   -7.982689,
   NULL,
   'https://e-services.minculture.gov.ma/fr/tickets/palais-bahia',
@@ -203,13 +201,13 @@ INSERT INTO places (
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  '{"note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture)."}'::jsonb
+  '{"entries": [], "note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture)."}'::jsonb
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-koutoubia',
   'Mosquée de la Koutoubia',
@@ -230,18 +228,16 @@ INSERT INTO places (
   NULL,
   NULL,
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-koutoubia/cover.webp',
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-koutoubia/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  ARRAY[]::text[],
-  '{"note": "Mosquée en activité : pas de billetterie pour l''extérieur. Esplanade et jardins libres d''accès. Salle de prière réservée aux musulmans."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+  '{"entries": [], "note": "Mosquée en activité : pas de billetterie pour l''extérieur. Esplanade et jardins libres d''accès. Salle de prière réservée aux musulmans."}'::jsonb
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-medersa-ben-youssef',
   'Médersa Ben Youssef',
@@ -262,13 +258,11 @@ INSERT INTO places (
   NULL,
   'https://www.medersabenyoussef.ma/',
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-medersa-ben-youssef/cover.webp',
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-medersa-ben-youssef/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Tous les jours", "hours": "09:00–19:00"}, {"day": "Ramadan", "hours": "09:00–16:30"}], "note": "Tous les jours 09:00–19:00 ; Ramadan 09:00–16:30 (site officiel). Billets sur place (billetterie en ligne en maintenance). Adulte étranger : 50 MAD."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -320,7 +314,7 @@ INSERT INTO places (
   'https://www.google.com/maps/search/?api=1&query=31.642543,-8.003420',
   'Rue Yves Saint Laurent, Guéliz, Marrakech',
   31.642543,
-  -8.003420,
+  -8.00342,
   '+212524313047',
   'https://www.museeyslmarrakech.com/fr/',
   NULL,
@@ -333,7 +327,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-musee-dar-el-bacha',
   'Musée des Confluences Dar El Bacha',
@@ -354,13 +348,11 @@ INSERT INTO places (
   '+212524381763',
   'https://fnm.ma/museums/26',
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-musee-dar-el-bacha/cover.webp',
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-musee-dar-el-bacha/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "Fermé"}, {"day": "Mardi", "hours": "10:00–18:00"}, {"day": "Mercredi", "hours": "10:00–18:00"}, {"day": "Jeudi", "hours": "10:00–18:00"}, {"day": "Vendredi", "hours": "10:00–18:00"}, {"day": "Samedi", "hours": "10:00–18:00"}, {"day": "Dimanche", "hours": "10:00–18:00"}], "note": "Tarif adulte étranger : 60 MAD ; Marocains / résidents : 25 MAD (Fondation Nationale des Musées)."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -425,7 +417,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-tombeaux-saadiens',
   'Tombeaux Saadiens',
@@ -446,18 +438,16 @@ INSERT INTO places (
   NULL,
   'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp',
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  ARRAY[]::text[],
-  '{"note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). Possible gêne près de la mosquée de la Kasbah le vendredi midi."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+  '{"entries": [], "note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). Possible gêne près de la mosquée de la Kasbah le vendredi midi."}'::jsonb
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-el-badi',
   'Palais El Badi',
@@ -478,13 +468,11 @@ INSERT INTO places (
   NULL,
   'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
   NULL,
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp',
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  ARRAY[]::text[],
-  '{"note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture)."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+  '{"entries": [], "note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture)."}'::jsonb
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -639,7 +627,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-amal-gueliz',
   'Restaurant Amal Guéliz',
@@ -660,13 +648,11 @@ INSERT INTO places (
   '+212524446896',
   'https://amalnonprofit.org',
   'contact@amalnonprofit.org',
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp',
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "12:00–15:30"}, {"day": "Mardi", "hours": "12:00–15:30"}, {"day": "Mercredi", "hours": "12:00–15:30"}, {"day": "Jeudi", "hours": "12:00–15:30"}, {"day": "Vendredi", "hours": "12:00–15:30"}, {"day": "Samedi", "hours": "12:00–15:30"}, {"day": "Dimanche", "hours": "Fermé"}], "note": "Déjeuner uniquement — pas de service du soir en semaine."}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -807,7 +793,7 @@ INSERT INTO places (
   'Sur réservation ; vérifier les créneaux du jour',
   'https://www.google.com/maps/search/?api=1&query=31.633120,-8.010006',
   'Angle Boulevard El Mansour Eddahbi et Avenue Imam Malik, Guéliz, Marrakech',
-  31.633120,
+  31.63312,
   -8.010006,
   '+212524433038',
   'https://www.grandcafedelaposte.restaurant/',
@@ -815,7 +801,7 @@ INSERT INTO places (
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  '{"note": "Brasserie ouverte petit-déjeuner / déjeuner / dîner — horaires exacts à confirmer via le site ou la réservation (grandcafedelaposte.restaurant)."}'::jsonb
+  '{"entries": [], "note": "Brasserie ouverte petit-déjeuner / déjeuner / dîner — horaires exacts à confirmer via le site ou la réservation (grandcafedelaposte.restaurant)."}'::jsonb
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
@@ -837,7 +823,7 @@ INSERT INTO places (
   'Déjeuner ou dîner ; fermé le dimanche',
   'https://www.google.com/maps/search/?api=1&query=31.634900,-8.010477',
   'Rue Tariq Bnou Ziad, Guéliz, Marrakech',
-  31.634900,
+  31.6349,
   -8.010477,
   NULL,
   'https://en.catanzaro.ma/accueil',
@@ -875,7 +861,7 @@ INSERT INTO places (
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
-  '{"note": "Horaires officiels signalés autour de 12:30–22:30 — vérifier le jour même (pages du site parfois Lun–Sam vs tous les jours)."}'::jsonb
+  '{"entries": [], "note": "Horaires officiels signalés autour de 12:30–22:30 — vérifier le jour même (pages du site parfois Lun–Sam vs tous les jours)."}'::jsonb
 ) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
@@ -897,7 +883,7 @@ INSERT INTO places (
   'Sur réservation ; lundi dîner uniquement',
   'https://www.google.com/maps/search/?api=1&query=31.633840,-8.015174',
   '179 Rue Mohammed el Beqal, Guéliz, Marrakech',
-  31.633840,
+  31.63384,
   -8.015174,
   '+212524432641',
   'https://www.latrattoriamarrakech.com/',
@@ -1001,7 +987,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image, image_urls, amenities, accessibility_features, opening_hours
+  image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-cafe-des-epices',
   'Café des Épices',
@@ -1022,13 +1008,11 @@ INSERT INTO places (
   '+212524391770',
   'https://cafedesepices.ma/',
   'contact@cafedesepices.ma',
-  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp',
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "09:00–23:00"}, {"day": "Mardi", "hours": "09:00–23:00"}, {"day": "Mercredi", "hours": "09:00–23:00"}, {"day": "Jeudi", "hours": "09:00–23:00"}, {"day": "Vendredi", "hours": "09:00–23:00"}, {"day": "Samedi", "hours": "09:00–23:00"}, {"day": "Dimanche", "hours": "09:00–23:00"}]}'::jsonb
-) ON CONFLICT (slug) DO UPDATE
-  SET image = EXCLUDED.image;
+) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -2409,7 +2393,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — Ticket unitaire',
   'https://www.casatramway.ma/titres/tickets/titre-de-voyage/ticket-unitaire',
   'high',
@@ -2454,7 +2438,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — Ticket unitaire',
   'https://www.casatramway.ma/titres/tickets/titre-de-voyage/ticket-unitaire',
   'high',
@@ -2499,7 +2483,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — CGV (prix des titres)',
   'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
   'high',
@@ -2544,7 +2528,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — CGV (prix des titres)',
   'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
   'high',
@@ -2589,7 +2573,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — CGV (prix des titres)',
   'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
   'high',
@@ -2634,7 +2618,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — CGV (prix des titres)',
   'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
   'high',
@@ -2679,7 +2663,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Casa Tramway — CGV (prix des titres)',
   'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
   'high',
@@ -2724,7 +2708,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Ticket et infractions',
   'https://www.tram-way.ma/fr/ticket-et-infractions/',
   'high',
@@ -2769,7 +2753,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Ticket et infractions',
   'https://www.tram-way.ma/fr/ticket-et-infractions/',
   'high',
@@ -2814,7 +2798,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Ticket et infractions',
   'https://www.tram-way.ma/fr/ticket-et-infractions/',
   'high',
@@ -2859,7 +2843,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Abonnement',
   'https://www.tram-way.ma/fr/abonnement/',
   'high',
@@ -2904,7 +2888,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Abonnement',
   'https://www.tram-way.ma/fr/abonnement/',
   'high',
@@ -2949,7 +2933,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Abonnement',
   'https://www.tram-way.ma/fr/abonnement/',
   'high',
@@ -2994,7 +2978,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_operator · Tramway Rabat-Salé — Abonnement',
   'https://www.tram-way.ma/fr/abonnement/',
   'high',
@@ -3039,7 +3023,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Offres prépayées',
   'https://boutique.orange.ma/en/prepaid-mobile-plans',
   'high',
@@ -3084,7 +3068,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Offres prépayées',
   'https://boutique.orange.ma/en/prepaid-mobile-plans',
   'high',
@@ -3129,7 +3113,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Offres prépayées',
   'https://boutique.orange.ma/en/prepaid-mobile-plans',
   'high',
@@ -3174,7 +3158,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Offres prépayées',
   'https://boutique.orange.ma/en/prepaid-mobile-plans',
   'high',
@@ -3219,7 +3203,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Forfait Yo Max 199 DH',
   'https://boutique.orange.ma/en/produit/forfait-yo-max-52go-10h-d-appels-199dh',
   'high',
@@ -3264,7 +3248,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Dar Box 4G+',
   'https://boutique.orange.ma/en/offres-dar-box/dar-box',
   'high',
@@ -3309,7 +3293,7 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Dar Box 4G+',
   'https://boutique.orange.ma/en/offres-dar-box/dar-box',
   'high',
@@ -3354,58 +3338,13 @@ INSERT INTO price_observations (
   NULL,
   NULL,
   'MAD',
-  '2026-08-09T00:00:00.000Z',
+  '2026-08-11T00:00:00.000Z',
   'official_commercial_offer · Orange Maroc boutique — Dar Box 5G',
   'https://boutique.orange.ma/en/offres-dar-box/dar-box-5g',
   'high',
   'verified',
   0,
   82,
-  true
-)
-ON CONFLICT (slug) DO UPDATE SET
-  category = EXCLUDED.category,
-  city_name = EXCLUDED.city_name,
-  district = EXCLUDED.district,
-  item_name = EXCLUDED.item_name,
-  unit_label = EXCLUDED.unit_label,
-  current_amount_mad = EXCLUDED.current_amount_mad,
-  min_amount_mad = EXCLUDED.min_amount_mad,
-  avg_amount_mad = EXCLUDED.avg_amount_mad,
-  max_amount_mad = EXCLUDED.max_amount_mad,
-  currency = EXCLUDED.currency,
-  last_updated_at = EXCLUDED.last_updated_at,
-  source = EXCLUDED.source,
-  source_url = EXCLUDED.source_url,
-  confidence = EXCLUDED.confidence,
-  verification_status = EXCLUDED.verification_status,
-  atlas_score = EXCLUDED.atlas_score,
-  is_published = EXCLUDED.is_published,
-  updated_at = now();
-INSERT INTO price_observations (
-  slug, category, city_name, district, item_name, unit_label,
-  current_amount_mad, min_amount_mad, avg_amount_mad, max_amount_mad,
-  currency, last_updated_at, source, source_url, confidence,
-  verification_status, user_reports_count, atlas_score, is_published
-) VALUES (
-  'mobilePlans-inwi-sim-prepaid-20',
-  'mobilePlans',
-  'National',
-  NULL,
-  'Carte SIM prépayée inwi (20 DH de solde initial)',
-  'par carte SIM',
-  20.0,
-  NULL,
-  NULL,
-  NULL,
-  'MAD',
-  '2026-08-09T00:00:00.000Z',
-  'official_commercial_offer · inwi — Brochure tarifaire B2C (PDF officiel)',
-  'https://api.inwi.ma/api/v1/ms-content/media/press/22-00095-Brochure_tarifaire_B2C-39.pdf',
-  'high',
-  'verified',
-  0,
-  85,
   true
 )
 ON CONFLICT (slug) DO UPDATE SET
