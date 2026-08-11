@@ -73,7 +73,8 @@ abstract final class PlaceCatalog {
       summary:
           'Minaret almohade qui oriente toute la Médina — landmark à lire '
           'depuis l\'extérieur et les jardins, pas comme une visite intérieure.',
-      bestTimeToVisit: 'Fin de journée pour la lumière ; éviter le pic du vendredi midi',
+      bestTimeToVisit:
+          'Fin de journée pour la lumière ; éviter le pic du vendredi midi',
       address: 'Rue Koutoubia, Médina, Marrakech',
       latitude: 31.623751,
       longitude: -7.993358,
@@ -118,7 +119,10 @@ abstract final class PlaceCatalog {
             '(billetterie en ligne en maintenance). '
             'Adulte étranger : 50 MAD.',
         entries: [
-          PlaceHoursEntry(dayLabel: 'Tous les jours', hoursLabel: '09:00–19:00'),
+          PlaceHoursEntry(
+            dayLabel: 'Tous les jours',
+            hoursLabel: '09:00–19:00',
+          ),
           PlaceHoursEntry(dayLabel: 'Ramadan', hoursLabel: '09:00–16:30'),
         ],
       ),
@@ -203,6 +207,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€',
       isEditorsPick: false,
       imageColor: Color(0xFF8B6914),
+      // Cover: Supabase Storage (CC BY-SA 4.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-musee-dar-el-bacha/cover.webp',
+      ],
       summary:
           'Palais reconverti en musée FNM — arts décoratifs et objets '
           'ethnographiques dans les salons de Dar El Bacha, distinct du '
@@ -264,7 +272,10 @@ abstract final class PlaceCatalog {
             'moins de 15 ans : gratuit. Billet aussi valable au '
             'Musée de la Musique de Marrakech.',
         entries: [
-          PlaceHoursEntry(dayLabel: 'Tous les jours', hoursLabel: '09:30–19:00'),
+          PlaceHoursEntry(
+            dayLabel: 'Tous les jours',
+            hoursLabel: '09:30–19:00',
+          ),
         ],
       ),
       practicalTips: [

@@ -155,3 +155,23 @@ Local staging only. Not uploaded to Supabase.
 - Local path: `assets/explorer_place_covers/place-photos/place-plage-rabat/cover.webp`
 - Dimensions: 1800x1200
 - Size: 116.2 KB
+
+## Musée des Confluences Dar El Bacha (`place-musee-dar-el-bacha`)
+- Status: **PASS** (Storage pilot — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Dar_al_Bacha_Marrakesh_DSCF8640.jpg
+- Commons title: File:Dar al Bacha Marrakesh DSCF8640.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/4/48/Dar_al_Bacha_Marrakesh_DSCF8640.jpg
+- Author / photographer: R Prazeres
+- Original license: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Commercial use: permitted (CC BY-SA)
+- Adaptation: permitted (share-alike)
+- Atlas derivative: center-biased 3:2 crop → 1600×1067 WebP (q≈45), no generative edits
+- Derivative license: **CC BY-SA 4.0** (share-alike compliance)
+- Staging path: `assets/explorer_place_covers/place-photos/place-musee-dar-el-bacha/cover.webp`
+- Production Storage path: `place-photos/place-musee-dar-el-bacha/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-musee-dar-el-bacha/cover.webp
+- Final dimensions: 1600×1067
+- Final size: 299.8 KB
+- SHA-1 of original download: `b54ae69478e73f0fb2f9c4b2e74d9f5d1a549411`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.

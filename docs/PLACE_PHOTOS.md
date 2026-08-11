@@ -184,7 +184,9 @@ fill with random web URLs**.
 
 ### Musée (3)
 
-- [ ] `place-musee-dar-el-bacha` — Musée des Confluences Dar El Bacha
+- [x] `place-musee-dar-el-bacha` — Musée des Confluences Dar El Bacha  
+  (pilot cover: Storage `place-photos/place-musee-dar-el-bacha/cover.webp`,  
+  CC BY-SA 4.0 derivative of R Prazeres / Wikimedia Commons — see ledger)
 - [ ] `place-maison-de-la-photographie` — Maison de la Photographie
 - [ ] `place-macaal` — MACAAL
 

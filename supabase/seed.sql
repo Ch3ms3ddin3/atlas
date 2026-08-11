@@ -327,7 +327,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-musee-dar-el-bacha',
   'Musée des Confluences Dar El Bacha',
@@ -348,11 +348,13 @@ INSERT INTO places (
   '+212524381763',
   'https://fnm.ma/museums/26',
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-musee-dar-el-bacha/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "Fermé"}, {"day": "Mardi", "hours": "10:00–18:00"}, {"day": "Mercredi", "hours": "10:00–18:00"}, {"day": "Jeudi", "hours": "10:00–18:00"}, {"day": "Vendredi", "hours": "10:00–18:00"}, {"day": "Samedi", "hours": "10:00–18:00"}, {"day": "Dimanche", "hours": "10:00–18:00"}], "note": "Tarif adulte étranger : 60 MAD ; Marocains / résidents : 25 MAD (Fondation Nationale des Musées)."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,

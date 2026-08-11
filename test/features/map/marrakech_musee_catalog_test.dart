@@ -16,11 +16,7 @@ void main() {
   tearDown(PlaceBrowseFilters.resetForTest);
 
   const expectedMuseums = <String, ({double lat, double lng, bool selection})>{
-    'place-ysl-museum': (
-      lat: 31.642543,
-      lng: -8.003420,
-      selection: false,
-    ),
+    'place-ysl-museum': (lat: 31.642543, lng: -8.003420, selection: false),
     'place-musee-dar-el-bacha': (
       lat: 31.631387,
       lng: -7.992353,
@@ -31,11 +27,7 @@ void main() {
       lng: -7.984367,
       selection: false,
     ),
-    'place-macaal': (
-      lat: 31.600067,
-      lng: -7.949914,
-      selection: true,
-    ),
+    'place-macaal': (lat: 31.600067, lng: -7.949914, selection: true),
   };
 
   test('four Marrakech musées V1 exist once with unique IDs', () {
@@ -47,8 +39,7 @@ void main() {
     }
     expect(
       PlaceCatalog.guides.where(
-        (p) =>
-            p.cityName == 'Marrakech' && p.category == PlaceCategory.musee,
+        (p) => p.cityName == 'Marrakech' && p.category == PlaceCategory.musee,
       ),
       hasLength(4),
     );
@@ -66,7 +57,15 @@ void main() {
       expect(place.hasCoordinates, isTrue);
       expect(place.latitude!.isFinite, isTrue);
       expect(place.longitude!.isFinite, isTrue);
-      expect(place.imageUrls, isEmpty);
+      if (entry.key == 'place-musee-dar-el-bacha') {
+        expect(place.hasPrimaryImage, isTrue);
+        expect(
+          place.primaryImageUrl,
+          contains('place-photos/place-musee-dar-el-bacha/cover.webp'),
+        );
+      } else {
+        expect(place.imageUrls, isEmpty);
+      }
     }
     expect(
       PlaceCatalog.guides.where(
@@ -78,7 +77,9 @@ void main() {
       hasLength(1),
     );
     expect(
-      PlaceCatalog.guides.firstWhere((p) => p.id == 'place-macaal').isEditorsPick,
+      PlaceCatalog.guides
+          .firstWhere((p) => p.id == 'place-macaal')
+          .isEditorsPick,
       isTrue,
     );
   });
@@ -102,8 +103,9 @@ void main() {
   });
 
   test('Majorelle remains Jardin; Berber museum not added', () {
-    final majorelle =
-        PlaceCatalog.guides.firstWhere((p) => p.id == 'place-majorelle');
+    final majorelle = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-majorelle',
+    );
     expect(majorelle.category, PlaceCategory.jardin);
     expect(
       PlaceCatalog.guides.any(
@@ -174,8 +176,7 @@ void main() {
     expect(
       PlaceCatalog.guides.where(
         (p) =>
-            p.cityName == 'Marrakech' &&
-            p.category == PlaceCategory.restaurant,
+            p.cityName == 'Marrakech' && p.category == PlaceCategory.restaurant,
       ),
       hasLength(11),
     );
@@ -188,15 +189,17 @@ void main() {
     expect(
       PlaceCatalog.guides.where(
         (p) =>
-            p.cityName == 'Marrakech' &&
-            p.category == PlaceCategory.monument,
+            p.cityName == 'Marrakech' && p.category == PlaceCategory.monument,
       ),
       hasLength(5),
     );
   });
 
   test('held museums stay out of V1', () {
-    expect(PlaceCatalog.guides.any((p) => p.id == 'place-dar-si-said'), isFalse);
+    expect(
+      PlaceCatalog.guides.any((p) => p.id == 'place-dar-si-said'),
+      isFalse,
+    );
     expect(
       PlaceCatalog.guides.any((p) => p.id == 'place-musee-de-marrakech'),
       isFalse,
