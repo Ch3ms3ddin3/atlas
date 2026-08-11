@@ -175,3 +175,145 @@ Local staging only. Not uploaded to Supabase.
 - Final size: 299.8 KB
 - SHA-1 of original download: `b54ae69478e73f0fb2f9c4b2e74d9f5d1a549411`
 - Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Jardin Majorelle (`place-majorelle`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Jardin_Majorelle_(52187859172).jpg
+- Commons title: File:Jardin Majorelle (52187859172).jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/1/12/Jardin_Majorelle_%2852187859172%29.jpg
+- Author / photographer: William John Gauthier
+- Original license: CC BY-SA 2.0
+- License URL: https://creativecommons.org/licenses/by-sa/2.0
+- Commercial use: permitted
+- Adaptation: permitted (share-alike)
+- Atlas derivative: center/upper-biased 3:2 crop → 1280×853 WebP (q≈80), no generative edits
+- Derivative license: **CC BY-SA 2.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-majorelle/cover.webp`
+- Production Storage path: `place-photos/place-majorelle/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/cover.webp
+- Final dimensions: 1280×853
+- Final size: 283.0 KB
+- SHA-1 of original download: `3b95549c6d538a7ee766972d97162030bed545f3`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Mosquée de la Koutoubia (`place-koutoubia`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Blick_von_den_Koutoubia-G%C3%A4rten_auf_Moschee_und_Minarett,_Marrakesch_-_panoramio.jpg
+- Commons title: File:Blick von den Koutoubia-Gärten auf Moschee und Minarett, Marrakesch - panoramio.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/6/63/Blick_von_den_Koutoubia-G%C3%A4rten_auf_Moschee_und_Minarett%2C_Marrakesch_-_panoramio.jpg
+- Author / photographer: Martin Furtschegger
+- Original license: CC BY 3.0
+- License URL: https://creativecommons.org/licenses/by/3.0
+- Commercial use: permitted
+- Adaptation: permitted
+- Atlas derivative: center/upper-biased 3:2 crop → 1800×1200 WebP (q≈80), no generative edits
+- Derivative license: **CC BY 3.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-koutoubia/cover.webp`
+- Production Storage path: `place-photos/place-koutoubia/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-koutoubia/cover.webp
+- Final dimensions: 1800×1200
+- Final size: 243.0 KB
+- SHA-1 of original download: `e3b70b3d8284c87a37022249efeda95f0aca5d22`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Médersa Ben Youssef (`place-medersa-ben-youssef`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Ben_Youseff_Madressa.jpg
+- Commons title: File:Ben Youseff Madressa.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/d/d4/Ben_Youseff_Madressa.jpg
+- Author / photographer: Nash Finley
+- Original license: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Commercial use: permitted
+- Adaptation: permitted (share-alike)
+- Atlas derivative: center/upper-biased 3:2 crop → 1280×853 WebP (q≈80), no generative edits
+- Derivative license: **CC BY-SA 4.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-medersa-ben-youssef/cover.webp`
+- Production Storage path: `place-photos/place-medersa-ben-youssef/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-medersa-ben-youssef/cover.webp
+- Final dimensions: 1280×853
+- Final size: 272.9 KB
+- SHA-1 of original download: `53ab0830b2bb37240ca0d1d419c0620a926a9672`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Tombeaux Saadiens (`place-tombeaux-saadiens`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Maroc_Marrakech_Saadiens_Luc_Viatour_8.jpg
+- Commons title: File:Maroc Marrakech Saadiens Luc Viatour 8.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/4/49/Maroc_Marrakech_Saadiens_Luc_Viatour_8.jpg
+- Author / photographer: Luc Viatour / https://Lucnix.be
+- Original license: CC BY-SA 3.0
+- License URL: https://creativecommons.org/licenses/by-sa/3.0
+- Commercial use: permitted
+- Adaptation: permitted (share-alike)
+- Atlas derivative: center/upper-biased 3:2 crop → 1280×853 WebP (q≈78), no generative edits
+- Derivative license: **CC BY-SA 3.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-tombeaux-saadiens/cover.webp`
+- Production Storage path: `place-photos/place-tombeaux-saadiens/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp
+- Final dimensions: 1280×853
+- Final size: 298.8 KB
+- SHA-1 of original download: `9eb1d53844ae7b546ed33cd21cd5fd24ec214929`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+- Author credit note: include https://Lucnix.be near the image (Luc Viatour request)
+
+## Palais El Badi (`place-el-badi`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:El_Badi_Palace,_Marrakesh,_Morocco,_20250125_1002_7124.jpg
+- Commons title: File:El Badi Palace, Marrakesh, Morocco, 20250125 1002 7124.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/6/6e/El_Badi_Palace%2C_Marrakesh%2C_Morocco%2C_20250125_1002_7124.jpg
+- Author / photographer: Jakub Hałun
+- Original license: CC BY 4.0
+- License URL: https://creativecommons.org/licenses/by/4.0
+- Commercial use: permitted
+- Adaptation: permitted
+- Atlas derivative: center/upper-biased 3:2 crop → 1800×1200 WebP (q≈80), no generative edits
+- Derivative license: **CC BY 4.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-el-badi/cover.webp`
+- Production Storage path: `place-photos/place-el-badi/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp
+- Final dimensions: 1800×1200
+- Final size: 162.7 KB
+- SHA-1 of original download: `d2fed04ee0acb8df1131a98d6016e92c7a950433`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Restaurant Amal Guéliz (`place-amal-gueliz`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Marrakech_Association_Amal_Sept_2014_-_41_(15860912602).jpg
+- Commons title: File:Marrakech Association Amal Sept 2014 - 41 (15860912602).jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/e/e9/Marrakech_Association_Amal_Sept_2014_-_41_%2815860912602%29.jpg
+- Author / photographer: Andrew Nash
+- Original license: CC BY-SA 2.0
+- License URL: https://creativecommons.org/licenses/by-sa/2.0
+- Commercial use: permitted
+- Adaptation: permitted (share-alike)
+- Atlas derivative: center/upper-biased 3:2 crop → 1800×1200 WebP (q≈80), no generative edits
+- Derivative license: **CC BY-SA 2.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-amal-gueliz/cover.webp`
+- Production Storage path: `place-photos/place-amal-gueliz/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp
+- Final dimensions: 1800×1200
+- Final size: 259.9 KB
+- SHA-1 of original download: `2af1bb1452f4ce2596d30b58bf8a1fb006a2679d`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+
+## Café des Épices (`place-cafe-des-epices`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Caf%C3%A9_des_%C3%89pices,_Marrakech,_2008.jpg
+- Commons title: File:Café des Épices, Marrakech, 2008.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/b/b4/Caf%C3%A9_des_%C3%89pices%2C_Marrakech%2C_2008.jpg
+- Author / photographer: DimiTalen
+- Original license: CC0 1.0
+- License URL: https://creativecommons.org/publicdomain/zero/1.0/
+- Commercial use: permitted
+- Adaptation: permitted
+- Atlas derivative: center/upper-biased 3:2 crop → 1800×1200 WebP (q≈80), no generative edits
+- Derivative license: **CC0 1.0**
+- Staging path: `assets/explorer_place_covers/place-photos/place-cafe-des-epices/cover.webp`
+- Production Storage path: `place-photos/place-cafe-des-epices/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp
+- Final dimensions: 1800×1200
+- Final size: 60.1 KB
+- SHA-1 of original download: `b07e2646595273ff008e0167bcf03f9499f2c2e1`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
+

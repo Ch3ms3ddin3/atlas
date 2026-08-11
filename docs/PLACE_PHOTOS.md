@@ -145,24 +145,26 @@ Broken-image icons must not appear on Explorer / map cover surfaces.
 
 ---
 
-## Marrakech missing-cover backlog (28)
+## Marrakech missing-cover backlog (20)
 
 Places with **no** remote `image` / `image_urls` in catalog/seed **and** no
 entry in `PlaceCoverAssets`. Checklist for future sourcing/upload — **do not
 fill with random web URLs**.
 
-### Café (5)
+### Café (4)
 
 - [ ] `place-bacha-coffee` — Bacha Coffee
 - [ ] `place-simple-specialty-coffee` — Simple Specialty Coffee
-- [ ] `place-cafe-des-epices` — Café des Épices
+- [x] `place-cafe-des-epices` — Café des Épices  
+  (Storage cover; CC0 — DimiTalen / Wikimedia Commons — see ledger)
 - [ ] `place-kartell-kollektiv` — Kartell Kollektiv
 - [ ] `place-cafe-clock` — Café Clock
 
-### Restaurant (11)
+### Restaurant (10)
 
 - [ ] `place-al-fassia-gueliz` — Al Fassia Guéliz
-- [ ] `place-amal-gueliz` — Restaurant Amal Guéliz
+- [x] `place-amal-gueliz` — Restaurant Amal Guéliz  
+  (Storage cover; CC BY-SA 2.0 — Andrew Nash / Wikimedia Commons — see ledger)
 - [ ] `place-nomad` — Nomad
 - [ ] `place-plus61` — Plus61
 - [ ] `place-le-jardin` — Le Jardin
@@ -173,16 +175,20 @@ fill with random web URLs**.
 - [ ] `place-la-trattoria` — La Trattoria
 - [ ] `place-dar-moha` — Dar Moha
 
-### Monument (4)
+### Monument (0 remaining without Storage/bundled cover among SAFE set)
 
-- [ ] `place-koutoubia` — Mosquée de la Koutoubia
-- [ ] `place-medersa-ben-youssef` — Médersa Ben Youssef
-- [ ] `place-tombeaux-saadiens` — Tombeaux Saadiens
-- [ ] `place-el-badi` — Palais El Badi
+- [x] `place-koutoubia` — Mosquée de la Koutoubia  
+  (Storage; CC BY 3.0 — Martin Furtschegger)
+- [x] `place-medersa-ben-youssef` — Médersa Ben Youssef  
+  (Storage; CC BY-SA 4.0 — Nash Finley)
+- [x] `place-tombeaux-saadiens` — Tombeaux Saadiens  
+  (Storage; CC BY-SA 3.0 — Luc Viatour / Lucnix.be)
+- [x] `place-el-badi` — Palais El Badi  
+  (Storage; CC BY 4.0 — Jakub Hałun)
 
-*(Bahia already has a bundled cover.)*
+*(Bahia already has a bundled cover from the same CC BY-SA 4.0 Commons source.)*
 
-### Musée (3)
+### Musée (2)
 
 - [x] `place-musee-dar-el-bacha` — Musée des Confluences Dar El Bacha  
   (pilot cover: Storage `place-photos/place-musee-dar-el-bacha/cover.webp`,  
@@ -192,9 +198,10 @@ fill with random web URLs**.
 
 *(YSL already has a bundled cover.)*
 
-### Jardin (1)
+### Jardin (0 remaining)
 
-- [ ] `place-majorelle` — Jardin Majorelle
+- [x] `place-majorelle` — Jardin Majorelle  
+  (Storage; CC BY-SA 2.0 — William John Gauthier)
 
 ### Hammam (4)
 
@@ -209,11 +216,11 @@ fill with random web URLs**.
 
 ---
 
-## Recommended first pilot
+## Recommended next sourcing
 
-**Musée (3 missing)** — small, high visual impact, already validated category on
-device. Upload `cover.webp` + set `places.image` for Dar El Bacha, Maison de la
-Photographie, and MACAAL before larger Café/Restaurant batches.
+Owner/press grants for private restaurants, cafés, and hammams still without
+SAFE Commons candidates (Maison / MACAAL need rights-cleared architecture
+covers). Do not lower Commons quality or license standards.
 
 ---
 

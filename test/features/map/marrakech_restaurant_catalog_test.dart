@@ -14,63 +14,32 @@ void main() {
 
   tearDown(PlaceBrowseFilters.resetForTest);
 
-  const expectedRestaurants = <String, ({double lat, double lng, bool selection})>{
-    'place-al-fassia-gueliz': (
-      lat: 31.635992,
-      lng: -8.013364,
-      selection: true,
-    ),
-    'place-amal-gueliz': (
-      lat: 31.639072,
-      lng: -8.013756,
-      selection: false,
-    ),
-    'place-nomad': (
-      lat: 31.628593,
-      lng: -7.987530,
-      selection: false,
-    ),
-    'place-plus61': (
-      lat: 31.635162,
-      lng: -8.015502,
-      selection: false,
-    ),
-    'place-le-jardin': (
-      lat: 31.632074,
-      lng: -7.988806,
-      selection: false,
-    ),
-    'place-sahbi-sahbi': (
-      lat: 31.634075,
-      lng: -8.014582,
-      selection: false,
-    ),
-    'place-grand-cafe-de-la-poste': (
-      lat: 31.633120,
-      lng: -8.010006,
-      selection: false,
-    ),
-    'place-catanzaro': (
-      lat: 31.634900,
-      lng: -8.010477,
-      selection: false,
-    ),
-    'place-naranj': (
-      lat: 31.624537,
-      lng: -7.985213,
-      selection: false,
-    ),
-    'place-la-trattoria': (
-      lat: 31.633840,
-      lng: -8.015174,
-      selection: false,
-    ),
-    'place-dar-moha': (
-      lat: 31.631367,
-      lng: -7.993267,
-      selection: false,
-    ),
-  };
+  const expectedRestaurants =
+      <String, ({double lat, double lng, bool selection})>{
+        'place-al-fassia-gueliz': (
+          lat: 31.635992,
+          lng: -8.013364,
+          selection: true,
+        ),
+        'place-amal-gueliz': (lat: 31.639072, lng: -8.013756, selection: false),
+        'place-nomad': (lat: 31.628593, lng: -7.987530, selection: false),
+        'place-plus61': (lat: 31.635162, lng: -8.015502, selection: false),
+        'place-le-jardin': (lat: 31.632074, lng: -7.988806, selection: false),
+        'place-sahbi-sahbi': (lat: 31.634075, lng: -8.014582, selection: false),
+        'place-grand-cafe-de-la-poste': (
+          lat: 31.633120,
+          lng: -8.010006,
+          selection: false,
+        ),
+        'place-catanzaro': (lat: 31.634900, lng: -8.010477, selection: false),
+        'place-naranj': (lat: 31.624537, lng: -7.985213, selection: false),
+        'place-la-trattoria': (
+          lat: 31.633840,
+          lng: -8.015174,
+          selection: false,
+        ),
+        'place-dar-moha': (lat: 31.631367, lng: -7.993267, selection: false),
+      };
 
   const expectedHammams = <String>{
     'place-les-bains-marrakech',
@@ -96,8 +65,7 @@ void main() {
     expect(
       PlaceCatalog.guides.where(
         (p) =>
-            p.cityName == 'Marrakech' &&
-            p.category == PlaceCategory.restaurant,
+            p.cityName == 'Marrakech' && p.category == PlaceCategory.restaurant,
       ),
       hasLength(11),
     );
@@ -115,7 +83,15 @@ void main() {
       expect(place.isEditorsPick, entry.value.selection);
       expect(place.address, isNotNull);
       expect(place.address!.trim(), isNotEmpty);
-      expect(place.imageUrls, isEmpty);
+      if (entry.key == 'place-amal-gueliz') {
+        expect(place.hasPrimaryImage, isTrue);
+        expect(
+          place.primaryImageUrl,
+          contains('place-photos/place-amal-gueliz/cover.webp'),
+        );
+      } else {
+        expect(place.imageUrls, isEmpty);
+      }
       expect(place.latitude!.isFinite, isTrue);
       expect(place.longitude!.isFinite, isTrue);
     }
@@ -164,9 +140,7 @@ void main() {
     );
     expect(jardin.name, 'Le Jardin');
     expect(
-      jardin.practicalTips.any(
-        (t) => t.contains('Les Jardins de la Medina'),
-      ),
+      jardin.practicalTips.any((t) => t.contains('Les Jardins de la Medina')),
       isTrue,
     );
 
@@ -174,10 +148,7 @@ void main() {
       (p) => p.id == 'place-la-trattoria',
     );
     expect(trattoria.name, 'La Trattoria');
-    expect(
-      trattoria.practicalTips.any((t) => t.contains('Catanzaro')),
-      isTrue,
-    );
+    expect(trattoria.practicalTips.any((t) => t.contains('Catanzaro')), isTrue);
 
     final catanzaro = PlaceCatalog.guides.firstWhere(
       (p) => p.id == 'place-catanzaro',
@@ -203,10 +174,7 @@ void main() {
       markers.map((m) => m.placeId).toSet(),
       expectedRestaurants.keys.toSet(),
     );
-    expect(
-      markers.any((m) => m.placeId == 'place-marche-central'),
-      isFalse,
-    );
+    expect(markers.any((m) => m.placeId == 'place-marche-central'), isFalse);
   });
 
   test('text search restaurant finds Marrakech curated set', () {

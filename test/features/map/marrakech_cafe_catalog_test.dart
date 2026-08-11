@@ -16,31 +16,19 @@ void main() {
   tearDown(PlaceBrowseFilters.resetForTest);
 
   const expectedCafes = <String, ({double lat, double lng, bool selection})>{
-    'place-bacha-coffee': (
-      lat: 31.631521,
-      lng: -7.992561,
-      selection: true,
-    ),
+    'place-bacha-coffee': (lat: 31.631521, lng: -7.992561, selection: true),
     'place-simple-specialty-coffee': (
       lat: 31.631583,
       lng: -7.990912,
       selection: false,
     ),
-    'place-cafe-des-epices': (
-      lat: 31.629062,
-      lng: -7.987323,
-      selection: false,
-    ),
+    'place-cafe-des-epices': (lat: 31.629062, lng: -7.987323, selection: false),
     'place-kartell-kollektiv': (
       lat: 31.636385,
       lng: -8.009579,
       selection: false,
     ),
-    'place-cafe-clock': (
-      lat: 31.613029,
-      lng: -7.987289,
-      selection: false,
-    ),
+    'place-cafe-clock': (lat: 31.613029, lng: -7.987289, selection: false),
   };
 
   const expectedRestaurants = <String>{
@@ -72,8 +60,7 @@ void main() {
     }
     expect(
       PlaceCatalog.guides.where(
-        (p) =>
-            p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
+        (p) => p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
       ),
       hasLength(5),
     );
@@ -91,7 +78,15 @@ void main() {
       expect(place.isEditorsPick, entry.value.selection);
       expect(place.address, isNotNull);
       expect(place.address!.trim(), isNotEmpty);
-      expect(place.imageUrls, isEmpty);
+      if (entry.key == 'place-cafe-des-epices') {
+        expect(place.hasPrimaryImage, isTrue);
+        expect(
+          place.primaryImageUrl,
+          contains('place-photos/place-cafe-des-epices/cover.webp'),
+        );
+      } else {
+        expect(place.imageUrls, isEmpty);
+      }
       expect(
         place.mapsUrl,
         'https://www.google.com/maps/search/?api=1&query='
@@ -128,10 +123,7 @@ void main() {
   });
 
   test('Thirty5ive and deferred cafés are absent', () {
-    expect(
-      PlaceCatalog.guides.any((p) => p.id == 'place-thirty5ive'),
-      isFalse,
-    );
+    expect(PlaceCatalog.guides.any((p) => p.id == 'place-thirty5ive'), isFalse);
     expect(
       PlaceCatalog.guides.any(
         (p) => p.name.toLowerCase().contains('thirty5ive'),
@@ -188,11 +180,7 @@ void main() {
       'Café Clock',
     ]) {
       final byName = PlaceMapper.filter(
-        PlaceSearchQuery(
-          text: name,
-          cityName: 'Marrakech',
-          strictCity: true,
-        ),
+        PlaceSearchQuery(text: name, cityName: 'Marrakech', strictCity: true),
       );
       expect(byName, isNotEmpty);
       expect(byName.any((p) => p.name == name), isTrue);
@@ -201,18 +189,24 @@ void main() {
 
   test('existing Marrakech restaurants and hammams remain intact', () {
     expect(
-      PlaceCatalog.guides.where(
-        (p) =>
-            p.cityName == 'Marrakech' &&
-            p.category == PlaceCategory.restaurant,
-      ).map((p) => p.id).toSet(),
+      PlaceCatalog.guides
+          .where(
+            (p) =>
+                p.cityName == 'Marrakech' &&
+                p.category == PlaceCategory.restaurant,
+          )
+          .map((p) => p.id)
+          .toSet(),
       expectedRestaurants,
     );
     expect(
-      PlaceCatalog.guides.where(
-        (p) =>
-            p.cityName == 'Marrakech' && p.category == PlaceCategory.hammam,
-      ).map((p) => p.id).toSet(),
+      PlaceCatalog.guides
+          .where(
+            (p) =>
+                p.cityName == 'Marrakech' && p.category == PlaceCategory.hammam,
+          )
+          .map((p) => p.id)
+          .toSet(),
       expectedHammams,
     );
 
@@ -241,9 +235,6 @@ void main() {
       PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
       contains(PlaceCategory.cafe),
     );
-    expect(
-      LocalPlaceRepository().categories,
-      contains(PlaceCategory.cafe),
-    );
+    expect(LocalPlaceRepository().categories, contains(PlaceCategory.cafe));
   });
 }

@@ -25,10 +25,7 @@ void main() {
     'place-el-badi',
   };
 
-  const packageIds = <String>{
-    ...monumentIds,
-    'place-ysl-museum',
-  };
+  const packageIds = <String>{...monumentIds, 'place-ysl-museum'};
 
   const expectedCoords = <String, (double, double)>{
     'place-bahia': (31.621420, -7.982689),
@@ -63,11 +60,27 @@ void main() {
         '${entry.value.$1.toStringAsFixed(6)},'
         '${entry.value.$2.toStringAsFixed(6)}',
       );
-      expect(place.imageUrls, isEmpty);
+      final storageCovered = {
+        'place-koutoubia',
+        'place-medersa-ben-youssef',
+        'place-tombeaux-saadiens',
+        'place-el-badi',
+      };
+      if (storageCovered.contains(entry.key)) {
+        expect(place.hasPrimaryImage, isTrue);
+        expect(
+          place.primaryImageUrl,
+          contains('place-photos/${entry.key}/cover.webp'),
+        );
+      } else {
+        expect(place.imageUrls, isEmpty);
+      }
     }
 
     expect(
-      PlaceCatalog.guides.firstWhere((p) => p.id == 'place-ysl-museum').category,
+      PlaceCatalog.guides
+          .firstWhere((p) => p.id == 'place-ysl-museum')
+          .category,
       PlaceCategory.musee,
     );
     for (final id in monumentIds) {
@@ -88,41 +101,47 @@ void main() {
     expect(monumentSelections, hasLength(1));
     expect(monumentSelections.single.id, 'place-medersa-ben-youssef');
 
-    final ysl = PlaceCatalog.guides.firstWhere((p) => p.id == 'place-ysl-museum');
+    final ysl = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-ysl-museum',
+    );
     expect(ysl.isEditorsPick, isFalse);
 
-    final majorelle =
-        PlaceCatalog.guides.firstWhere((p) => p.id == 'place-majorelle');
+    final majorelle = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-majorelle',
+    );
     expect(majorelle.category, PlaceCategory.jardin);
     expect(majorelle.isEditorsPick, isTrue);
   });
 
-  test('Koutoubia stays exterior-honest; Dar El Bacha museum is Musée not Monument', () {
-    final koutoubia =
-        PlaceCatalog.guides.firstWhere((p) => p.id == 'place-koutoubia');
-    expect(koutoubia.summary.toLowerCase(), contains('extérieur'));
-    expect(
-      koutoubia.practicalTips.join(' ').toLowerCase(),
-      contains('non-musulmans'),
-    );
-    expect(koutoubia.website, isNull);
+  test(
+    'Koutoubia stays exterior-honest; Dar El Bacha museum is Musée not Monument',
+    () {
+      final koutoubia = PlaceCatalog.guides.firstWhere(
+        (p) => p.id == 'place-koutoubia',
+      );
+      expect(koutoubia.summary.toLowerCase(), contains('extérieur'));
+      expect(
+        koutoubia.practicalTips.join(' ').toLowerCase(),
+        contains('non-musulmans'),
+      );
+      expect(koutoubia.website, isNull);
 
-    final museum = PlaceCatalog.guides.firstWhere(
-      (p) => p.id == 'place-musee-dar-el-bacha',
-    );
-    expect(museum.category, PlaceCategory.musee);
-    expect(
-      PlaceCatalog.guides.any((p) => p.id == 'place-dar-el-bacha'),
-      isFalse,
-    );
-  });
+      final museum = PlaceCatalog.guides.firstWhere(
+        (p) => p.id == 'place-musee-dar-el-bacha',
+      );
+      expect(museum.category, PlaceCategory.musee);
+      expect(
+        PlaceCatalog.guides.any((p) => p.id == 'place-dar-el-bacha'),
+        isFalse,
+      );
+    },
+  );
 
   test('restaurants and cafés remain unaffected', () {
     expect(
       PlaceCatalog.guides.where(
         (p) =>
-            p.cityName == 'Marrakech' &&
-            p.category == PlaceCategory.restaurant,
+            p.cityName == 'Marrakech' && p.category == PlaceCategory.restaurant,
       ),
       hasLength(11),
     );
@@ -134,18 +153,21 @@ void main() {
     );
   });
 
-  test('Explorer: Marrakech + Monument returns exactly the 5 monument records', () {
-    final results = PlaceMapper.filter(
-      const PlaceSearchQuery(
-        cityName: 'Marrakech',
-        category: PlaceCategory.monument,
-      ),
-    );
-    expect(results.map((p) => p.id).toSet(), monumentIds);
-    expect(results, hasLength(5));
-    expect(results.any((p) => p.id == 'place-ysl-museum'), isFalse);
-    expect(results.any((p) => p.id == 'place-majorelle'), isFalse);
-  });
+  test(
+    'Explorer: Marrakech + Monument returns exactly the 5 monument records',
+    () {
+      final results = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          cityName: 'Marrakech',
+          category: PlaceCategory.monument,
+        ),
+      );
+      expect(results.map((p) => p.id).toSet(), monumentIds);
+      expect(results, hasLength(5));
+      expect(results.any((p) => p.id == 'place-ysl-museum'), isFalse);
+      expect(results.any((p) => p.id == 'place-majorelle'), isFalse);
+    },
+  );
 
   test('Explorer: Marrakech Toutes includes all six package records', () {
     final results = PlaceMapper.filter(

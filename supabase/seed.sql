@@ -147,7 +147,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-majorelle',
   'Jardin Majorelle',
@@ -168,11 +168,13 @@ INSERT INTO places (
   NULL,
   NULL,
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   NULL
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -207,7 +209,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-koutoubia',
   'Mosquée de la Koutoubia',
@@ -228,16 +230,18 @@ INSERT INTO places (
   NULL,
   NULL,
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-koutoubia/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"note": "Mosquée en activité : pas de billetterie pour l''extérieur. Esplanade et jardins libres d''accès. Salle de prière réservée aux musulmans."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-medersa-ben-youssef',
   'Médersa Ben Youssef',
@@ -258,11 +262,13 @@ INSERT INTO places (
   NULL,
   'https://www.medersabenyoussef.ma/',
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-medersa-ben-youssef/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Tous les jours", "hours": "09:00–19:00"}, {"day": "Ramadan", "hours": "09:00–16:30"}], "note": "Tous les jours 09:00–19:00 ; Ramadan 09:00–16:30 (site officiel). Billets sur place (billetterie en ligne en maintenance). Adulte étranger : 50 MAD."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -419,7 +425,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-tombeaux-saadiens',
   'Tombeaux Saadiens',
@@ -440,16 +446,18 @@ INSERT INTO places (
   NULL,
   'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). Possible gêne près de la mosquée de la Kasbah le vendredi midi."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-el-badi',
   'Palais El Badi',
@@ -470,11 +478,13 @@ INSERT INTO places (
   NULL,
   'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
   NULL,
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"note": "Horaires variables — vérifier sur place le jour de la visite (souvent ~09:00–17:00 ; plus courts pendant le Ramadan). Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture)."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -629,7 +639,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-amal-gueliz',
   'Restaurant Amal Guéliz',
@@ -650,11 +660,13 @@ INSERT INTO places (
   '+212524446896',
   'https://amalnonprofit.org',
   'contact@amalnonprofit.org',
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "12:00–15:30"}, {"day": "Mardi", "hours": "12:00–15:30"}, {"day": "Mercredi", "hours": "12:00–15:30"}, {"day": "Jeudi", "hours": "12:00–15:30"}, {"day": "Vendredi", "hours": "12:00–15:30"}, {"day": "Samedi", "hours": "12:00–15:30"}, {"day": "Dimanche", "hours": "Fermé"}], "note": "Déjeuner uniquement — pas de service du soir en semaine."}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
@@ -989,7 +1001,7 @@ INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,
   address, latitude, longitude, phone, website, email,
-  image_urls, amenities, accessibility_features, opening_hours
+  image, image_urls, amenities, accessibility_features, opening_hours
 ) VALUES (
   'place-cafe-des-epices',
   'Café des Épices',
@@ -1010,11 +1022,13 @@ INSERT INTO places (
   '+212524391770',
   'https://cafedesepices.ma/',
   'contact@cafedesepices.ma',
+  'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp',
   ARRAY[]::text[],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "09:00–23:00"}, {"day": "Mardi", "hours": "09:00–23:00"}, {"day": "Mercredi", "hours": "09:00–23:00"}, {"day": "Jeudi", "hours": "09:00–23:00"}, {"day": "Vendredi", "hours": "09:00–23:00"}, {"day": "Samedi", "hours": "09:00–23:00"}, {"day": "Dimanche", "hours": "09:00–23:00"}]}'::jsonb
-) ON CONFLICT (slug) DO NOTHING;
+) ON CONFLICT (slug) DO UPDATE
+  SET image = EXCLUDED.image;
 INSERT INTO places (
   slug, name, city_name, category, category_label, neighborhood, price_level,
   is_editors_pick, image_color, summary, practical_tips, best_time_to_visit, maps_url,

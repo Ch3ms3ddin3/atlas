@@ -36,22 +36,25 @@ void main() {
   });
 
   group('P6 cover honesty', () {
-    test('bundled covers include jemaa and ysl; exclude majorelle and hammams', () {
-      expect(PlaceCoverAssets.hasBundledCover('place-bahia'), isTrue);
-      expect(PlaceCoverAssets.hasBundledCover('place-jemaa-el-fna'), isTrue);
-      expect(PlaceCoverAssets.hasBundledCover('place-ysl-museum'), isTrue);
-      expect(PlaceCoverAssets.hasBundledCover('place-hassan-ii'), isTrue);
-      expect(PlaceCoverAssets.hasBundledCover('place-majorelle'), isFalse);
-      expect(
-        PlaceCoverAssets.hasBundledCover('place-hammam-marrakech'),
-        isFalse,
-      );
-      expect(
-        PlaceCoverAssets.hasBundledCover('place-les-bains-marrakech'),
-        isFalse,
-      );
-      expect(PlaceCoverAssets.bundledPlaceIds.length, 13);
-    });
+    test(
+      'bundled covers include jemaa and ysl; exclude majorelle and hammams',
+      () {
+        expect(PlaceCoverAssets.hasBundledCover('place-bahia'), isTrue);
+        expect(PlaceCoverAssets.hasBundledCover('place-jemaa-el-fna'), isTrue);
+        expect(PlaceCoverAssets.hasBundledCover('place-ysl-museum'), isTrue);
+        expect(PlaceCoverAssets.hasBundledCover('place-hassan-ii'), isTrue);
+        expect(PlaceCoverAssets.hasBundledCover('place-majorelle'), isFalse);
+        expect(
+          PlaceCoverAssets.hasBundledCover('place-hammam-marrakech'),
+          isFalse,
+        );
+        expect(
+          PlaceCoverAssets.hasBundledCover('place-les-bains-marrakech'),
+          isFalse,
+        );
+        expect(PlaceCoverAssets.bundledPlaceIds.length, 13);
+      },
+    );
 
     testWidgets('PlaceCoverImage uses Image.asset for bundled cover', (
       tester,
@@ -74,21 +77,22 @@ void main() {
     testWidgets('PlaceCoverImage fallback when no verified image', (
       tester,
     ) async {
-      final majorelle = PlaceCatalog.guides.firstWhere(
-        (p) => p.id == 'place-majorelle',
+      // MACAAL has no SAFE cover yet — placeholder path must stay intact.
+      final macaal = PlaceCatalog.guides.firstWhere(
+        (p) => p.id == 'place-macaal',
       );
-      expect(majorelle.primaryImageUrl, isNull);
-      expect(PlaceCoverAssets.hasBundledCover(majorelle.id), isFalse);
+      expect(macaal.primaryImageUrl, isNull);
+      expect(PlaceCoverAssets.hasBundledCover(macaal.id), isFalse);
 
       await tester.pumpWidget(
         MaterialApp(
           theme: AtlasTheme.light,
-          home: Scaffold(body: PlaceCoverImage(place: majorelle, height: 140)),
+          home: Scaffold(body: PlaceCoverImage(place: macaal, height: 140)),
         ),
       );
 
       expect(find.byType(PlaceImageFallback), findsOneWidget);
-      expect(find.byIcon(Icons.park_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.museum_outlined), findsOneWidget);
     });
   });
 
@@ -98,13 +102,12 @@ void main() {
       expect(cats, contains(PlaceCategory.cafe));
       expect(cats, contains(PlaceCategory.jardin));
       expect(cats, contains(PlaceCategory.monument));
-      expect(
-        LocalPlaceRepository().categories,
-        contains(PlaceCategory.cafe),
-      );
+      expect(LocalPlaceRepository().categories, contains(PlaceCategory.cafe));
     });
 
-    testWidgets('category filter shows Café chip when cafés exist', (tester) async {
+    testWidgets('category filter shows Café chip when cafés exist', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: AtlasTheme.light,
@@ -224,71 +227,74 @@ void main() {
       );
     });
 
-    test('catalog size and categories remain honest after Marrakech monuments V1', () {
-      expect(PlaceCatalog.guides, hasLength(41));
-      expect(
-        PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
-        isFalse,
-      );
-      expect(
-        PlaceCatalog.guides.any((p) => p.id == 'place-bain-de-kasbah'),
-        isFalse,
-      );
-      expect(
-        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        contains(PlaceCategory.cafe),
-      );
-      expect(
-        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        contains(PlaceCategory.hammam),
-      );
-      expect(
-        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        contains(PlaceCategory.restaurant),
-      );
-      expect(
-        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        contains(PlaceCategory.monument),
-      );
-      expect(
-        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        contains(PlaceCategory.musee),
-      );
-      expect(
-        PlaceCatalog.guides.where(
-          (p) =>
-              p.cityName == 'Marrakech' &&
-              p.category == PlaceCategory.restaurant,
-        ),
-        hasLength(11),
-      );
-      expect(
-        PlaceCatalog.guides.where(
-          (p) =>
-              p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
-        ),
-        hasLength(5),
-      );
-      expect(
-        PlaceCatalog.guides.where(
-          (p) =>
-              p.cityName == 'Marrakech' &&
-              p.category == PlaceCategory.monument,
-        ),
-        hasLength(5),
-      );
-      expect(
-        PlaceCatalog.guides.where(
-          (p) =>
-              p.cityName == 'Marrakech' && p.category == PlaceCategory.musee,
-        ),
-        hasLength(4),
-      );
-      expect(
-        PlaceCatalog.guides.any((p) => p.id == 'place-dar-el-bacha'),
-        isFalse,
-      );
-    });
+    test(
+      'catalog size and categories remain honest after Marrakech monuments V1',
+      () {
+        expect(PlaceCatalog.guides, hasLength(41));
+        expect(
+          PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
+          isFalse,
+        );
+        expect(
+          PlaceCatalog.guides.any((p) => p.id == 'place-bain-de-kasbah'),
+          isFalse,
+        );
+        expect(
+          PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+          contains(PlaceCategory.cafe),
+        );
+        expect(
+          PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+          contains(PlaceCategory.hammam),
+        );
+        expect(
+          PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+          contains(PlaceCategory.restaurant),
+        );
+        expect(
+          PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+          contains(PlaceCategory.monument),
+        );
+        expect(
+          PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+          contains(PlaceCategory.musee),
+        );
+        expect(
+          PlaceCatalog.guides.where(
+            (p) =>
+                p.cityName == 'Marrakech' &&
+                p.category == PlaceCategory.restaurant,
+          ),
+          hasLength(11),
+        );
+        expect(
+          PlaceCatalog.guides.where(
+            (p) =>
+                p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
+          ),
+          hasLength(5),
+        );
+        expect(
+          PlaceCatalog.guides.where(
+            (p) =>
+                p.cityName == 'Marrakech' &&
+                p.category == PlaceCategory.monument,
+          ),
+          hasLength(5),
+        );
+        expect(
+          PlaceCatalog.guides.where(
+            (p) =>
+                p.cityName == 'Marrakech' && p.category == PlaceCategory.musee,
+          ),
+          hasLength(4),
+        );
+        expect(
+          PlaceCatalog.guides.any((p) => p.id == 'place-dar-el-bacha'),
+          isFalse,
+        );
+      },
+    );
   });
 
   group('P6 map focus request', () {

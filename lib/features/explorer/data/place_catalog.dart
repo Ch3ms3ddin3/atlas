@@ -15,6 +15,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€€',
       isEditorsPick: true,
       imageColor: Color(0xFF2D6A4F),
+      // Cover: Supabase Storage (CC BY-SA 2.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-majorelle/cover.webp',
+      ],
       summary:
           'Jardin botanique emblématique créé par Jacques Majorelle, '
           'célèbre pour son bleu Majorelle et ses collections de cactus.',
@@ -70,6 +74,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€',
       isEditorsPick: false,
       imageColor: Color(0xFF8B6B4A),
+      // Cover: Supabase Storage (CC BY 3.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-koutoubia/cover.webp',
+      ],
       summary:
           'Minaret almohade qui oriente toute la Médina — landmark à lire '
           'depuis l\'extérieur et les jardins, pas comme une visite intérieure.',
@@ -101,6 +109,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€',
       isEditorsPick: true,
       imageColor: Color(0xFF5C4A3A),
+      // Cover: Supabase Storage (CC BY-SA 4.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-medersa-ben-youssef/cover.webp',
+      ],
       summary:
           'Ancienne école coranique restaurée : patio de marbre, stucs et '
           'cellules d\'étudiants — le plus fort moment d\'architecture '
@@ -335,6 +347,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€',
       isEditorsPick: false,
       imageColor: Color(0xFF6B5A4A),
+      // Cover: Supabase Storage (CC BY-SA 3.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp',
+      ],
       summary:
           'Nécropole saadienne redécouverte au XXe siècle : marbre, zellige '
           'et chambre des Douze Colonnes dans un enclos discret de la Kasbah.',
@@ -368,6 +384,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€',
       isEditorsPick: false,
       imageColor: Color(0xFF9A7B5A),
+      // Cover: Supabase Storage (CC BY 4.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp',
+      ],
       summary:
           'Ruines saadiennes à ciel ouvert : l\'échelle du pouvoir du XVIe '
           'siècle, stork nests inclus — contraste total avec les salons '
@@ -553,6 +573,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€',
       isEditorsPick: false,
       imageColor: Color(0xFFC4784A),
+      // Cover: Supabase Storage (CC BY-SA 2.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp',
+      ],
       summary:
           'Restaurant social de Guéliz — cuisine marocaine du marché '
           'qui finance la formation culinaire de femmes.',
@@ -1030,6 +1054,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€',
       isEditorsPick: false,
       imageColor: Color(0xFFC45C26),
+      // Cover: Supabase Storage (CC0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp',
+      ],
       summary:
           'Café coffee & cuisine sur la Place des Épices — '
           'terrasse / rooftop avec vue Atlas, pause médina accessible.',
