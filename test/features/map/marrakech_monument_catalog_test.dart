@@ -42,7 +42,7 @@ void main() {
   test('six V1 records exist once — no Bahia/YSL duplicates', () {
     final ids = PlaceCatalog.guides.map((p) => p.id).toList();
     expect(ids.toSet().length, ids.length);
-    expect(ids, hasLength(38));
+    expect(ids, hasLength(41));
     for (final id in packageIds) {
       expect(ids.where((x) => x == id), hasLength(1));
     }
@@ -97,7 +97,7 @@ void main() {
     expect(majorelle.isEditorsPick, isTrue);
   });
 
-  test('Koutoubia stays exterior-honest; Dar El Bacha museum absent', () {
+  test('Koutoubia stays exterior-honest; Dar El Bacha museum is Musée not Monument', () {
     final koutoubia =
         PlaceCatalog.guides.firstWhere((p) => p.id == 'place-koutoubia');
     expect(koutoubia.summary.toLowerCase(), contains('extérieur'));
@@ -107,12 +107,12 @@ void main() {
     );
     expect(koutoubia.website, isNull);
 
+    final museum = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-musee-dar-el-bacha',
+    );
+    expect(museum.category, PlaceCategory.musee);
     expect(
-      PlaceCatalog.guides.any(
-        (p) =>
-            p.id == 'place-dar-el-bacha' ||
-            p.id == 'place-musee-des-confluences',
-      ),
+      PlaceCatalog.guides.any((p) => p.id == 'place-dar-el-bacha'),
       isFalse,
     );
   });

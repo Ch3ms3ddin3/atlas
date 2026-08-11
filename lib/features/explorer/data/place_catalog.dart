@@ -168,28 +168,150 @@ abstract final class PlaceCatalog {
       address: 'Rue Yves Saint Laurent, Guéliz, Marrakech',
       latitude: 31.642543,
       longitude: -8.003420,
+      phone: '+212524313047',
       website: 'https://www.museeyslmarrakech.com/fr/',
       mapsUrl:
           'https://www.google.com/maps/search/?api=1&query=31.642543,-8.003420',
       openingHours: PlaceOpeningHours(
         note:
-            'Ouvert tous les jours sauf mercredi, 10:00–18:30 '
-            '(dernier accès 18:00). Horaires Ramadan plus courts — '
-            'voir le site officiel. Billets uniquement sur '
-            'tickets.jardinmajorelle.com.',
+            'Fermé le mercredi. Horaires officiels indiqués autour de '
+            '10:00–18:00 / 18:30 (dernier accès ~17:30–18:00) — vérifier '
+            'museeyslmarrakech.com le jour même. Horaires Ramadan plus '
+            'courts. Billets uniquement sur tickets.jardinmajorelle.com.',
         entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '10:00–18:30'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:00'),
           PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: 'Fermé'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:30'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:30'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:30'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:30'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
         ],
       ),
       practicalTips: [
         'Fermé le mercredi ; n\'achetez des billets que sur '
             'tickets.jardinmajorelle.com (QR officiel).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-musee-dar-el-bacha',
+      name: 'Musée des Confluences Dar El Bacha',
+      cityName: 'Marrakech',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF8B6914),
+      summary:
+          'Palais reconverti en musée FNM — arts décoratifs et objets '
+          'ethnographiques dans les salons de Dar El Bacha, distinct du '
+          'salon Bacha du même complexe.',
+      bestTimeToVisit: 'En matinée ; fermé le lundi',
+      address: '65–69 Riad Laârous, Route Dar El Bacha, Médina, Marrakech',
+      latitude: 31.631387,
+      longitude: -7.992353,
+      phone: '+212524381763',
+      website: 'https://fnm.ma/museums/26',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631387,-7.992353',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
+        ],
+        note:
+            'Tarif adulte étranger : 60 MAD ; Marocains / résidents : 25 MAD '
+            '(Fondation Nationale des Musées).',
+      ),
+      practicalTips: [
+        'Billet musée FNM pour les salles d\'exposition — accès distinct '
+            'du salon Bacha dans le même complexe.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-maison-de-la-photographie',
+      name: 'Maison de la Photographie',
+      cityName: 'Marrakech',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF4A5568),
+      summary:
+          'Archive photographique du Maroc (fin XIXe–années 1960) dans '
+          'un riad de Médina — plus calme que Majorelle, vue terrasse '
+          'en bonus.',
+      bestTimeToVisit: 'Matinée ; billetterie sur place',
+      address: '46 Rue Souk Ahal Fassi, Médina, Marrakech',
+      latitude: 31.631986,
+      longitude: -7.984367,
+      phone: '+212524385721',
+      website: 'https://maisondelaphotographie.ma/',
+      email: 'maisondelaphotographiemaroc@gmail.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631986,-7.984367',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Ouvert tous les jours 09:30–19:00 (site officiel). '
+            'Adulte : 80 MAD ; résidents marocains : 50 MAD ; '
+            'moins de 15 ans : gratuit. Billet aussi valable au '
+            'Musée de la Musique de Marrakech.',
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Tous les jours', hoursLabel: '09:30–19:00'),
+        ],
+      ),
+      practicalTips: [
+        'Repère difficile dans les derbs — GPS jusqu\'à Rue Souk Ahal Fassi, '
+            'puis suivez les panneaux.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-macaal',
+      name: 'MACAAL',
+      cityName: 'Marrakech',
+      category: PlaceCategory.musee,
+      categoryLabel: 'Musée',
+      neighborhood: 'Al Maaden',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF2C3E50),
+      summary:
+          'Musée d\'art contemporain africain à Al Maaden — collection '
+          'permanente « Seven Contours » et expositions temporaires, '
+          'hors circuit Médina.',
+      bestTimeToVisit: 'Mercredi–dimanche ; prévoir un taxi',
+      address: 'Al Maaden, Sidi Youssef Ben Ali, Marrakech',
+      latitude: 31.600067,
+      longitude: -7.949914,
+      phone: '+212676924492',
+      website: 'https://www.macaal.org/',
+      email: 'info@macaal.org',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.600067,-7.949914',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
+        ],
+        note:
+            'Adulte : 120 MAD ; résidents / nationaux africains : 60 MAD ; '
+            'étudiants et moins de 12 ans : gratuit avec pièce d\'identité '
+            '(macaal.org). Ramadan : 10:00–15:30.',
+      ),
+      practicalTips: [
+        'Comptez 10–20 minutes de taxi depuis le centre ; fermé lundi et mardi.',
       ],
     ),
     PlaceGuide(

@@ -453,6 +453,9 @@ void main() {
       'place-bahia',
       'place-jemaa-el-fna',
       'place-ysl-museum',
+      'place-musee-dar-el-bacha',
+      'place-maison-de-la-photographie',
+      'place-macaal',
       'place-les-bains-marrakech',
       'place-hammam-de-la-rose',
       'place-heritage-spa',
@@ -493,7 +496,7 @@ void main() {
       final ids = PlaceCatalog.guides.map((place) => place.id).toList();
       expect(ids.toSet(), expectedSlugs);
       expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(38));
+      expect(ids, hasLength(41));
       expect(ids, isNot(contains('place-hammam-marrakech')));
       expect(ids, isNot(contains('place-bain-de-kasbah')));
       expect(ids, isNot(contains('place-lmida')));
