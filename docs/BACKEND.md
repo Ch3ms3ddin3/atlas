@@ -321,7 +321,8 @@ Admin step-by-step guides. Arrays: `documents`, `steps`.
 Curated places. `image_color` as `#RRGGBB` hex.  
 Optional `image` text — primary cover URL (Supabase Storage).  
 Optional `image_urls text[]` — gallery; client maps `[image?, ...image_urls]` with dedupe.  
-Optional `latitude` / `longitude` — Atlas Map shows markers **only** when both are set (never invents coordinates).
+Optional `latitude` / `longitude` — Atlas Map shows markers **only** when both are set (never invents coordinates).  
+Photo Storage bucket, path conventions, and Marrakech cover backlog: [`docs/PLACE_PHOTOS.md`](PLACE_PHOTOS.md) (`supabase/migrations/00016_place_photos_storage.sql`).
 
 ### `events`
 
