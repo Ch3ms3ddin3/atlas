@@ -1,5 +1,6 @@
 import '../../../core/location/location_constants.dart';
 import '../../home/domain/models/home_models.dart';
+import '../../map/data/map_search_text.dart';
 import '../domain/models/place_models.dart';
 import 'place_catalog.dart';
 
@@ -45,32 +46,54 @@ abstract final class PlaceMapper {
     return LocationConstants.fallbackCity;
   }
 
+  /// Si le texte de recherche est un libellé/nom de catégorie (ex. « restaurant »),
+  /// renvoie cette catégorie — permet d'ignorer une puce conflictuelle (ex. Hammam).
+  static PlaceCategory? categoryMatchingSearch(String text) {
+    final needle = MapSearchText.normalize(text);
+    if (needle.isEmpty) return null;
+    for (final category in PlaceCategory.values) {
+      final label = MapSearchText.normalize(categoryLabels[category]!);
+      if (needle == label || needle == category.name) {
+        return category;
+      }
+    }
+    return null;
+  }
+
   /// Filtre puis trie selon [PlaceSearchQuery.sort].
+  ///
+  /// Recherche accent-insensible (même normalisation que la Carte). Un texte qui
+  /// correspond à une catégorie prime sur [PlaceSearchQuery.category] conflictuel.
   static List<PlaceGuide> filter(
     PlaceSearchQuery query, {
     List<PlaceGuide>? source,
   }) {
     final catalog = source ?? PlaceCatalog.guides;
     final cityName = _effectiveCityName(query, catalog);
-    final normalizedQuery = query.text.trim().toLowerCase();
+    final categoryFromText = categoryMatchingSearch(query.text);
+    final effectiveCategory = categoryFromText ?? query.category;
+    // Catégorie déduite du texte → filtre catégorie seul (pas de AND haystack).
+    final normalizedQuery =
+        categoryFromText != null ? '' : MapSearchText.normalize(query.text);
 
     final filtered = catalog.where((guide) {
       if (guide.cityName.toLowerCase() != cityName.toLowerCase()) {
         return false;
       }
-      if (query.category != null && guide.category != query.category) {
+      if (effectiveCategory != null && guide.category != effectiveCategory) {
         return false;
       }
       if (normalizedQuery.isEmpty) return true;
 
-      final haystack = [
-        guide.name,
-        guide.summary,
-        guide.neighborhood,
-        guide.categoryLabel,
-      ].join(' ').toLowerCase();
-
-      return haystack.contains(normalizedQuery);
+      final haystack = MapSearchText.searchableHaystack(
+        name: guide.name,
+        summary: guide.summary,
+        neighborhood: guide.neighborhood,
+        categoryLabel: guide.categoryLabel,
+      );
+      // Inclut aussi le nom d'enum (ex. « restaurant ») si le libellé distant diffère.
+      final withEnum = '$haystack ${guide.category.name}';
+      return withEnum.contains(normalizedQuery);
     }).toList();
 
     return sortPlaces(filtered, query.sort);

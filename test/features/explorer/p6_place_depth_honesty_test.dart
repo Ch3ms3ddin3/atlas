@@ -224,8 +224,8 @@ void main() {
       );
     });
 
-    test('catalog size and categories remain honest after P6 hammam curation', () {
-      expect(PlaceCatalog.guides, hasLength(18));
+    test('catalog size and categories remain honest after Marrakech restaurant V1', () {
+      expect(PlaceCatalog.guides, hasLength(23));
       expect(
         PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
         isFalse,
@@ -241,6 +241,18 @@ void main() {
       expect(
         PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
         contains(PlaceCategory.hammam),
+      );
+      expect(
+        PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
+        contains(PlaceCategory.restaurant),
+      );
+      expect(
+        PlaceCatalog.guides.where(
+          (p) =>
+              p.cityName == 'Marrakech' &&
+              p.category == PlaceCategory.restaurant,
+        ),
+        hasLength(5),
       );
     });
   });

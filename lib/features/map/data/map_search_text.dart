@@ -1,4 +1,4 @@
-/// Normalisation de texte pour la recherche Carte uniquement.
+/// Normalisation de texte pour la recherche Explorer + Carte.
 ///
 /// Le texte affiché reste inchangé ; on normalise seulement pour la comparaison.
 abstract final class MapSearchText {
@@ -13,7 +13,7 @@ abstract final class MapSearchText {
     return buffer.toString();
   }
 
-  /// Champs recherchables d'un lieu (mêmes sources que PlaceMapper, Carte only).
+  /// Champs recherchables d'un lieu (alignés sur [PlaceMapper.filter]).
   static String searchableHaystack({
     required String name,
     required String summary,

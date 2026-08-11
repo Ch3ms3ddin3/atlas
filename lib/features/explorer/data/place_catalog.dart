@@ -206,6 +206,228 @@ abstract final class PlaceCatalog {
       ],
     ),
     PlaceGuide(
+      id: 'place-al-fassia-gueliz',
+      name: 'Al Fassia Guéliz',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF9C4A3C),
+      summary:
+          'Table marocaine fassi tenue par des femmes depuis 1987 — '
+          'référence Guéliz sur le boulevard Zerktouni (pas Aguedal).',
+      bestTimeToVisit: 'Sur réservation ; fermé le mardi',
+      address: '55 Boulevard Mohamed Zerktouni, Guéliz, Marrakech',
+      latitude: 31.635992,
+      longitude: -8.013364,
+      phone: '+212524437973',
+      website: 'https://alfassia.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.635992,-8.013364',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(
+            dayLabel: 'Vendredi',
+            hoursLabel: '12:30–14:30 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Samedi',
+            hoursLabel: '12:30–14:30 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '17:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Réservez la ligne Guéliz (+212 524 43 79 73 / 43 40 60) — '
+            'pas le restaurant Aguedal (Route de l\'Ourika).',
+        'Confirmez la réservation par téléphone une fois à Marrakech.',
+        'Fermé le mardi.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-amal-gueliz',
+      name: 'Restaurant Amal Guéliz',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFC4784A),
+      summary:
+          'Restaurant social de Guéliz — cuisine marocaine du marché '
+          'qui finance la formation culinaire de femmes.',
+      bestTimeToVisit: 'Déjeuner en semaine ; réservez le vendredi couscous',
+      address: 'Rue Allal Ben Ahmed et Rue Ibn Sina, Guéliz, Marrakech',
+      latitude: 31.639072,
+      longitude: -8.013756,
+      phone: '+212524446896',
+      website: 'https://amalnonprofit.org',
+      email: 'contact@amalnonprofit.org',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.639072,-8.013756',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: 'Fermé'),
+        ],
+        note: 'Déjeuner uniquement — pas de service du soir en semaine.',
+      ),
+      practicalTips: [
+        'Déjeuner uniquement (lun–sam) ; fermé le dimanche.',
+        'Réservez pour le couscous du vendredi et le week-end.',
+        'C\'est le centre Guéliz — pas Amal Targa (cours de cuisine).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-nomad',
+      name: 'Nomad',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Médina',
+      priceLevel: '€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF6B4F3A),
+      summary:
+          'Restaurant « Modern Moroccan » sur les toits près de la '
+          'Place des Épices — cuisine locale revisitée.',
+      bestTimeToVisit: 'Réservez pour le coucher de soleil',
+      address: '1 Derb Aarjane, Médina, Marrakech',
+      latitude: 31.628593,
+      longitude: -7.987530,
+      phone: '+212524381609',
+      website: 'https://nomadmarrakech.com',
+      email: 'info@nomadmarrakech.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.628593,-7.987530',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '12:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Depuis Jemaa el-Fna, direction Place des Épices ; '
+            'demandez au Café des Épices.',
+        'Réservez sur nomadmarrakech.com ou au +212 524 38 16 09.',
+        'Adresse : 1 Derb Aarjane, Médina.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-plus61',
+      name: 'Plus61',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF3D5A4C),
+      summary:
+          'Bistro contemporain australien / méditerranéen à Guéliz — '
+          'plats à partager, produits locaux (aussi connu sous +61).',
+      bestTimeToVisit: 'Déjeuner ou dîner en semaine (fermé le dimanche)',
+      address: '96 Rue Mohammed el Beqal, Guéliz, Marrakech',
+      latitude: 31.635162,
+      longitude: -8.015502,
+      phone: '+212524207020',
+      website: 'https://plus61.com',
+      email: 'hello@plus61.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.635162,-8.015502',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(
+            dayLabel: 'Lundi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Mardi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Mercredi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Jeudi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Vendredi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Samedi',
+            hoursLabel: '12:00–15:00 · 18:30–22:30',
+          ),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: 'Fermé'),
+        ],
+      ),
+      practicalTips: [
+        'Rue Mohammed el Beqal, en face du Cinema Colisée.',
+        'Groupes de 6+ : écrivez à hello@plus61.com.',
+        'Vérifiez plus61.com/visit pour d\'éventuelles fermetures saisonnières.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-le-jardin',
+      name: 'Le Jardin',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF5A7A4A),
+      summary:
+          'Restaurant-jardin en Médina (Souk Sidi Abdelaziz) — '
+          'pause midi ou soir, distinct de l\'hôtel Les Jardins de la Medina.',
+      bestTimeToVisit: 'Déjeuner ou dîner ; ouvert toute la journée',
+      address: '32 Souk Sidi Abdelaziz, Médina, Marrakech',
+      latitude: 31.632074,
+      longitude: -7.988806,
+      phone: '+212524378295',
+      website: 'https://lejardinmarrakech.com',
+      email: 'info@lejardinmarrakech.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.632074,-7.988806',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Ne confondez pas avec « Les Jardins de la Medina » '
+            '(hôtel / Derb Chtouka).',
+        '32 Souk Sidi Abdelaziz, Médina.',
+        'Réservez au +212 524 37 82 95 ou sur lejardinmarrakech.com.',
+      ],
+    ),
+    PlaceGuide(
       id: 'place-hassan-ii',
       name: 'Mosquée Hassan II',
       cityName: 'Casablanca',

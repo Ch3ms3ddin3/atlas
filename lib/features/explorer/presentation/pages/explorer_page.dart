@@ -212,8 +212,9 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _searchDebounceTimer?.cancel();
     _searchDebounceTimer = Timer(_searchDebounce, () {
       if (!mounted) return;
-      _pushSharedFilters();
+      // Appliquer d'abord (déduit la catégorie depuis le texte), puis synchroniser.
       _applyFilters();
+      _pushSharedFilters();
     });
   }
 
@@ -250,6 +251,14 @@ class _ExplorerPageState extends State<ExplorerPage> {
       final available = _availableCategoriesForCity(_cityName);
       if (_selectedCategory != null && !available.contains(_selectedCategory)) {
         _selectedCategory = null;
+      }
+      // « restaurant » (etc.) prime sur une puce catégorie conflictuelle restante
+      // (ex. Hammam encore active après la Phase 2 / filtres partagés Carte).
+      final inferredCategory = PlaceMapper.categoryMatchingSearch(
+        _searchController.text,
+      );
+      if (inferredCategory != null && available.contains(inferredCategory)) {
+        _selectedCategory = inferredCategory;
       }
       var places = _repository.search(
         PlaceSearchQuery(
@@ -522,7 +531,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                         return PlaceGuideCardSkeleton(compact: useGrid);
                       },
                     )
-                  else if (listPlaces.isEmpty)
+                  else if (_places.isEmpty)
                     SliverToBoxAdapter(
                       child: ExplorerEmptyState(
                         onReset: hasActiveFilters
