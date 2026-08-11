@@ -380,7 +380,7 @@ void main() {
         // Slugs stables pour favoris / signalements / deep links.
         expect(repository.findById('place-majorelle'), isNotNull);
         expect(repository.findById('place-oudayas'), isNotNull);
-        expect(repository.categories, isNot(contains(PlaceCategory.cafe)));
+        expect(repository.categories, contains(PlaceCategory.cafe));
         expect(repository.categories, contains(PlaceCategory.restaurant));
         expect(repository.categories, contains(PlaceCategory.plage));
       },
@@ -462,6 +462,11 @@ void main() {
       'place-nomad',
       'place-plus61',
       'place-le-jardin',
+      'place-bacha-coffee',
+      'place-simple-specialty-coffee',
+      'place-cafe-des-epices',
+      'place-kartell-kollektiv',
+      'place-cafe-clock',
       'place-hassan-ii',
       'place-corniche',
       'place-marche-central',
@@ -474,14 +479,15 @@ void main() {
       'place-plage-rabat',
     };
 
-    test('catalogue local : slugs stables, uniques, hammams + restaurants curatés', () {
+    test('catalogue local : slugs stables, uniques, hammams + restaurants + cafés curatés', () {
       final ids = PlaceCatalog.guides.map((place) => place.id).toList();
       expect(ids.toSet(), expectedSlugs);
       expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(23));
+      expect(ids, hasLength(28));
       expect(ids, isNot(contains('place-hammam-marrakech')));
       expect(ids, isNot(contains('place-bain-de-kasbah')));
       expect(ids, isNot(contains('place-lmida')));
+      expect(ids, isNot(contains('place-thirty5ive')));
     });
 
     test(

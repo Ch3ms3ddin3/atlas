@@ -428,6 +428,178 @@ abstract final class PlaceCatalog {
       ],
     ),
     PlaceGuide(
+      id: 'place-bacha-coffee',
+      name: 'Bacha Coffee',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Médina',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF6B3A2A),
+      summary:
+          'Maison de café dans le palais Dar El Bacha — '
+          'expérience Arabica patrimoniale (pas un coffee shop de rue).',
+      bestTimeToVisit: 'À l\'ouverture (10:00) ; fermé le lundi',
+      address: 'Dar El Bacha, Route Sidi Abelaziz, Médina, Marrakech',
+      latitude: 31.631521,
+      longitude: -7.992561,
+      phone: '+212524381293',
+      website: 'https://bachacoffee.com/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631521,-7.992561',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
+        ],
+      ),
+      practicalTips: [
+        'Fermé le lundi ; arrivez vers l\'ouverture (10:00) — '
+            'files longues, pas de réservation individuelle.',
+        'Pin Dar El Bacha / Route Sidi Abelaziz — pas un autre Bacha Coffee '
+            'à l\'étranger.',
+        'Accès via le complexe muséal Dar El Bacha.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-simple-specialty-coffee',
+      name: 'Simple Specialty Coffee',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF8B6914),
+      summary:
+          'Petit comptoir specialty coffee près de Dar El Bacha — '
+          'espresso et latte soignés, alternative calme à la file de Bacha.',
+      bestTimeToVisit: 'Pause café en journée',
+      address: 'Rue Dar El Bacha, Médina, Marrakech',
+      latitude: 31.631583,
+      longitude: -7.990912,
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631583,-7.990912',
+      practicalTips: [
+        'Comptoir takeaway (quelques tabourets) — utile si Bacha est saturé.',
+        'Ouvrez le pin « Simple Specialty Coffee », pas le musée Dar El Bacha.',
+        'Sur Rue Dar El Bacha, à quelques minutes à pied de Bacha Coffee.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-cafe-des-epices',
+      name: 'Café des Épices',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFFC45C26),
+      summary:
+          'Café coffee & cuisine sur la Place des Épices — '
+          'terrasse / rooftop avec vue Atlas, pause médina accessible.',
+      bestTimeToVisit: 'Matin ou fin d\'après-midi sur la terrasse',
+      address: '75 Rahba Lakdima, Médina, Marrakech',
+      latitude: 31.629062,
+      longitude: -7.987323,
+      phone: '+212524391770',
+      website: 'https://cafedesepices.ma/',
+      email: 'contact@cafedesepices.ma',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.629062,-7.987323',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        '75 Rahba Lakdima ; walk-in le jour, réservez le soir via le site '
+            'ou au +212 524 39 17 70.',
+        'Distinct du hammam Place des Épices et des restaurants Nomad / '
+            'Le Jardin (même groupe).',
+        'Repère : Place des Épices / Rahba Lakdima.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-kartell-kollektiv',
+      name: 'Kartell Kollektiv',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF2F4F4F),
+      summary:
+          'Coffee shop specialty à Guéliz — espresso soigné, ambiance calme '
+          'et creative (pas une terrasse médina).',
+      bestTimeToVisit: 'Matinée ou après-midi en semaine',
+      address: '14 Rue Halab, Guéliz, Marrakech',
+      latitude: 31.636385,
+      longitude: -8.009579,
+      website: 'https://kartell.space/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.636385,-8.009579',
+      practicalTips: [
+        'Ouvrez le pin Guéliz, 14 Rue Halab uniquement — la marque a aussi '
+            'un espace Médina (non listé ici).',
+        'Orthographe : Kartell (pas « Kartel »).',
+        'Idéal pour un coffee break dans la ville nouvelle.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-cafe-clock',
+      name: 'Café Clock',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
+      isEditorsPick: false,
+      imageColor: Color(0xFF4A6741),
+      summary:
+          'Café culturel coffee & food en Kasbah — terrasses, musique et '
+          'ateliers ; distinct des coffee shops Guéliz.',
+      bestTimeToVisit: 'Déjeuner ou soirée culturelle',
+      address: '224 Derb Chtouka, Kasbah, Marrakech',
+      latitude: 31.613029,
+      longitude: -7.987289,
+      phone: '+212524378367',
+      website: 'https://www.cafeclock.com/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.613029,-7.987289',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        '224 Derb Chtouka (Kasbah) — pas le Café Clock de Fès ou Chefchaouen.',
+        'Proche des Tombeaux saadiens ; ne confondez pas avec '
+            '« Les Jardins de la Medina ».',
+        'Réservez ou renseignez-vous au +212 524 37 83 67.',
+      ],
+    ),
+    PlaceGuide(
       id: 'place-hassan-ii',
       name: 'Mosquée Hassan II',
       cityName: 'Casablanca',

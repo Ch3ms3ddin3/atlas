@@ -93,18 +93,18 @@ void main() {
   });
 
   group('P6 soft-misleading removal', () {
-    test('inventory categories exclude empty cafe', () {
+    test('inventory categories include café after Marrakech café V1', () {
       final cats = PlaceMapper.categoriesPresentIn(PlaceCatalog.guides);
-      expect(cats, isNot(contains(PlaceCategory.cafe)));
+      expect(cats, contains(PlaceCategory.cafe));
       expect(cats, contains(PlaceCategory.jardin));
       expect(cats, contains(PlaceCategory.monument));
       expect(
         LocalPlaceRepository().categories,
-        isNot(contains(PlaceCategory.cafe)),
+        contains(PlaceCategory.cafe),
       );
     });
 
-    testWidgets('category filter hides empty Cafe chip', (tester) async {
+    testWidgets('category filter shows Café chip when cafés exist', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: AtlasTheme.light,
@@ -120,7 +120,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Café'), findsNothing);
+      expect(find.text('Café'), findsOneWidget);
       expect(find.text('Jardin'), findsOneWidget);
       expect(find.text('Monument'), findsOneWidget);
     });
@@ -224,8 +224,8 @@ void main() {
       );
     });
 
-    test('catalog size and categories remain honest after Marrakech restaurant V1', () {
-      expect(PlaceCatalog.guides, hasLength(23));
+    test('catalog size and categories remain honest after Marrakech café V1', () {
+      expect(PlaceCatalog.guides, hasLength(28));
       expect(
         PlaceCatalog.guides.any((p) => p.name == 'Hammam traditionnel'),
         isFalse,
@@ -236,7 +236,7 @@ void main() {
       );
       expect(
         PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
-        isNot(contains(PlaceCategory.cafe)),
+        contains(PlaceCategory.cafe),
       );
       expect(
         PlaceMapper.categoriesPresentIn(PlaceCatalog.guides),
@@ -251,6 +251,13 @@ void main() {
           (p) =>
               p.cityName == 'Marrakech' &&
               p.category == PlaceCategory.restaurant,
+        ),
+        hasLength(5),
+      );
+      expect(
+        PlaceCatalog.guides.where(
+          (p) =>
+              p.cityName == 'Marrakech' && p.category == PlaceCategory.cafe,
         ),
         hasLength(5),
       );
