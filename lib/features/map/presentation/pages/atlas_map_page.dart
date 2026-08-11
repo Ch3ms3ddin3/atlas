@@ -25,6 +25,7 @@ import '../../../favorites/presentation/favorites_scope.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../data/map_place_query.dart';
+import '../../data/atlas_map_camera_guard.dart';
 import '../../domain/atlas_map_models.dart';
 import '../widgets/atlas_flutter_map_view.dart';
 import '../widgets/place_map_preview_sheet.dart';
@@ -287,13 +288,19 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   }
 
   void _animateCameraTo(double latitude, double longitude, double zoom) {
+    if (!AtlasMapCameraGuard.isFiniteLatLngZoom(latitude, longitude, zoom)) {
+      return;
+    }
+    final safeZoom = AtlasMapCameraGuard.sanitizeZoom(zoom);
     _cameraAnimTimer?.cancel();
     if (AtlasMotion.reduceMotionOf(context)) {
-      _mapController.move(LatLng(latitude, longitude), zoom);
+      _mapController.move(LatLng(latitude, longitude), safeZoom);
       return;
     }
     final start = _mapController.camera.center;
-    final startZoom = _mapController.camera.zoom;
+    final startZoom = AtlasMapCameraGuard.sanitizeZoom(
+      _mapController.camera.zoom,
+    );
     const steps = 14;
     var step = 0;
     _cameraAnimTimer = Timer.periodic(const Duration(milliseconds: 18), (
@@ -301,12 +308,17 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     ) {
       step += 1;
       final t = Curves.easeOutCubic.transform(step / steps);
+      final nextLat = start.latitude + (latitude - start.latitude) * t;
+      final nextLng = start.longitude + (longitude - start.longitude) * t;
+      final nextZoom = startZoom + (safeZoom - startZoom) * t;
+      if (!AtlasMapCameraGuard.isFiniteLatLngZoom(nextLat, nextLng, nextZoom)) {
+        timer.cancel();
+        _cameraAnimTimer = null;
+        return;
+      }
       _mapController.move(
-        LatLng(
-          start.latitude + (latitude - start.latitude) * t,
-          start.longitude + (longitude - start.longitude) * t,
-        ),
-        startZoom + (zoom - startZoom) * t,
+        LatLng(nextLat, nextLng),
+        AtlasMapCameraGuard.sanitizeZoom(nextZoom),
       );
       if (step >= steps) {
         timer.cancel();
@@ -369,10 +381,14 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   void _onMarkerTap(AtlasMapMarker marker) {
     final place = _repository.findById(marker.placeId);
     if (place == null) return;
+    if (!AtlasMapCameraGuard.isFiniteLatLng(marker.latitude, marker.longitude)) {
+      return;
+    }
     setState(() => _selectedPlaceId = marker.placeId);
-    final targetZoom = _mapController.camera.zoom < 14
-        ? 14.0
-        : _mapController.camera.zoom;
+    final currentZoom = AtlasMapCameraGuard.sanitizeZoom(
+      _mapController.camera.zoom,
+    );
+    final targetZoom = currentZoom < 14 ? 14.0 : currentZoom;
     _animateCameraTo(marker.latitude, marker.longitude, targetZoom);
     unawaited(
       showPlaceMapPreviewSheet(context, place: place).whenComplete(() {

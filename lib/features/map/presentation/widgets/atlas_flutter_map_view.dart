@@ -8,6 +8,7 @@ import '../../../../design_system/motion/atlas_haptics.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
+import '../../data/atlas_map_camera_guard.dart';
 import '../../domain/atlas_map_models.dart';
 
 /// Implémentation flutter_map + OSM — isolée du domaine.
@@ -39,6 +40,11 @@ class AtlasFlutterMapView extends StatelessWidget {
 
   static const clusterMaxZoom = 14.0;
 
+  /// Clustering désactive le zoom-to-bounds natif du package (source de
+  /// zoom Infinity/NaN → crash `.ceil()`). Fit sûr via [onClusterTap].
+  @visibleForTesting
+  static const zoomToBoundsOnClick = false;
+
   /// Active les tuiles silencieuses (tests) — pas de requêtes réseau.
   @visibleForTesting
   static bool useSilentTiles = false;
@@ -48,35 +54,43 @@ class AtlasFlutterMapView extends StatelessWidget {
     final theme = Theme.of(context);
     final flutterMarkers = [
       for (final marker in markers)
-        Marker(
-          key: ValueKey(marker.placeId),
-          point: LatLng(marker.latitude, marker.longitude),
-          width: 48,
-          height: 48,
-          child: Semantics(
-            button: true,
-            label: marker.isFavorite
-                ? '${marker.name}, favori'
-                : marker.name,
-            child: _PlaceMarkerPin(
-              isFavorite: marker.isFavorite,
-              isSelected: marker.placeId == selectedPlaceId,
-              onTap: () {
-                AtlasHaptics.selection();
-                onMarkerTap(marker);
-              },
+        if (AtlasMapCameraGuard.isFiniteLatLng(
+          marker.latitude,
+          marker.longitude,
+        ))
+          Marker(
+            key: ValueKey(marker.placeId),
+            point: LatLng(marker.latitude, marker.longitude),
+            width: 48,
+            height: 48,
+            child: Semantics(
+              button: true,
+              label: marker.isFavorite
+                  ? '${marker.name}, favori'
+                  : marker.name,
+              child: _PlaceMarkerPin(
+                isFavorite: marker.isFavorite,
+                isSelected: marker.placeId == selectedPlaceId,
+                onTap: () {
+                  AtlasHaptics.selection();
+                  onMarkerTap(marker);
+                },
+              ),
             ),
           ),
-        ),
     ];
+
+    final initialZoom = AtlasMapCameraGuard.sanitizeZoom(camera.zoom);
 
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
         initialCenter: LatLng(camera.latitude, camera.longitude),
-        initialZoom: camera.zoom,
-        minZoom: 5,
-        maxZoom: 18,
+        initialZoom: initialZoom,
+        minZoom: AtlasMapCameraGuard.minZoom,
+        maxZoom: AtlasMapCameraGuard.maxZoom,
+        // flutter_map 8.3.1: zero-length fling → NaN center (#2221). Gate here.
+        cameraConstraint: AtlasMapCameraGuard.finiteCameraConstraint,
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
         ),
@@ -101,9 +115,15 @@ class AtlasFlutterMapView extends StatelessWidget {
             maxClusterRadius: 48,
             disableClusteringAtZoom: clusterMaxZoom.round(),
             size: const Size(40, 40),
-            zoomToBoundsOnClick: true,
+            // CRITICAL: native zoomToBoundsOnClick uses CameraFit.bounds without
+            // guarding zero-area clusters → Infinity/NaN zoom → `.ceil()` crash.
+            zoomToBoundsOnClick: zoomToBoundsOnClick,
             spiderfyCluster: true,
+            maxZoom: AtlasMapCameraGuard.maxZoom,
             markers: flutterMarkers,
+            onClusterTap: (cluster) {
+              _safeZoomToCluster(mapController, cluster.bounds);
+            },
             builder: (context, clusterMarkers) {
               return Semantics(
                 button: true,
@@ -128,7 +148,9 @@ class AtlasFlutterMapView extends StatelessWidget {
             },
           ),
         ),
-        if (userLatitude != null && userLongitude != null)
+        if (userLatitude != null &&
+            userLongitude != null &&
+            AtlasMapCameraGuard.isFiniteLatLng(userLatitude!, userLongitude!))
           MarkerLayer(
             markers: [
               Marker(
@@ -162,6 +184,29 @@ class AtlasFlutterMapView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Fit cluster via [AtlasMapCameraGuard] (jamais de zoom non fini).
+  static void _safeZoomToCluster(
+    MapController controller,
+    LatLngBounds bounds,
+  ) {
+    MapCamera camera;
+    try {
+      camera = controller.camera;
+    } catch (_) {
+      return;
+    }
+    final fitted = AtlasMapCameraGuard.safeFitBounds(
+      camera: camera,
+      bounds: bounds,
+    );
+    if (fitted == null) return;
+    try {
+      controller.move(fitted.center, fitted.zoom);
+    } catch (_) {
+      // Contrôleur détaché / caméra invalide.
+    }
   }
 }
 

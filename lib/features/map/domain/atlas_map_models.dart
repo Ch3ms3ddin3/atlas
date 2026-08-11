@@ -36,11 +36,14 @@ class AtlasMapMarker {
     required bool isFavorite,
   }) {
     if (!place.hasCoordinates) return null;
+    final lat = place.latitude!;
+    final lng = place.longitude!;
+    if (!lat.isFinite || !lng.isFinite) return null;
     return AtlasMapMarker(
       placeId: place.id,
       name: place.name,
-      latitude: place.latitude!,
-      longitude: place.longitude!,
+      latitude: lat,
+      longitude: lng,
       category: place.category,
       isFavorite: isFavorite,
     );
