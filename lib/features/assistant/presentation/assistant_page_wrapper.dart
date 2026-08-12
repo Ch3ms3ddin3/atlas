@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../profile/domain/profile_repository.dart';
 import '../../profile/presentation/profile_scope.dart';
 import '../../shell/presentation/shell_navigation_scope.dart';
+import '../../shell/presentation/shell_tab_scroll_registry.dart';
 import '../../itineraries/domain/itinerary_repository.dart';
 import '../../itineraries/presentation/itinerary_scope.dart';
 import '../domain/assistant_repository.dart';
@@ -22,7 +23,11 @@ Widget wrapWithAssistantRouteScopes({
       repository: assistantRepository,
       child: ItineraryScope(
         repository: itineraryRepository,
-        child: ShellNavigationScope(navigateToTab: navigateToTab, child: child),
+        child: ShellNavigationScope(
+          navigateToTab: navigateToTab,
+          scrollRegistry: ShellTabScrollRegistry(),
+          child: child,
+        ),
       ),
     ),
   );

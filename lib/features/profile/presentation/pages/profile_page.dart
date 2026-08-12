@@ -26,6 +26,8 @@ import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../itineraries/presentation/itinerary_scope.dart';
 import '../../../itineraries/presentation/pages/trip_list_page.dart';
 import '../../../onboarding/data/onboarding_preferences_store.dart';
+import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../../shell/presentation/shell_tab_scroll_binding.dart';
 import '../../../sync/data/atlas_data_export.dart';
 import '../../../sync/domain/cloud_sync_status.dart';
 import '../../../sync/presentation/sync_scope.dart';
@@ -43,9 +45,10 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
   final _firstNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
 
   String _preferredCity = UserProfile.defaultPreferredCity;
   AtlasUserType _userType = UserProfile.defaultUserType;
@@ -56,8 +59,15 @@ class _ProfilePageState extends State<ProfilePage> {
   ProfileRepository? _profileRepository;
 
   @override
+  int get shellTabIndex => AtlasShellTab.profile;
+
+  @override
+  ScrollController get tabScrollController => _scrollController;
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    bindShellTabScroll();
     final repository = ProfileScope.of(context);
     if (!identical(repository, _profileRepository)) {
       _profileRepository?.removeListener(_syncFromProfile);
@@ -69,8 +79,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void dispose() {
+    unbindShellTabScroll();
     _profileRepository?.removeListener(_syncFromProfile);
     _firstNameController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -219,6 +231,7 @@ class _ProfilePageState extends State<ProfilePage> {
         key: _formKey,
         child: ListView(
           key: const PageStorageKey<String>('profile_scroll'),
+          controller: _scrollController,
           padding: const EdgeInsets.only(bottom: AtlasSpacing.sectionLarge),
           children: [
             AtlasContentContainer(

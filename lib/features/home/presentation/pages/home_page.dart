@@ -19,6 +19,7 @@ import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../../shell/presentation/shell_tab_scroll_binding.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
 import '../../data/morning_brief/morning_brief_builder.dart';
@@ -58,7 +59,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   static const _morningBriefBuilder = MorningBriefBuilder();
   static const _nowActionsBuilder = HomeNowActionsBuilder();
   static const _greetingRepository = GreetingRepository();
@@ -71,6 +72,13 @@ class _HomePageState extends State<HomePage> {
   final EventRepository _eventRepository = EventRepository();
   final PriceIntelligenceRepository _prices = PriceIntelligenceRepository();
   final PlaceRepository _places = PlaceRepository();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  int get shellTabIndex => AtlasShellTab.home;
+
+  @override
+  ScrollController get tabScrollController => _scrollController;
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -117,6 +125,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    bindShellTabScroll();
     final profileRepository = ProfileScope.of(context);
     if (!identical(profileRepository, _profileRepository)) {
       _profileRepository?.removeListener(_onProfileChanged);
@@ -136,12 +145,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    unbindShellTabScroll();
     _profileRepository?.removeListener(_onProfileChanged);
     _atRepository?.removeListener(_onAtChanged);
     _detachEventListener();
     _detachPricesListener();
     _prayerCountdownTimer?.cancel();
     _dateRollTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -422,6 +433,7 @@ class _HomePageState extends State<HomePage> {
         onRefresh: _refreshAll,
         child: CustomScrollView(
           key: const PageStorageKey<String>('home_scroll'),
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(

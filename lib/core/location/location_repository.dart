@@ -4,20 +4,38 @@ import 'morocco_cities.dart';
 import 'reverse_geocoding_client.dart';
 import 'user_location.dart';
 
-/// Orchestre la résolution de la position : GPS → ville préférée → Marrakech.
+/// Orchestre la résolution de la position.
+///
+/// Ordre : **ville préférée explicite** → GPS + reverse geocode → Marrakech.
+/// Une ville de profil ne doit jamais être écrasée silencieusement par le GPS
+/// (ex. Fès → Marrakech après quelques secondes).
 class LocationRepository {
   LocationRepository({
     GeolocatorService? geolocatorService,
     ReverseGeocodingClient? reverseGeocodingClient,
-  })  : _geolocatorService = geolocatorService ?? const GeolocatorService(),
-        _reverseGeocodingClient =
-            reverseGeocodingClient ?? const ReverseGeocodingClient();
+  }) : _geolocatorService = geolocatorService ?? const GeolocatorService(),
+       _reverseGeocodingClient =
+           reverseGeocodingClient ?? const ReverseGeocodingClient();
 
   final GeolocatorService _geolocatorService;
   final ReverseGeocodingClient _reverseGeocodingClient;
 
-  /// Tente GPS + reverse geocoding ; repli sur [preferredCityName] puis Marrakech.
+  /// Résout la position Atlas.
+  ///
+  /// Quand [preferredCityName] correspond à une ville MoroccoCities connue,
+  /// elle est autoritative (coordonnées catalogue). Le GPS n'est utilisé que
+  /// sans préférence explicite.
   Future<UserLocation> resolveLocation({String? preferredCityName}) async {
+    final preferred = MoroccoCities.resolve(preferredCityName);
+    if (preferred != null) {
+      return UserLocation(
+        latitude: preferred.latitude,
+        longitude: preferred.longitude,
+        cityName: preferred.name,
+        isFromGps: false,
+      );
+    }
+
     final position = await _geolocatorService.getCurrentPosition();
     if (position == null) {
       return _preferredOrFallbackLocation(preferredCityName);
@@ -45,7 +63,8 @@ class LocationRepository {
   }
 
   UserLocation _preferredOrFallbackLocation(String? preferredCityName) {
-    final city = MoroccoCities.resolve(preferredCityName) ?? MoroccoCities.fallback;
+    final city =
+        MoroccoCities.resolve(preferredCityName) ?? MoroccoCities.fallback;
     return UserLocation(
       latitude: city.latitude,
       longitude: city.longitude,

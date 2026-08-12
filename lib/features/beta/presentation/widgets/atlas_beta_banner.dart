@@ -3,13 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/platform/atlas_build_info.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 
-/// Bannière discrète « Atlas Private Beta » + version/build.
+/// Bannière discrète « Atlas Private Beta · Marrakech ».
 class AtlasBetaBanner extends StatelessWidget {
-  const AtlasBetaBanner({
-    super.key,
-    required this.buildInfo,
-    this.onSecretTap,
-  });
+  const AtlasBetaBanner({super.key, required this.buildInfo, this.onSecretTap});
 
   final AtlasBuildInfo buildInfo;
   final VoidCallback? onSecretTap;
@@ -38,7 +34,9 @@ class AtlasBetaBanner extends StatelessWidget {
                 const SizedBox(width: AtlasSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Atlas Private Beta · ${buildInfo.versionLabel}',
+                    'Atlas Private Beta · Marrakech',
+                    semanticsLabel:
+                        'Atlas Private Beta · Marrakech · ${buildInfo.versionLabel}',
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.w600,

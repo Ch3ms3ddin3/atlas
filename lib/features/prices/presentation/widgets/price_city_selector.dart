@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/location/morocco_cities.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_filter_chip.dart';
 
-/// Sélecteur de ville — villes Atlas + villes présentes dans les données.
+/// Sélecteur de ville — uniquement les villes présentes dans les données Prix.
 class PriceCitySelector extends StatelessWidget {
   const PriceCitySelector({
     super.key,
@@ -20,8 +19,9 @@ class PriceCitySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cities = <String>{
-      ...MoroccoCities.supportedNames,
       ...dataCities,
+      // Keep a non-empty selection visible if it somehow lacks catalog rows.
+      if (selectedCity.trim().isNotEmpty) selectedCity,
     }.toList()..sort();
 
     return SingleChildScrollView(

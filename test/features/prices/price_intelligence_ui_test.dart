@@ -168,7 +168,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Aucun prix vérifié'), findsOneWidget);
+    expect(
+      find.textContaining('Pas encore de tarifs vérifiés'),
+      findsOneWidget,
+    );
     expect(find.text('SP95 Marrakech'), findsNothing);
   });
 

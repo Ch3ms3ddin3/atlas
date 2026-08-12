@@ -9,7 +9,7 @@ import 'notification_constants.dart';
 /// Encapsule flutter_local_notifications — init, permissions, planification.
 class LocalNotificationService {
   LocalNotificationService({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
@@ -17,58 +17,75 @@ class LocalNotificationService {
   Future<void> initialize() async {
     if (kIsWeb || _initialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
+    try {
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
+      const darwinSettings = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
 
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: androidSettings,
-        iOS: darwinSettings,
-        macOS: darwinSettings,
-      ),
-    );
+      await _plugin.initialize(
+        settings: const InitializationSettings(
+          android: androidSettings,
+          iOS: darwinSettings,
+          macOS: darwinSettings,
+        ),
+      );
 
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    await android?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        NotificationConstants.channelId,
-        NotificationConstants.channelName,
-        description: NotificationConstants.channelDescription,
-        importance: Importance.high,
-      ),
-    );
-    await android?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        NotificationConstants.atChannelId,
-        NotificationConstants.atChannelName,
-        description: NotificationConstants.atChannelDescription,
-        importance: Importance.high,
-      ),
-    );
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          NotificationConstants.channelId,
+          NotificationConstants.channelName,
+          description: NotificationConstants.channelDescription,
+          importance: Importance.high,
+        ),
+      );
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          NotificationConstants.atChannelId,
+          NotificationConstants.atChannelName,
+          description: NotificationConstants.atChannelDescription,
+          importance: Importance.high,
+        ),
+      );
 
-    _initialized = true;
+      _initialized = true;
+    } catch (error, stack) {
+      // Widget tests / unsupported hosts have no plugin binding — leave
+      // uninitialized so cancel/schedule remain honest no-ops there.
+      // On device, initialize succeeds and cancel/schedule become effective
+      // even before deferred bootstrap completes.
+      if (kDebugMode) {
+        debugPrint(
+          '[Atlas] LocalNotificationService.initialize failed: $error\n$stack',
+        );
+      }
+    }
   }
 
   Future<bool> requestPermission() async {
     if (kIsWeb) return false;
 
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
       final granted = await android.requestNotificationsPermission();
       return granted ?? false;
     }
 
-    final ios =
-        _plugin.resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (ios != null) {
       final granted = await ios.requestPermissions(
         alert: true,
@@ -84,9 +101,10 @@ class LocalNotificationService {
   Future<void> requestExactAlarmsIfNeeded() async {
     if (kIsWeb) return;
 
-    final android =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android == null) return;
 
     final canSchedule = await android.canScheduleExactNotifications();
@@ -96,7 +114,9 @@ class LocalNotificationService {
   }
 
   Future<void> cancelPrayerNotifications() async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
+    await initialize();
+    if (!_initialized) return;
 
     for (
       var id = NotificationConstants.prayerNotificationIdStart;
@@ -108,7 +128,9 @@ class LocalNotificationService {
   }
 
   Future<void> cancelAtNotifications() async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
+    await initialize();
+    if (!_initialized) return;
 
     for (
       var id = NotificationConstants.atNotificationIdStart;
@@ -152,7 +174,9 @@ class LocalNotificationService {
     required String channelName,
     required String channelDescription,
   }) async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
+    await initialize();
+    if (!_initialized) return;
 
     final scheduledDate = tz.TZDateTime(
       tz.getLocation('Africa/Casablanca'),

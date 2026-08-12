@@ -10,9 +10,8 @@ class AtNotificationCoordinator {
     required this._repository,
     LocalNotificationService? notificationService,
     AtNotificationScheduler? scheduler,
-  })  : _notificationService =
-            notificationService ?? LocalNotificationService(),
-        _scheduler = scheduler ?? const AtNotificationScheduler();
+  }) : _notificationService = notificationService ?? LocalNotificationService(),
+       _scheduler = scheduler ?? const AtNotificationScheduler();
 
   final AtRepository _repository;
   final LocalNotificationService _notificationService;
@@ -27,6 +26,8 @@ class AtNotificationCoordinator {
   Future<bool> enableNotifications() async {
     if (kIsWeb) return false;
 
+    // Deterministic before deferred bootstrap: never silently no-op schedule.
+    await _notificationService.initialize();
     final granted = await _notificationService.requestPermission();
     if (!granted) return false;
 

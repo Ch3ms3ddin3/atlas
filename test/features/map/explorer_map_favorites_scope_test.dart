@@ -16,6 +16,7 @@ import 'package:atlas/features/map/presentation/widgets/place_map_preview_sheet.
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,6 +76,7 @@ void main() {
                   navigateToTab: (index) {
                     setState(() => tabIndex = index);
                   },
+                  scrollRegistry: ShellTabScrollRegistry(),
                   child: Scaffold(
                     body: IndexedStack(
                       index: tabIndex == AtlasShellTab.map ? 1 : 0,

@@ -19,6 +19,7 @@ import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 /// Five Marrakech `monument` records (YSL stays `musee`).
 const _monumentIds = <String>{
@@ -166,6 +167,7 @@ void main() {
               repository: favoritesRepository,
               child: ShellNavigationScope(
                 navigateToTab: (_) {},
+                scrollRegistry: ShellTabScrollRegistry(),
                 child: const Scaffold(body: ExplorerPage()),
               ),
             ),

@@ -53,6 +53,7 @@ import '../../sync/data/syncing_user_preferences_repository.dart';
 import '../../sync/presentation/sync_scope.dart';
 import 'atlas_bottom_nav.dart';
 import 'shell_navigation_scope.dart';
+import 'shell_tab_scroll_registry.dart';
 import 'shell_tab_transition.dart';
 
 /// Coque principale de l'application — navigation par onglets.
@@ -100,6 +101,7 @@ class _AppShellState extends State<AppShell> {
   AtlasBuildInfo? _buildInfo;
   late final AuthSessionBoundaryController _authBoundary;
   late final AtlasConnectivity _connectivity;
+  final ShellTabScrollRegistry _tabScrollRegistry = ShellTabScrollRegistry();
 
   static const _tabNames = {
     AtlasShellTab.home: 'home',
@@ -116,8 +118,7 @@ class _AppShellState extends State<AppShell> {
     _ownsAuthRepository = widget.authRepository == null;
     _authRepository = widget.authRepository ?? SupabaseAuthRepository();
     _ownsProfileRepository = widget.profileRepository == null;
-    _profileRepository =
-        widget.profileRepository ?? SyncingProfileRepository();
+    _profileRepository = widget.profileRepository ?? SyncingProfileRepository();
     _ownsFavoritesRepository = widget.favoritesRepository == null;
     _favoritesRepository =
         widget.favoritesRepository ?? SyncingFavoritesRepository();
@@ -220,7 +221,11 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _navigateToTab(int index) {
-    if (index == _currentIndex) return;
+    if (index == _currentIndex) {
+      // Retap active tab → scroll primary content to top (no state reset).
+      unawaited(_tabScrollRegistry.scrollToTop(index));
+      return;
+    }
     final from = _tabNames[_currentIndex] ?? '$_currentIndex';
     final to = _tabNames[index] ?? '$index';
     final sw = Stopwatch()..start();
@@ -257,6 +262,9 @@ class _AppShellState extends State<AppShell> {
     // Await prefs sync so cloud prayer lead-time is applied before OS sync.
     await _preferencesRepository.sync();
     await prayerNotificationCoordinator.sync(force: true);
+    // Cancel or rebuild AT OS schedules for the *current* identity (cleared on
+    // sign-out; never leave Account A reminders visible for Account B).
+    await atNotificationCoordinator.sync(force: true);
   }
 
   void _onConnectivityChanged() {
@@ -304,7 +312,9 @@ class _AppShellState extends State<AppShell> {
     // Bandeau réseau réel (Airplane Mode, etc.) — pas CloudSyncPhase.offline
     // qui signifie « sync réservée au compte » depuis P7.
     final showOffline = _connectivity.isOffline;
-    final showBeta = kDebugMode && _buildInfo != null;
+    // Private-beta disclosure — visible in debug, profile, and release builds
+    // (not debug-only; Profile/TestFlight must show Marrakech scope).
+    final showBeta = _buildInfo != null;
     // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
     // pour ne pas le rejouer dans Home/Explorer (SafeArea des onglets).
     final hasTopChrome = showBeta || showOffline;
@@ -351,6 +361,7 @@ class _AppShellState extends State<AppShell> {
               repository: _feedbackRepository,
               child: ShellNavigationScope(
                 navigateToTab: _navigateToTab,
+                scrollRegistry: _tabScrollRegistry,
                 child: Scaffold(
                   floatingActionButtonLocation:
                       FloatingActionButtonLocation.endFloat,
@@ -424,18 +435,12 @@ class _AppShellState extends State<AppShell> {
       );
     }
     if (_ownsFavoritesRepository) {
-      shell = FavoritesScope(
-        repository: _favoritesRepository,
-        child: shell,
-      );
+      shell = FavoritesScope(repository: _favoritesRepository, child: shell);
     }
 
     return AuthScope(
       repository: _authRepository,
-      child: ProfileScope(
-        repository: _profileRepository,
-        child: shell,
-      ),
+      child: ProfileScope(repository: _profileRepository, child: shell),
     );
   }
 }

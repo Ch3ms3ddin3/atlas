@@ -37,6 +37,28 @@ void main() {
       expect(location.isFromGps, isFalse);
     });
 
+    test(
+      'la ville préférée prime sur le GPS (pas de rewrite silencieux)',
+      () async {
+        final repository = LocationRepository(
+          geolocatorService: _FixedGeolocatorService(
+            latitude: 31.6295,
+            longitude: -7.9811,
+          ),
+          reverseGeocodingClient: _FakeReverseGeocodingClient('Marrakech'),
+        );
+
+        final location = await repository.resolveLocation(
+          preferredCityName: 'Fès',
+        );
+
+        expect(location.cityName, 'Fès');
+        expect(location.latitude, MoroccoCities.fes.latitude);
+        expect(location.longitude, MoroccoCities.fes.longitude);
+        expect(location.isFromGps, isFalse);
+      },
+    );
+
     test('renvoie la ville géocodée si le GPS est disponible', () async {
       final repository = LocationRepository(
         geolocatorService: _FixedGeolocatorService(
@@ -79,10 +101,7 @@ class _NullGeolocatorService extends GeolocatorService {
 }
 
 class _FixedGeolocatorService extends GeolocatorService {
-  _FixedGeolocatorService({
-    required this.latitude,
-    required this.longitude,
-  });
+  _FixedGeolocatorService({required this.latitude, required this.longitude});
 
   final double latitude;
   final double longitude;

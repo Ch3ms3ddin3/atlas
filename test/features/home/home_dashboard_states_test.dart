@@ -38,6 +38,7 @@ import 'package:atlas/features/profile/domain/models/user_profile.dart';
 import 'package:atlas/features/profile/domain/profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 import 'package:atlas/app/atlas_app.dart';
 import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
@@ -119,6 +120,7 @@ void main() {
                   ),
                   child: ShellNavigationScope(
                     navigateToTab: (_) {},
+                    scrollRegistry: ShellTabScrollRegistry(),
                     child: const Scaffold(body: HomePage()),
                   ),
                 ),

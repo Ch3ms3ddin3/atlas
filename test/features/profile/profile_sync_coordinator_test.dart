@@ -101,5 +101,39 @@ void main() {
       expect(result.changed, isFalse);
       expect(result.shouldPushLocal, isTrue);
     });
+
+    test(
+      'syncPending local (Fès) n\'est pas écrasé par un remote plus récent (Marrakech)',
+      () {
+        const fesProfile = UserProfile(
+          firstName: 'Salma',
+          preferredCity: 'Fès',
+          language: AtlasLanguage.french,
+          userType: AtlasUserType.resident,
+        );
+        const marrakechProfile = UserProfile(
+          firstName: 'Salma',
+          preferredCity: 'Marrakech',
+          language: AtlasLanguage.french,
+          userType: AtlasUserType.resident,
+        );
+
+        final result = ProfileSyncCoordinator.merge(
+          local: ProfileLocalSnapshot(
+            profile: fesProfile,
+            localUpdatedAt: localEditedAt,
+            syncPending: true,
+          ),
+          remote: ProfileRemoteSnapshot(
+            profile: marrakechProfile,
+            updatedAt: remoteEditedAt,
+          ),
+        );
+
+        expect(result.profile.preferredCity, 'Fès');
+        expect(result.changed, isFalse);
+        expect(result.shouldPushLocal, isTrue);
+      },
+    );
   });
 }

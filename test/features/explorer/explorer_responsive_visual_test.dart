@@ -13,6 +13,7 @@ import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 /// Vérifie le rendu Explorer aux largeurs mobile et web (≥720 contenu).
 void main() {
@@ -51,6 +52,7 @@ void main() {
               repository: favorites,
               child: ShellNavigationScope(
                 navigateToTab: (_) {},
+                scrollRegistry: ShellTabScrollRegistry(),
                 child: const Scaffold(body: ExplorerPage()),
               ),
             ),
@@ -66,8 +68,8 @@ void main() {
 
     expect(find.text('Explorer'), findsOneWidget);
     expect(find.text('Place Jemaa el-Fna'), findsWidgets);
-    expect(find.text('✨ Sélection Atlas'), findsOneWidget);
     expect(find.text('Sélection Atlas'), findsWidgets);
+    expect(find.text('✨ Sélection Atlas'), findsNothing);
 
     // Les cartes liste sont sous le hero / featured — scroll pour les matérialiser.
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));

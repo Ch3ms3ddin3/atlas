@@ -15,6 +15,15 @@ void main() {
       expect(env.isConfigured, isFalse);
     });
 
+    test('showSocialAuth est false par défaut', () {
+      const env = AtlasEnv(
+        environment: AtlasEnvironment.development,
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+      );
+      expect(env.showSocialAuth, isFalse);
+    });
+
     test('isConfigured exige URL et clé anon', () {
       const partial = AtlasEnv(
         environment: AtlasEnvironment.staging,

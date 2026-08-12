@@ -48,6 +48,16 @@ abstract final class ProfileSyncCoordinator {
     final localUpdatedAt = local.localUpdatedAt!.toUtc();
     final remoteUpdatedAt = remote.updatedAt.toUtc();
 
+    // Pending local writes must not be overwritten by a stale/newer remote,
+    // even if the server clock is ahead (align with UserPreferencesSyncCoordinator).
+    if (local.syncPending) {
+      return ProfileMergeResult(
+        profile: local.profile,
+        changed: false,
+        shouldPushLocal: true,
+      );
+    }
+
     if (localUpdatedAt.isAfter(remoteUpdatedAt)) {
       return ProfileMergeResult(
         profile: local.profile,

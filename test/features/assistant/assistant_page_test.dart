@@ -16,82 +16,87 @@ import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('AssistantPage affiche suggestions, actions et stream une réponse',
-      (tester) async {
-    final profile = LocalProfileRepository();
-    await profile.load();
-    final favorites = LocalFavoritesRepository();
-    await favorites.load();
-    final at = LocalAtRepository();
-    await at.load();
-    final auth = _UiAuthRepository();
-    final assistant = LocalAssistantRepository(
-      profileRepository: profile,
-      authRepository: auth,
-      favoritesRepository: favorites,
-      atRepository: at,
-      provider: MockAssistantProvider(
-        chunkDelay: Duration.zero,
-        replyBuilder: (messages, context) => 'Conseil Atlas prêt.',
-      ),
-      contextProvider: () async => const AssistantContextSnapshot(
-        city: 'Marrakech',
-        userType: 'resident',
-        language: 'french',
-        authKind: 'anonymous',
-        isSignedIn: false,
-      ),
-    );
-    await assistant.load();
+  testWidgets(
+    'AssistantPage affiche suggestions, actions et stream une réponse',
+    (tester) async {
+      final profile = LocalProfileRepository();
+      await profile.load();
+      final favorites = LocalFavoritesRepository();
+      await favorites.load();
+      final at = LocalAtRepository();
+      await at.load();
+      final auth = _UiAuthRepository();
+      final assistant = LocalAssistantRepository(
+        profileRepository: profile,
+        authRepository: auth,
+        favoritesRepository: favorites,
+        atRepository: at,
+        provider: MockAssistantProvider(
+          chunkDelay: Duration.zero,
+          replyBuilder: (messages, context) => 'Conseil Atlas prêt.',
+        ),
+        contextProvider: () async => const AssistantContextSnapshot(
+          city: 'Marrakech',
+          userType: 'resident',
+          language: 'french',
+          authKind: 'anonymous',
+          isSignedIn: false,
+        ),
+      );
+      await assistant.load();
 
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AtlasTheme.light,
-        home: ProfileScope(
-          repository: profile,
-          child: AssistantScope(
-            repository: assistant,
-            child: ShellNavigationScope(
-              navigateToTab: (_) {},
-              child: const AssistantPage(),
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AtlasTheme.light,
+          home: ProfileScope(
+            repository: profile,
+            child: AssistantScope(
+              repository: assistant,
+              child: ShellNavigationScope(
+                navigateToTab: (_) {},
+                scrollRegistry: ShellTabScrollRegistry(),
+                child: const AssistantPage(),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Assistant Atlas'), findsWidgets);
-    expect(find.text('Suggestions'), findsOneWidget);
-    expect(find.text('Actions Atlas'), findsOneWidget);
-    expect(find.text('Explorer'), findsOneWidget);
+      expect(find.text('Assistant Atlas'), findsWidgets);
+      expect(find.text('Suggestions'), findsOneWidget);
+      expect(find.text('Actions Atlas'), findsOneWidget);
+      expect(find.text('Explorer'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField), 'Que faire aujourd\'hui ?');
-    await tester.tap(find.byTooltip('Envoyer'));
-    await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextField),
+        'Que faire aujourd\'hui ?',
+      );
+      await tester.tap(find.byTooltip('Envoyer'));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('Conseil Atlas prêt.'), findsOneWidget);
-    expect(find.textContaining('tokens aujourd'), findsOneWidget);
-  });
+      expect(find.textContaining('Conseil Atlas prêt.'), findsOneWidget);
+      expect(find.textContaining('tokens aujourd'), findsOneWidget);
+    },
+  );
 }
 
 class _UiAuthRepository extends AuthRepository {
   _UiAuthRepository() : super.base();
 
   @override
-  AuthSession get session => const AuthSession(
-        kind: AuthSessionKind.anonymous,
-        userId: 'anon-ui',
-      );
+  AuthSession get session =>
+      const AuthSession(kind: AuthSessionKind.anonymous, userId: 'anon-ui');
 
   @override
   bool get isLoaded => true;
@@ -103,15 +108,13 @@ class _UiAuthRepository extends AuthRepository {
   Future<AuthActionResult> signUp({
     required String email,
     required String password,
-  }) async =>
-      AuthActionResult.success();
+  }) async => AuthActionResult.success();
 
   @override
   Future<AuthActionResult> signIn({
     required String email,
     required String password,
-  }) async =>
-      AuthActionResult.success();
+  }) async => AuthActionResult.success();
 
   @override
   Future<AuthActionResult> signInWithApple() async =>
@@ -120,7 +123,6 @@ class _UiAuthRepository extends AuthRepository {
   @override
   Future<AuthActionResult> signInWithGoogle() async =>
       AuthActionResult.success();
-
 
   @override
   bool get isPasswordRecoveryPending => false;
@@ -146,6 +148,5 @@ class _UiAuthRepository extends AuthRepository {
   Future<AuthActionResult> signOut() async => AuthActionResult.success();
 
   @override
-  Future<AuthActionResult> deleteAccount() async =>
-      AuthActionResult.success();
+  Future<AuthActionResult> deleteAccount() async => AuthActionResult.success();
 }

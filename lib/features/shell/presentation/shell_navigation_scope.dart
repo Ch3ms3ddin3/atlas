@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'shell_tab_scroll_registry.dart';
+
 /// Indices des onglets du shell (ordre de [AppShell]).
 abstract final class AtlasShellTab {
   static const home = 0;
@@ -15,10 +17,12 @@ class ShellNavigationScope extends InheritedWidget {
   const ShellNavigationScope({
     super.key,
     required this.navigateToTab,
+    required this.scrollRegistry,
     required super.child,
   });
 
   final void Function(int index) navigateToTab;
+  final ShellTabScrollRegistry scrollRegistry;
 
   static ShellNavigationScope? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ShellNavigationScope>();
@@ -47,5 +51,6 @@ class ShellNavigationScope extends InheritedWidget {
       goToTab(context, AtlasShellTab.profile);
 
   @override
-  bool updateShouldNotify(ShellNavigationScope oldWidget) => false;
+  bool updateShouldNotify(ShellNavigationScope oldWidget) =>
+      !identical(scrollRegistry, oldWidget.scrollRegistry);
 }

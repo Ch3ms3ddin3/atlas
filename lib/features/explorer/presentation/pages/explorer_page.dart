@@ -21,6 +21,7 @@ import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../../shell/presentation/shell_tab_scroll_binding.dart';
 import '../../data/place_mapper.dart';
 import '../../data/resilient_place_repository.dart';
 import '../../domain/models/place_models.dart';
@@ -46,7 +47,8 @@ class ExplorerPage extends StatefulWidget {
   State<ExplorerPage> createState() => _ExplorerPageState();
 }
 
-class _ExplorerPageState extends State<ExplorerPage> {
+class _ExplorerPageState extends State<ExplorerPage>
+    with ShellTabScrollBinding {
   static const _searchDebounce = Duration(milliseconds: 200);
   static const _wideBreakpoint = 720.0;
 
@@ -56,6 +58,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final FocusNode _searchFocus = FocusNode();
   final ScrollController _scrollController = ScrollController();
   final PlaceBrowseFilters _browseFilters = PlaceBrowseFilters.instance;
+
+  @override
+  int get shellTabIndex => AtlasShellTab.explorer;
+
+  @override
+  ScrollController get tabScrollController => _scrollController;
 
   String _cityName = LocationConstants.fallbackCity;
   bool _isCityCovered = true;
@@ -95,6 +103,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    bindShellTabScroll();
     final repository = ProfileScope.of(context);
     if (!identical(repository, _profileRepository)) {
       _profileRepository?.removeListener(_onProfileChanged);
@@ -116,6 +125,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   @override
   void dispose() {
+    unbindShellTabScroll();
     _searchDebounceTimer?.cancel();
     _profileRepository?.removeListener(_onProfileChanged);
     _favoritesRepository?.removeListener(_onFavoritesChanged);
@@ -505,7 +515,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           AtlasReveal(
                             delay: AtlasMotion.staggerDelay * 3,
                             child: const HomeSectionHeader(
-                              title: '✨ Sélection Atlas',
+                              title: 'Sélection Atlas',
                             ),
                           ),
                           const SizedBox(height: AtlasSpacing.md),

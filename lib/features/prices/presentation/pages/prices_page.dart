@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/editorial/editorial_catalog_load_state.dart';
 import '../../../../core/location/location_constants.dart';
-import '../../../../core/location/location_repository.dart';
+import '../../../../core/location/morocco_cities.dart';
 import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
@@ -14,6 +14,8 @@ import '../../../favorites/presentation/favorites_page_wrapper.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
+import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../../shell/presentation/shell_tab_scroll_binding.dart';
 import '../../data/resilient_price_intelligence_repository.dart';
 import '../../domain/models/price_observation.dart';
 import '../../domain/price_intelligence_repository.dart';
@@ -33,13 +35,18 @@ class PricesPage extends StatefulWidget {
   State<PricesPage> createState() => _PricesPageState();
 }
 
-class _PricesPageState extends State<PricesPage> {
+class _PricesPageState extends State<PricesPage> with ShellTabScrollBinding {
   static const _wideBreakpoint = 840.0;
 
   final PriceIntelligenceRepository _repository = PriceIntelligenceRepository();
-  final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  int get shellTabIndex => AtlasShellTab.prices;
+
+  @override
+  ScrollController get tabScrollController => _scrollController;
 
   String _cityName = LocationConstants.fallbackCity;
   PriceIntelligenceCategory? _selectedCategory;
@@ -65,16 +72,20 @@ class _PricesPageState extends State<PricesPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    bindShellTabScroll();
     final repository = ProfileScope.of(context);
     if (!identical(repository, _profileRepository)) {
       _profileRepository?.removeListener(_onProfileChanged);
       _profileRepository = repository;
       _profileRepository!.addListener(_onProfileChanged);
+      // Profile may attach after initState; sync preferred city immediately.
+      _syncCityFromProfile();
     }
   }
 
   @override
   void dispose() {
+    unbindShellTabScroll();
     _searchDebounce?.cancel();
     _profileRepository?.removeListener(_onProfileChanged);
     if (_repository is Listenable) {
@@ -104,7 +115,7 @@ class _PricesPageState extends State<PricesPage> {
 
   void _onProfileChanged() {
     if (!mounted) return;
-    unawaited(_resolveLocation());
+    _syncCityFromProfile();
   }
 
   void _onSearchChanged() {
@@ -115,18 +126,24 @@ class _PricesPageState extends State<PricesPage> {
     });
   }
 
-  Future<void> _resolveLocation() async {
+  /// Prix filter city follows profile preferred city — never GPS rewrite.
+  void _syncCityFromProfile() {
     final preferredCity =
         _profileRepository?.profile.preferredCity ??
         UserProfile.defaultPreferredCity;
-    final location = await _locationRepository.resolveLocation(
-      preferredCityName: preferredCity,
-    );
+    final resolved =
+        MoroccoCities.resolve(preferredCity)?.name ??
+        UserProfile.defaultPreferredCity;
     if (!mounted) return;
     setState(() {
-      _cityName = location.cityName;
+      _cityName = resolved;
       _applyFilters(notify: false);
     });
+  }
+
+  Future<void> _resolveLocation() async {
+    // Keep async entry for init/warm paths; city comes from profile only.
+    _syncCityFromProfile();
   }
 
   void _applyFilters({bool notify = true}) {
@@ -196,10 +213,7 @@ class _PricesPageState extends State<PricesPage> {
                         const SizedBox(height: AtlasSpacing.xxl),
                         AtlasPageHeader(
                           title: 'Prix',
-                          subtitle:
-                              'Tarifs vérifiés pour Marrakech — billets culturels '
-                              'et monuments, plus forfaits mobile et internet '
-                              'nationaux. Aucune valeur inventée.',
+                          subtitle: _headerSubtitle,
                         ),
                         const SizedBox(height: AtlasSpacing.md),
                         PriceIntelligenceStatusIndicator(loadState: _loadState),
@@ -311,13 +325,24 @@ class _PricesPageState extends State<PricesPage> {
     );
   }
 
+  String get _headerSubtitle {
+    if (_cityName == LocationConstants.fallbackCity) {
+      return 'Tarifs vérifiés pour Marrakech — billets culturels '
+          'et monuments, plus forfaits mobile et internet '
+          'nationaux. Aucune valeur inventée.';
+    }
+    return 'Tarifs vérifiés pour $_cityName lorsqu\'ils existent, '
+        'plus forfaits nationaux applicables. '
+        'Aucune valeur inventée.';
+  }
+
   String get _emptyMessage {
     final hasFilters =
         _searchController.text.trim().isNotEmpty || _selectedCategory != null;
     if (hasFilters) {
       return 'Aucun prix vérifié ne correspond à ces filtres.';
     }
-    return 'Aucun prix vérifié pour $_cityName pour le moment. '
+    return 'Pas encore de tarifs vérifiés pour $_cityName. '
         'Atlas n\'affiche que des tarifs sourcés — aucune valeur inventée.';
   }
 }

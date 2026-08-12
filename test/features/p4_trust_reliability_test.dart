@@ -36,6 +36,7 @@ import 'package:atlas/features/prices/presentation/widgets/price_intelligence_ca
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 void main() {
   setUpAll(() {
@@ -223,6 +224,7 @@ void main() {
                       repository: itinerary,
                       child: ShellNavigationScope(
                         navigateToTab: (_) {},
+                        scrollRegistry: ShellTabScrollRegistry(),
                         child: Builder(
                           builder: (context) {
                             return Scaffold(

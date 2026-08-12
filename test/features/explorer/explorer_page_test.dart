@@ -19,6 +19,7 @@ import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 void main() {
   setUpAll(() {
@@ -60,6 +61,7 @@ void main() {
             repository: favoritesRepository,
             child: ShellNavigationScope(
               navigateToTab: (_) {},
+              scrollRegistry: ShellTabScrollRegistry(),
               child: const Scaffold(body: ExplorerPage()),
             ),
           ),
@@ -77,7 +79,8 @@ void main() {
       find.textContaining('Sélection Atlas pour Marrakech'),
       findsOneWidget,
     );
-    expect(find.text('✨ Sélection Atlas'), findsOneWidget);
+    expect(find.text('Sélection Atlas'), findsWidgets);
+    expect(find.text('✨ Sélection Atlas'), findsNothing);
     // Featured card is Jemaa (first beta core), Majorelle still in list.
     expect(find.text('Place Jemaa el-Fna'), findsWidgets);
     expect(find.text('Jardin Majorelle'), findsWidgets);

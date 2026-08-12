@@ -19,6 +19,7 @@ import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 
 const _cafeIds = <String>{
   'place-bacha-coffee',
@@ -87,40 +88,31 @@ void main() {
           ),
         );
         expect(places.map((p) => p.id).toSet(), _cafeIds);
-        expect(
-          places.every((p) => p.category == PlaceCategory.cafe),
-          isTrue,
-        );
+        expect(places.every((p) => p.category == PlaceCategory.cafe), isTrue);
       },
     );
 
-    test(
-      'PlaceMapper: texte « coffee » renvoie les 5 cafés Marrakech',
-      () {
-        final places = PlaceMapper.filter(
-          const PlaceSearchQuery(
-            text: 'coffee',
-            cityName: 'Marrakech',
-            strictCity: true,
-          ),
-        );
-        expect(places.map((p) => p.id).toSet(), _cafeIds);
-      },
-    );
+    test('PlaceMapper: texte « coffee » renvoie les 5 cafés Marrakech', () {
+      final places = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          text: 'coffee',
+          cityName: 'Marrakech',
+          strictCity: true,
+        ),
+      );
+      expect(places.map((p) => p.id).toSet(), _cafeIds);
+    });
 
-    test(
-      'PlaceMapper: puce Café seule renvoie les 5 cafés Marrakech',
-      () {
-        final places = PlaceMapper.filter(
-          const PlaceSearchQuery(
-            category: PlaceCategory.cafe,
-            cityName: 'Marrakech',
-            strictCity: true,
-          ),
-        );
-        expect(places.map((p) => p.id).toSet(), _cafeIds);
-      },
-    );
+    test('PlaceMapper: puce Café seule renvoie les 5 cafés Marrakech', () {
+      final places = PlaceMapper.filter(
+        const PlaceSearchQuery(
+          category: PlaceCategory.cafe,
+          cityName: 'Marrakech',
+          strictCity: true,
+        ),
+      );
+      expect(places.map((p) => p.id).toSet(), _cafeIds);
+    });
 
     test(
       'ResilientPlaceRepository (chemin Explorer): search café après warmUp distant vieux',
@@ -202,6 +194,7 @@ void main() {
               repository: favoritesRepository,
               child: ShellNavigationScope(
                 navigateToTab: (_) {},
+                scrollRegistry: ShellTabScrollRegistry(),
                 child: const Scaffold(body: ExplorerPage()),
               ),
             ),
@@ -211,42 +204,38 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets(
-      'Marrakech + puce Café affiche les 5 cafés',
-      (tester) async {
-        await pumpExplorer(tester);
+    testWidgets('Marrakech + puce Café affiche les 5 cafés', (tester) async {
+      await pumpExplorer(tester);
 
-        await tester.tap(find.text('Marrakech'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Marrakech'));
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Café').first);
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Café').first);
+      await tester.pumpAndSettle();
 
-        expect(find.byType(ExplorerEmptyState), findsNothing);
-        for (final name in _cafeNames) {
-          expect(find.text(name), findsWidgets, reason: name);
-        }
-        expect(find.byType(PlaceGuideCard), findsNWidgets(5));
-      },
-    );
+      expect(find.byType(ExplorerEmptyState), findsNothing);
+      for (final name in _cafeNames) {
+        expect(find.text(name), findsWidgets, reason: name);
+      }
+      expect(find.byType(PlaceGuideCard), findsNWidgets(5));
+    });
 
-    testWidgets(
-      'Marrakech + recherche « coffee » affiche les 5 cafés',
-      (tester) async {
-        await pumpExplorer(tester);
+    testWidgets('Marrakech + recherche « coffee » affiche les 5 cafés', (
+      tester,
+    ) async {
+      await pumpExplorer(tester);
 
-        await tester.tap(find.text('Marrakech'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Marrakech'));
+      await tester.pumpAndSettle();
 
-        await tester.enterText(find.byType(TextField), 'coffee');
-        await tester.pump(const Duration(milliseconds: 250));
-        await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'coffee');
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
 
-        expect(find.byType(ExplorerEmptyState), findsNothing);
-        for (final name in _cafeNames) {
-          expect(find.text(name), findsWidgets, reason: name);
-        }
-      },
-    );
+      expect(find.byType(ExplorerEmptyState), findsNothing);
+      for (final name in _cafeNames) {
+        expect(find.text(name), findsWidgets, reason: name);
+      }
+    });
   });
 }

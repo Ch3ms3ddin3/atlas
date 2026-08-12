@@ -23,17 +23,16 @@ class PrayerNotificationCoordinator {
     PrayerNotificationScheduler? scheduler,
     ProfilePreferencesStore? profilePreferencesStore,
     UserPreferencesStore? userPreferencesStore,
-  })  : _preferencesStore =
-            preferencesStore ?? const NotificationPreferencesStore(),
-        _notificationService =
-            notificationService ?? LocalNotificationService(),
-        _prayerRepository = prayerRepository ?? PrayerRepository.instance,
-        _locationRepository = locationRepository ?? LocationRepository(),
-        _scheduler = scheduler ?? const PrayerNotificationScheduler(),
-        _profilePreferencesStore =
-            profilePreferencesStore ?? const ProfilePreferencesStore(),
-        _userPreferencesStore =
-            userPreferencesStore ?? const UserPreferencesStore();
+  }) : _preferencesStore =
+           preferencesStore ?? const NotificationPreferencesStore(),
+       _notificationService = notificationService ?? LocalNotificationService(),
+       _prayerRepository = prayerRepository ?? PrayerRepository.instance,
+       _locationRepository = locationRepository ?? LocationRepository(),
+       _scheduler = scheduler ?? const PrayerNotificationScheduler(),
+       _profilePreferencesStore =
+           profilePreferencesStore ?? const ProfilePreferencesStore(),
+       _userPreferencesStore =
+           userPreferencesStore ?? const UserPreferencesStore();
 
   final NotificationPreferencesStore _preferencesStore;
   final LocalNotificationService _notificationService;
@@ -68,6 +67,8 @@ class PrayerNotificationCoordinator {
     if (leadTime != PrayerNotificationLeadTime.disabled) {
       if (kIsWeb) return false;
 
+      // Deterministic before deferred bootstrap: never silently no-op schedule.
+      await _notificationService.initialize();
       final granted = await _notificationService.requestPermission();
       if (!granted) return false;
 

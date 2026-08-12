@@ -7,6 +7,8 @@ import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../../design_system/widgets/atlas_page_header.dart';
 import '../../../home/presentation/widgets/home_section_header.dart';
 import '../../../favorites/presentation/favorites_page_wrapper.dart';
+import '../../../shell/presentation/shell_navigation_scope.dart';
+import '../../../shell/presentation/shell_tab_scroll_binding.dart';
 import '../../domain/procedure_repository.dart';
 import '../../domain/models/procedure_models.dart';
 import '../pages/procedure_detail_page.dart';
@@ -21,12 +23,20 @@ class ProceduresPage extends StatefulWidget {
   State<ProceduresPage> createState() => _ProceduresPageState();
 }
 
-class _ProceduresPageState extends State<ProceduresPage> {
+class _ProceduresPageState extends State<ProceduresPage>
+    with ShellTabScrollBinding {
   final ProcedureRepository _repository = ProcedureRepository();
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   ProcedureCategory? _selectedCategory;
   List<ProcedureGuide> _guides = const [];
+
+  @override
+  int get shellTabIndex => AtlasShellTab.procedures;
+
+  @override
+  ScrollController get tabScrollController => _scrollController;
 
   @override
   void initState() {
@@ -36,8 +46,16 @@ class _ProceduresPageState extends State<ProceduresPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    bindShellTabScroll();
+  }
+
+  @override
   void dispose() {
+    unbindShellTabScroll();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -72,6 +90,7 @@ class _ProceduresPageState extends State<ProceduresPage> {
       child: AtlasContentContainer(
         child: CustomScrollView(
           key: const PageStorageKey<String>('procedures_scroll'),
+          controller: _scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Column(

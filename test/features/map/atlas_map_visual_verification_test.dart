@@ -17,6 +17,7 @@ import 'package:atlas/features/map/presentation/widgets/place_map_preview_sheet.
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:atlas/features/shell/presentation/shell_navigation_scope.dart';
+import 'package:atlas/features/shell/presentation/shell_tab_scroll_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
@@ -145,10 +146,8 @@ void main() {
                   return Scaffold(
                     body: Center(
                       child: TextButton(
-                        onPressed: () => showPlaceMapPreviewSheet(
-                          context,
-                          place: place,
-                        ),
+                        onPressed: () =>
+                            showPlaceMapPreviewSheet(context, place: place),
                         child: const Text('open-preview'),
                       ),
                     ),
@@ -220,7 +219,10 @@ void main() {
         filters: PlaceBrowseFilters.instance
           ..setCityName('Marrakech', notify: false),
       );
-      expect(markers.any((m) => m.placeId == 'place-hammam-marrakech'), isFalse);
+      expect(
+        markers.any((m) => m.placeId == 'place-hammam-marrakech'),
+        isFalse,
+      );
       expect(
         markers.every((m) => m.latitude.isFinite && m.longitude.isFinite),
         isTrue,
@@ -253,6 +255,7 @@ void main() {
               navigateToTab: (index) {
                 if (index == AtlasShellTab.map) openedMap = true;
               },
+              scrollRegistry: ShellTabScrollRegistry(),
               child: const Scaffold(body: ExplorerPage()),
             ),
           ),

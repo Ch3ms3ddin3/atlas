@@ -19,10 +19,10 @@ enum AtlasEnvironment {
   }
 
   String get label => switch (this) {
-        AtlasEnvironment.development => 'development',
-        AtlasEnvironment.staging => 'staging',
-        AtlasEnvironment.production => 'production',
-      };
+    AtlasEnvironment.development => 'development',
+    AtlasEnvironment.staging => 'staging',
+    AtlasEnvironment.production => 'production',
+  };
 }
 
 /// Configuration compile-time lue via `--dart-define-from-file`.
@@ -33,6 +33,7 @@ class AtlasEnv {
     required this.environment,
     required this.supabaseUrl,
     required this.supabaseAnonKey,
+    this.showSocialAuth = false,
   });
 
   /// Valeurs injectées à la compilation (`--dart-define-from-file`).
@@ -41,15 +42,27 @@ class AtlasEnv {
       environment: AtlasEnvironment.parse(
         const String.fromEnvironment('ATLAS_ENV', defaultValue: 'development'),
       ),
-      supabaseUrl: const String.fromEnvironment('SUPABASE_URL', defaultValue: ''),
-      supabaseAnonKey:
-          const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: ''),
+      supabaseUrl: const String.fromEnvironment(
+        'SUPABASE_URL',
+        defaultValue: '',
+      ),
+      supabaseAnonKey: const String.fromEnvironment(
+        'SUPABASE_ANON_KEY',
+        defaultValue: '',
+      ),
+      showSocialAuth: const bool.fromEnvironment(
+        'SHOW_SOCIAL_AUTH',
+        defaultValue: false,
+      ),
     );
   }
 
   final AtlasEnvironment environment;
   final String supabaseUrl;
   final String supabaseAnonKey;
+
+  /// Apple/Google OAuth buttons — off by default for Marrakech private beta.
+  final bool showSocialAuth;
 
   /// `true` lorsque l'URL et la clé anon publique sont fournies.
   bool get isSupabaseConfigured =>

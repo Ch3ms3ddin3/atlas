@@ -231,6 +231,58 @@ void main() {
     );
 
     test(
+      'syncPending Fès gagne contre remote Marrakech plus récent au reload',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final store = ProfilePreferencesStore();
+        await store.saveProfile(
+          const UserProfile(
+            firstName: 'Salma',
+            preferredCity: 'Fès',
+            language: AtlasLanguage.french,
+            userType: AtlasUserType.resident,
+          ),
+          localUpdatedAt: DateTime.utc(2026, 8, 1),
+        );
+        await store.setSyncPending(true);
+
+        final remote = _DelayedRemoteRepository(
+          delay: Duration.zero,
+          remote: ProfileRemoteSnapshot(
+            profile: const UserProfile(
+              firstName: 'Salma',
+              preferredCity: 'Marrakech',
+              language: AtlasLanguage.french,
+              userType: AtlasUserType.resident,
+            ),
+            updatedAt: DateTime.utc(2026, 8, 12),
+          ),
+        );
+
+        final repository = SyncingProfileRepository(
+          store: store,
+          env: const AtlasEnv(
+            environment: AtlasEnvironment.development,
+            supabaseUrl: 'https://example.supabase.co',
+            supabaseAnonKey: 'anon-key',
+          ),
+          remote: remote,
+          userIdProvider: () => 'user-1',
+          syncEnabledOverride: true,
+          syncTimeout: const Duration(seconds: 2),
+        );
+
+        await repository.load();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(repository.profile.preferredCity, 'Fès');
+        final snapshot = await store.loadSnapshot();
+        expect(snapshot.profile.preferredCity, 'Fès');
+        expect(remote.lastUpserted?.preferredCity, 'Fès');
+      },
+    );
+
+    test(
       'save refuse un profil invalide sans écraser l\'identité locale',
       () async {
         SharedPreferences.setMockInitialValues({});
@@ -334,10 +386,8 @@ class _CapturingRemoteRepository extends SupabaseProfileRepository {
 }
 
 class _DelayedRemoteRepository extends SupabaseProfileRepository {
-  _DelayedRemoteRepository({
-    required this.delay,
-    required this.remote,
-  }) : super(clientProvider: () => throw StateError('no client'));
+  _DelayedRemoteRepository({required this.delay, required this.remote})
+    : super(clientProvider: () => throw StateError('no client'));
 
   final Duration delay;
   final ProfileRemoteSnapshot remote;

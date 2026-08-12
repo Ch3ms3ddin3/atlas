@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/config/atlas_env.dart';
 import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../data/auth_credentials_validator.dart';
@@ -10,18 +11,24 @@ enum AuthFormMode { signUp, signIn, resetPassword }
 
 /// Formulaire de connexion / inscription / reset dans une feuille modale.
 class AuthFormSheet extends StatefulWidget {
-  const AuthFormSheet({
+  AuthFormSheet({
     super.key,
     required this.initialMode,
     this.scaffoldMessenger,
-  });
+    bool? showSocialAuth,
+  }) : showSocialAuth =
+           showSocialAuth ?? AtlasEnv.fromCompileTime().showSocialAuth;
 
   final AuthFormMode initialMode;
   final ScaffoldMessengerState? scaffoldMessenger;
 
+  /// Apple/Google — off by default (`SHOW_SOCIAL_AUTH`); email remains primary.
+  final bool showSocialAuth;
+
   static Future<void> show(
     BuildContext context, {
     required AuthFormMode initialMode,
+    bool? showSocialAuth,
   }) {
     final repository = AuthScope.read(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -40,6 +47,7 @@ class AuthFormSheet extends StatefulWidget {
             child: AuthFormSheet(
               initialMode: initialMode,
               scaffoldMessenger: scaffoldMessenger,
+              showSocialAuth: showSocialAuth,
             ),
           ),
         );
@@ -130,9 +138,7 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
         SnackBar(
           content: Text(_successMessageFor(result)),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(
-            seconds: result.requiresEmailConfirmation ? 5 : 3,
-          ),
+          duration: Duration(seconds: result.requiresEmailConfirmation ? 5 : 3),
         ),
       );
   }
@@ -188,8 +194,8 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
               isReset
                   ? 'Réinitialiser le mot de passe'
                   : isSignUp
-                      ? 'Créer un compte'
-                      : 'Se connecter',
+                  ? 'Créer un compte'
+                  : 'Se connecter',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -198,20 +204,20 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
             Text(
               isReset
                   ? 'Nous enverrons un lien sécurisé si un compte est associé '
-                      'à cette adresse. Ouvrez-le sur cet appareil pour choisir '
-                      'un nouveau mot de passe.'
+                        'à cette adresse. Ouvrez-le sur cet appareil pour choisir '
+                        'un nouveau mot de passe.'
                   : isSignUp
-                      ? 'Liez la session invitée à un e-mail. Un message de '
-                          'confirmation d\'adresse sera envoyé — validez-le '
-                          'avant de vous connecter pleinement.'
-                      : 'Connectez-vous pour synchroniser vos données Atlas. '
-                          'E-mail non confirmé ? Validez d\'abord le lien reçu.',
+                  ? 'Liez la session invitée à un e-mail. Un message de '
+                        'confirmation d\'adresse sera envoyé — validez-le '
+                        'avant de vous connecter pleinement.'
+                  : 'Connectez-vous pour synchroniser vos données Atlas. '
+                        'E-mail non confirmé ? Validez d\'abord le lien reçu.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.45,
               ),
             ),
-            if (!isReset) ...[
+            if (!isReset && widget.showSocialAuth) ...[
               const SizedBox(height: AtlasSpacing.lg),
               OutlinedButton.icon(
                 onPressed: _isSubmitting
@@ -263,9 +269,7 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
                 controller: _passwordController,
                 obscureText: true,
                 autocorrect: false,
-                decoration: const InputDecoration(
-                  labelText: 'Mot de passe',
-                ),
+                decoration: const InputDecoration(labelText: 'Mot de passe'),
               ),
             ],
             if (isSignUp) ...[
@@ -302,8 +306,8 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
                       isReset
                           ? 'Envoyer le lien'
                           : isSignUp
-                              ? 'Créer mon compte'
-                              : 'Se connecter',
+                          ? 'Créer mon compte'
+                          : 'Se connecter',
                     ),
             ),
             if (!isReset && !isSignUp) ...[
@@ -312,9 +316,9 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
                 onPressed: _isSubmitting
                     ? null
                     : () => setState(() {
-                          _mode = AuthFormMode.resetPassword;
-                          _formError = null;
-                        }),
+                        _mode = AuthFormMode.resetPassword;
+                        _formError = null;
+                      }),
                 child: const Text('Mot de passe oublié ?'),
               ),
             ],
@@ -323,17 +327,17 @@ class _AuthFormSheetState extends State<AuthFormSheet> {
               onPressed: _isSubmitting
                   ? null
                   : () => setState(() {
-                        _mode = isSignUp || isReset
-                            ? AuthFormMode.signIn
-                            : AuthFormMode.signUp;
-                        _formError = null;
-                      }),
+                      _mode = isSignUp || isReset
+                          ? AuthFormMode.signIn
+                          : AuthFormMode.signUp;
+                      _formError = null;
+                    }),
               child: Text(
                 isReset
                     ? 'Retour à la connexion'
                     : isSignUp
-                        ? 'Déjà un compte ? Se connecter'
-                        : 'Pas de compte ? Créer un compte',
+                    ? 'Déjà un compte ? Se connecter'
+                    : 'Pas de compte ? Créer un compte',
               ),
             ),
           ],
