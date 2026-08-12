@@ -14,7 +14,8 @@ enum PlaceCategory {
 
 /// Ordre d'affichage de la liste Explorer.
 enum PlaceSort {
-  /// Ordre éditorial du catalogue (défaut).
+  /// Ordre Atlas : sélections éditoriales en tête, puis le reste du catalogue.
+  /// Ce n'est pas un score de popularité ni un classement « trending ».
   catalog,
 
   /// Nom A → Z.

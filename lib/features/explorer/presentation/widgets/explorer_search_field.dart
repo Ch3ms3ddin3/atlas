@@ -53,6 +53,11 @@ class ExplorerSearchField extends StatelessWidget {
           focusNode: focusNode,
           onChanged: (_) => onChanged(),
           textInputAction: TextInputAction.search,
+          // Évite les corrections iOS (ex. « plus ») qui masquent les matches alphanumériques.
+          autocorrect: false,
+          enableSuggestions: false,
+          smartDashesType: SmartDashesType.disabled,
+          smartQuotesType: SmartQuotesType.disabled,
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: 'Rechercher un lieu…',

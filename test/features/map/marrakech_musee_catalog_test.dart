@@ -16,16 +16,16 @@ void main() {
   tearDown(PlaceBrowseFilters.resetForTest);
 
   const expectedMuseums = <String, ({double lat, double lng, bool selection})>{
-    'place-ysl-museum': (lat: 31.642543, lng: -8.003420, selection: false),
+    'place-ysl-museum': (lat: 31.642543, lng: -8.003420, selection: true),
     'place-musee-dar-el-bacha': (
       lat: 31.631387,
       lng: -7.992353,
-      selection: false,
+      selection: true,
     ),
     'place-maison-de-la-photographie': (
       lat: 31.631986,
       lng: -7.984367,
-      selection: false,
+      selection: true,
     ),
     'place-macaal': (lat: 31.600067, lng: -7.949914, selection: true),
   };
@@ -45,7 +45,7 @@ void main() {
     );
   });
 
-  test('exact verified coordinates and MACAAL-only Selection', () {
+  test('exact verified coordinates and musée beta Selection', () {
     for (final entry in expectedMuseums.entries) {
       final place = PlaceCatalog.guides.firstWhere((p) => p.id == entry.key);
       expect(place.cityName, 'Marrakech');
@@ -74,7 +74,7 @@ void main() {
             p.category == PlaceCategory.musee &&
             p.isEditorsPick,
       ),
-      hasLength(1),
+      hasLength(4),
     );
     expect(
       PlaceCatalog.guides

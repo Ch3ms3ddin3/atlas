@@ -81,8 +81,9 @@ void main() {
       expect(find.text('4.8'), findsNothing);
       expect(find.text('4.7'), findsNothing);
       expect(find.byIcon(Icons.near_me_outlined), findsNothing);
-      expect(find.byIcon(Icons.place_outlined), findsOneWidget);
+      // Quartier appears in the category line — not as a duplicate place chip.
       expect(find.textContaining(place.neighborhood), findsWidgets);
+      expect(find.byIcon(Icons.place_outlined), findsNothing);
     });
 
     testWidgets('featured card has no invented star rating', (tester) async {
@@ -106,7 +107,7 @@ void main() {
 
       expect(find.byIcon(Icons.star_rounded), findsNothing);
       expect(find.text('4.9'), findsNothing);
-      expect(find.byIcon(Icons.place_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.place_outlined), findsNothing);
     });
   });
 
@@ -351,7 +352,6 @@ class _StubAuth extends AuthRepository {
   @override
   Future<AuthActionResult> signInWithGoogle() async =>
       AuthActionResult.success();
-
 
   @override
   bool get isPasswordRecoveryPending => false;

@@ -87,8 +87,11 @@ void main() {
 
     await tapBottomNav(tester, 'Explorer');
 
-    expect(find.textContaining('Marrakech, Casablanca et Rabat'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsWidgets);
+    expect(
+      find.textContaining('Sélection Atlas pour Marrakech'),
+      findsOneWidget,
+    );
+    expect(find.text('Place Jemaa el-Fna'), findsWidgets);
 
     await tapBottomNav(tester, 'Carte');
     expect(find.text('Carte'), findsWidgets);
@@ -105,7 +108,7 @@ void main() {
 
     await tapBottomNav(tester, 'Prix');
 
-    expect(find.textContaining('Prix vérifiés'), findsOneWidget);
+    expect(find.textContaining('Tarifs vérifiés'), findsOneWidget);
 
     await tapBottomNav(tester, 'Profil');
 
@@ -140,7 +143,6 @@ void main() {
     expect(find.text('il y a 5 min'), findsNothing);
     expect(find.text('Mes favoris'), findsNothing);
     expect(find.text('Démarches utiles'), findsNothing);
-    expect(find.text('Prix à la une'), findsNothing);
   });
 
   testWidgets('Un repère de prix ouvre le détail', (WidgetTester tester) async {
@@ -183,7 +185,10 @@ void main() {
     await tester.tap(explorerAction);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Marrakech, Casablanca et Rabat'), findsOneWidget);
+    expect(
+      find.textContaining('Sélection Atlas pour Marrakech'),
+      findsOneWidget,
+    );
 
     await tapBottomNav(tester, 'Accueil');
 

@@ -128,7 +128,7 @@ void main() {
 
     expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Jardin'), findsOneWidget);
-    expect(find.text('Gueliz · Marrakech'), findsOneWidget);
+    expect(find.text('Guéliz · Marrakech'), findsOneWidget);
     expect(find.text('Sélection Atlas'), findsOneWidget);
     expect(find.textContaining('Jardin botanique'), findsOneWidget);
     expect(find.text('Conseils pratiques'), findsOneWidget);

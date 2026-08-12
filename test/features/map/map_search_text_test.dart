@@ -31,5 +31,40 @@ void main() {
       expect(MapSearchText.matchesQuery('gueliz', haystack), isTrue);
       expect(MapSearchText.matchesQuery('plage', haystack), isFalse);
     });
+
+    test('placeMatches supports progressive name prefixes', () {
+      expect(
+        MapSearchText.placeMatches(
+          query: 'plus',
+          name: 'Plus61',
+          summary: 'Bistro',
+          neighborhood: 'Guéliz',
+          categoryLabel: 'Restaurant',
+          placeId: 'place-plus61',
+        ),
+        isTrue,
+      );
+      expect(
+        MapSearchText.placeMatches(
+          query: 'plus',
+          name: '+61',
+          summary: 'Sans le mot plus dans le résumé.',
+          neighborhood: 'Guéliz',
+          categoryLabel: 'Restaurant',
+          placeId: 'place-plus61',
+        ),
+        isTrue,
+      );
+      expect(
+        MapSearchText.placeMatches(
+          query: 'youss',
+          name: 'Médersa Ben Youssef',
+          summary: 'Résumé sans le mot',
+          neighborhood: 'Médina',
+          categoryLabel: 'Monument',
+        ),
+        isTrue,
+      );
+    });
   });
 }

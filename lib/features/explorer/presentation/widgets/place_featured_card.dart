@@ -164,10 +164,6 @@ class PlaceFeaturedCard extends StatelessWidget {
                         icon: Icons.payments_outlined,
                         label: place.priceLevel,
                       ),
-                      _MetaItem(
-                        icon: Icons.place_outlined,
-                        label: PlaceDisplayHelpers.neighborhoodLabel(place),
-                      ),
                     ],
                   ),
                   const SizedBox(height: AtlasSpacing.lg),

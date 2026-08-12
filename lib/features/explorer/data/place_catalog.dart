@@ -6,12 +6,35 @@ import '../domain/models/place_models.dart';
 abstract final class PlaceCatalog {
   static const guides = <PlaceGuide>[
     PlaceGuide(
+      id: 'place-jemaa-el-fna',
+      name: 'Place Jemaa el-Fna',
+      cityName: 'Marrakech',
+      category: PlaceCategory.souk,
+      categoryLabel: 'Souk',
+      neighborhood: 'Médina',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF8B4513),
+      summary:
+          'Cœur battant de la Médina — spectacles de rue, étals de nourriture '
+          'et artisanat dès la tombée du jour.',
+      bestTimeToVisit: 'Fin d\'après-midi et soirée',
+      mapsUrl: 'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech',
+      latitude: 31.6258,
+      longitude: -7.9891,
+      practicalTips: [
+        'Négociez les prix dans les souks — c\'est la coutume.',
+        'Goûtez les jus d\'orange frais des étals de la place.',
+        'Restez vigilant sur vos affaires dans la foule du soir.',
+      ],
+    ),
+    PlaceGuide(
       id: 'place-majorelle',
       name: 'Jardin Majorelle',
       cityName: 'Marrakech',
       category: PlaceCategory.jardin,
       categoryLabel: 'Jardin',
-      neighborhood: 'Gueliz',
+      neighborhood: 'Guéliz',
       priceLevel: '€€€',
       isEditorsPick: true,
       imageColor: Color(0xFF2D6A4F),
@@ -40,7 +63,7 @@ abstract final class PlaceCatalog {
       categoryLabel: 'Monument',
       neighborhood: 'Médina',
       priceLevel: '€€',
-      isEditorsPick: false,
+      isEditorsPick: true,
       imageColor: Color(0xFFC4654A),
       summary:
           'Palais viziral du XIXe siècle : enfilade de patios, zellige et '
@@ -72,7 +95,7 @@ abstract final class PlaceCatalog {
       categoryLabel: 'Monument',
       neighborhood: 'Médina',
       priceLevel: '€',
-      isEditorsPick: false,
+      isEditorsPick: true,
       imageColor: Color(0xFF8B6B4A),
       // Cover: Supabase Storage (CC BY 3.0 derivative — see PLACE_PHOTOS / ledger).
       imageUrls: [
@@ -144,26 +167,76 @@ abstract final class PlaceCatalog {
       ],
     ),
     PlaceGuide(
-      id: 'place-jemaa-el-fna',
-      name: 'Place Jemaa el-Fna',
+      id: 'place-el-badi',
+      name: 'Palais El Badi',
       cityName: 'Marrakech',
-      category: PlaceCategory.souk,
-      categoryLabel: 'Souk',
-      neighborhood: 'Médina',
-      priceLevel: '€',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
       isEditorsPick: true,
-      imageColor: Color(0xFF8B4513),
+      imageColor: Color(0xFF9A7B5A),
+      // Cover: Supabase Storage (CC BY 4.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp',
+      ],
       summary:
-          'Cœur battant de la Médina — spectacles de rue, étals de nourriture '
-          'et artisanat dès la tombée du jour.',
-      bestTimeToVisit: 'Fin d\'après-midi et soirée',
-      mapsUrl: 'https://maps.google.com/?q=Jemaa+el-Fna+Marrakech',
-      latitude: 31.6258,
-      longitude: -7.9891,
+          'Ruines saadiennes à ciel ouvert : l\'échelle du pouvoir du XVIe '
+          'siècle, stork nests inclus — contraste total avec les salons '
+          'intacts de la Bahia.',
+      bestTimeToVisit: 'Matinée ; prévoir soleil et eau',
+      address: 'Ksibat Nhass / Derb Touareg Berrima, Kasbah, Marrakech',
+      latitude: 31.618966,
+      longitude: -7.985704,
+      website: 'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.618966,-7.985704',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires variables — vérifier sur place le jour de la visite '
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
+            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
+      ),
       practicalTips: [
-        'Négociez les prix dans les souks — c\'est la coutume.',
-        'Goûtez les jus d\'orange frais des étals de la place.',
-        'Restez vigilant sur vos affaires dans la foule du soir.',
+        'Combinez avec les Tombeaux Saadiens le même demi-journée Kasbah ; '
+            'prévoyez chapeau et eau.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-tombeaux-saadiens',
+      name: 'Tombeaux Saadiens',
+      cityName: 'Marrakech',
+      category: PlaceCategory.monument,
+      categoryLabel: 'Monument',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF6B5A4A),
+      // Cover: Supabase Storage (CC BY-SA 3.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp',
+      ],
+      summary:
+          'Nécropole saadienne redécouverte au XXe siècle : marbre, zellige '
+          'et chambre des Douze Colonnes dans un enclos discret de la Kasbah.',
+      bestTimeToVisit: 'Tôt le matin ; vérifier les horaires le jour même',
+      address: 'Rue de la Kasbah, Kasbah, Marrakech',
+      latitude: 31.617259,
+      longitude: -7.988555,
+      website:
+          'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.617259,-7.988555',
+      openingHours: PlaceOpeningHours(
+        note:
+            'Horaires variables — vérifier sur place le jour de la visite '
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
+            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). '
+            'Possible gêne près de la mosquée de la Kasbah le vendredi midi.',
+      ),
+      practicalTips: [
+        'Cherchez le passage étroit le long de la mosquée de la Kasbah — '
+            'l\'entrée n\'est presque pas signalée.',
       ],
     ),
     PlaceGuide(
@@ -174,7 +247,7 @@ abstract final class PlaceCatalog {
       categoryLabel: 'Musée',
       neighborhood: 'Guéliz',
       priceLevel: '€€€',
-      isEditorsPick: false,
+      isEditorsPick: true,
       imageColor: Color(0xFF1A1A2E),
       summary:
           'Musée dédié à l\'œuvre d\'Yves Saint Laurent, à deux pas de '
@@ -217,7 +290,7 @@ abstract final class PlaceCatalog {
       categoryLabel: 'Musée',
       neighborhood: 'Médina',
       priceLevel: '€€',
-      isEditorsPick: false,
+      isEditorsPick: true,
       imageColor: Color(0xFF8B6914),
       // Cover: Supabase Storage (CC BY-SA 4.0 derivative — see PLACE_PHOTOS / ledger).
       imageUrls: [
@@ -262,7 +335,7 @@ abstract final class PlaceCatalog {
       categoryLabel: 'Musée',
       neighborhood: 'Médina',
       priceLevel: '€€',
-      isEditorsPick: false,
+      isEditorsPick: true,
       imageColor: Color(0xFF4A5568),
       summary:
           'Archive photographique du Maroc (fin XIXe–années 1960) dans '
@@ -293,6 +366,286 @@ abstract final class PlaceCatalog {
       practicalTips: [
         'Repère difficile dans les derbs — GPS jusqu\'à Rue Souk Ahal Fassi, '
             'puis suivez les panneaux.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-les-bains-marrakech',
+      name: 'Les Bains de Marrakech',
+      cityName: 'Marrakech',
+      category: PlaceCategory.hammam,
+      categoryLabel: 'Hammam',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF5C7A8A),
+      summary:
+          'Spa-hammam emblématique de la Kasbah — rituels marocains '
+          'dans un riad intimiste près de Bab Agnaou.',
+      bestTimeToVisit: 'Réservez en matinée ou en fin d\'après-midi',
+      address: '2 Derb Sedra, Bab Agnaou, Marrakech',
+      latitude: 31.617286,
+      longitude: -7.990510,
+      phone: '+212524381428',
+      website: 'https://lesbainsdemarrakech.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.617286,-7.990510',
+      practicalTips: [
+        'Réservez à l\'avance — l\'établissement est très demandé.',
+        'Prévoyez 1h30 à 2h pour un rituel hammam + massage.',
+        'L\'adresse est dans un derb de la Kasbah : suivez le GPS jusqu\'à Bab Agnaou.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-al-fassia-gueliz',
+      name: 'Al Fassia Guéliz',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF9C4A3C),
+      summary:
+          'Table marocaine fassi tenue par des femmes depuis 1987 — '
+          'référence Guéliz sur le boulevard Zerktouni (pas Aguedal).',
+      bestTimeToVisit: 'Sur réservation ; fermé le mardi',
+      address: '55 Boulevard Mohamed Zerktouni, Guéliz, Marrakech',
+      latitude: 31.635992,
+      longitude: -8.013364,
+      phone: '+212524437973',
+      website: 'https://alfassia.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.635992,-8.013364',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '17:00–23:00'),
+          PlaceHoursEntry(
+            dayLabel: 'Vendredi',
+            hoursLabel: '12:30–14:30 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(
+            dayLabel: 'Samedi',
+            hoursLabel: '12:30–14:30 · 19:00–23:00',
+          ),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '17:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Réservez la ligne Guéliz (+212 524 43 79 73 / 43 40 60) — '
+            'pas le restaurant Aguedal (Route de l\'Ourika).',
+        'Confirmez la réservation par téléphone une fois à Marrakech.',
+        'Fermé le mardi.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-amal-gueliz',
+      name: 'Restaurant Amal Guéliz',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Guéliz',
+      priceLevel: '€',
+      isEditorsPick: true,
+      imageColor: Color(0xFFC4784A),
+      // Cover: Supabase Storage (CC BY-SA 2.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp',
+      ],
+      summary:
+          'Restaurant social de Guéliz — cuisine marocaine du marché '
+          'qui finance la formation culinaire de femmes.',
+      bestTimeToVisit: 'Déjeuner en semaine ; réservez le vendredi couscous',
+      address: 'Rue Allal Ben Ahmed et Rue Ibn Sina, Guéliz, Marrakech',
+      latitude: 31.639072,
+      longitude: -8.013756,
+      phone: '+212524446896',
+      website: 'https://amalnonprofit.org',
+      email: 'contact@amalnonprofit.org',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.639072,-8.013756',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–15:30'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: 'Fermé'),
+        ],
+        note: 'Déjeuner uniquement — pas de service du soir en semaine.',
+      ),
+      practicalTips: [
+        'Déjeuner uniquement (lun–sam) ; fermé le dimanche.',
+        'Réservez pour le couscous du vendredi et le week-end.',
+        'C\'est le centre Guéliz — pas Amal Targa (cours de cuisine).',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-nomad',
+      name: 'Nomad',
+      cityName: 'Marrakech',
+      category: PlaceCategory.restaurant,
+      categoryLabel: 'Restaurant',
+      neighborhood: 'Médina',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF6B4F3A),
+      summary:
+          'Restaurant « Modern Moroccan » sur les toits près de la '
+          'Place des Épices — cuisine locale revisitée.',
+      bestTimeToVisit: 'Réservez pour le coucher de soleil',
+      address: '1 Derb Aarjane, Médina, Marrakech',
+      latitude: 31.628593,
+      longitude: -7.987530,
+      phone: '+212524381609',
+      website: 'https://nomadmarrakech.com',
+      email: 'info@nomadmarrakech.com',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.628593,-7.987530',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '12:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        'Depuis Jemaa el-Fna, direction Place des Épices ; '
+            'demandez au Café des Épices.',
+        'Réservez sur nomadmarrakech.com ou au +212 524 38 16 09.',
+        'Adresse : 1 Derb Aarjane, Médina.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-bacha-coffee',
+      name: 'Bacha Coffee',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Médina',
+      priceLevel: '€€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF6B3A2A),
+      summary:
+          'Maison de café dans le palais Dar El Bacha — '
+          'expérience Arabica patrimoniale (pas un coffee shop de rue).',
+      bestTimeToVisit: 'À l\'ouverture (10:00) ; fermé le lundi',
+      address: 'Dar El Bacha, Route Sidi Abelaziz, Médina, Marrakech',
+      latitude: 31.631521,
+      longitude: -7.992561,
+      phone: '+212524381293',
+      website: 'https://bachacoffee.com/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.631521,-7.992561',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
+        ],
+      ),
+      practicalTips: [
+        'Fermé le lundi ; arrivez vers l\'ouverture (10:00) — '
+            'files longues, pas de réservation individuelle.',
+        'Pin Dar El Bacha / Route Sidi Abelaziz — pas un autre Bacha Coffee '
+            'à l\'étranger.',
+        'Accès via le complexe muséal Dar El Bacha.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-cafe-des-epices',
+      name: 'Café des Épices',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Médina',
+      priceLevel: '€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFFC45C26),
+      // Cover: Supabase Storage (CC0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp',
+      ],
+      summary:
+          'Café coffee & cuisine sur la Place des Épices — '
+          'terrasse / rooftop avec vue Atlas, pause médina accessible.',
+      bestTimeToVisit: 'Matin ou fin d\'après-midi sur la terrasse',
+      address: '75 Rahba Lakdima, Médina, Marrakech',
+      latitude: 31.629062,
+      longitude: -7.987323,
+      phone: '+212524391770',
+      website: 'https://cafedesepices.ma/',
+      email: 'contact@cafedesepices.ma',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.629062,-7.987323',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        '75 Rahba Lakdima ; walk-in le jour, réservez le soir via le site '
+            'ou au +212 524 39 17 70.',
+        'Distinct du hammam Place des Épices et des restaurants Nomad / '
+            'Le Jardin (même groupe).',
+        'Repère : Place des Épices / Rahba Lakdima.',
+      ],
+    ),
+    PlaceGuide(
+      id: 'place-cafe-clock',
+      name: 'Café Clock',
+      cityName: 'Marrakech',
+      category: PlaceCategory.cafe,
+      categoryLabel: 'Café',
+      neighborhood: 'Kasbah',
+      priceLevel: '€€',
+      isEditorsPick: true,
+      imageColor: Color(0xFF4A6741),
+      summary:
+          'Café culturel coffee & food en Kasbah — terrasses, musique et '
+          'ateliers ; distinct des coffee shops Guéliz.',
+      bestTimeToVisit: 'Déjeuner ou soirée culturelle',
+      address: '224 Derb Chtouka, Kasbah, Marrakech',
+      latitude: 31.613029,
+      longitude: -7.987289,
+      phone: '+212524378367',
+      website: 'https://www.cafeclock.com/',
+      mapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=31.613029,-7.987289',
+      openingHours: PlaceOpeningHours(
+        entries: [
+          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
+          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
+        ],
+      ),
+      practicalTips: [
+        '224 Derb Chtouka (Kasbah) — pas le Café Clock de Fès ou Chefchaouen.',
+        'Proche des Tombeaux saadiens ; ne confondez pas avec '
+            '« Les Jardins de la Medina ».',
+        'Réservez ou renseignez-vous au +212 524 37 83 67.',
       ],
     ),
     PlaceGuide(
@@ -335,106 +688,6 @@ abstract final class PlaceCatalog {
       ),
       practicalTips: [
         'Comptez 10–20 minutes de taxi depuis le centre ; fermé lundi et mardi.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-tombeaux-saadiens',
-      name: 'Tombeaux Saadiens',
-      cityName: 'Marrakech',
-      category: PlaceCategory.monument,
-      categoryLabel: 'Monument',
-      neighborhood: 'Kasbah',
-      priceLevel: '€€',
-      isEditorsPick: false,
-      imageColor: Color(0xFF6B5A4A),
-      // Cover: Supabase Storage (CC BY-SA 3.0 derivative — see PLACE_PHOTOS / ledger).
-      imageUrls: [
-        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-tombeaux-saadiens/cover.webp',
-      ],
-      summary:
-          'Nécropole saadienne redécouverte au XXe siècle : marbre, zellige '
-          'et chambre des Douze Colonnes dans un enclos discret de la Kasbah.',
-      bestTimeToVisit: 'Tôt le matin ; vérifier les horaires le jour même',
-      address: 'Rue de la Kasbah, Kasbah, Marrakech',
-      latitude: 31.617259,
-      longitude: -7.988555,
-      website:
-          'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.617259,-7.988555',
-      openingHours: PlaceOpeningHours(
-        note:
-            'Horaires variables — vérifier sur place le jour de la visite '
-            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
-            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). '
-            'Possible gêne près de la mosquée de la Kasbah le vendredi midi.',
-      ),
-      practicalTips: [
-        'Cherchez le passage étroit le long de la mosquée de la Kasbah — '
-            'l\'entrée n\'est presque pas signalée.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-el-badi',
-      name: 'Palais El Badi',
-      cityName: 'Marrakech',
-      category: PlaceCategory.monument,
-      categoryLabel: 'Monument',
-      neighborhood: 'Kasbah',
-      priceLevel: '€€',
-      isEditorsPick: false,
-      imageColor: Color(0xFF9A7B5A),
-      // Cover: Supabase Storage (CC BY 4.0 derivative — see PLACE_PHOTOS / ledger).
-      imageUrls: [
-        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-el-badi/cover.webp',
-      ],
-      summary:
-          'Ruines saadiennes à ciel ouvert : l\'échelle du pouvoir du XVIe '
-          'siècle, stork nests inclus — contraste total avec les salons '
-          'intacts de la Bahia.',
-      bestTimeToVisit: 'Matinée ; prévoir soleil et eau',
-      address: 'Ksibat Nhass / Derb Touareg Berrima, Kasbah, Marrakech',
-      latitude: 31.618966,
-      longitude: -7.985704,
-      website: 'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.618966,-7.985704',
-      openingHours: PlaceOpeningHours(
-        note:
-            'Horaires variables — vérifier sur place le jour de la visite '
-            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
-            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
-      ),
-      practicalTips: [
-        'Combinez avec les Tombeaux Saadiens le même demi-journée Kasbah ; '
-            'prévoyez chapeau et eau.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-les-bains-marrakech',
-      name: 'Les Bains de Marrakech',
-      cityName: 'Marrakech',
-      category: PlaceCategory.hammam,
-      categoryLabel: 'Hammam',
-      neighborhood: 'Kasbah',
-      priceLevel: '€€€',
-      isEditorsPick: true,
-      imageColor: Color(0xFF5C7A8A),
-      summary:
-          'Spa-hammam emblématique de la Kasbah — rituels marocains '
-          'dans un riad intimiste près de Bab Agnaou.',
-      bestTimeToVisit: 'Réservez en matinée ou en fin d\'après-midi',
-      address: '2 Derb Sedra, Bab Agnaou, Marrakech',
-      latitude: 31.617286,
-      longitude: -7.990510,
-      phone: '+212524381428',
-      website: 'https://lesbainsdemarrakech.com',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.617286,-7.990510',
-      practicalTips: [
-        'Réservez à l\'avance — l\'établissement est très demandé.',
-        'Prévoyez 1h30 à 2h pour un rituel hammam + massage.',
-        'L\'adresse est dans un derb de la Kasbah : suivez le GPS jusqu\'à Bab Agnaou.',
       ],
     ),
     PlaceGuide(
@@ -516,135 +769,6 @@ abstract final class PlaceCatalog {
         'Repère facile : Place des Épices / Rahba Lakdima, puis Derb Aarjane.',
         'Réservez aux heures de forte affluence touristique.',
         'Accès piéton dans la Médina — prévoyez du temps pour vous y rendre.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-al-fassia-gueliz',
-      name: 'Al Fassia Guéliz',
-      cityName: 'Marrakech',
-      category: PlaceCategory.restaurant,
-      categoryLabel: 'Restaurant',
-      neighborhood: 'Guéliz',
-      priceLevel: '€€€',
-      isEditorsPick: true,
-      imageColor: Color(0xFF9C4A3C),
-      summary:
-          'Table marocaine fassi tenue par des femmes depuis 1987 — '
-          'référence Guéliz sur le boulevard Zerktouni (pas Aguedal).',
-      bestTimeToVisit: 'Sur réservation ; fermé le mardi',
-      address: '55 Boulevard Mohamed Zerktouni, Guéliz, Marrakech',
-      latitude: 31.635992,
-      longitude: -8.013364,
-      phone: '+212524437973',
-      website: 'https://alfassia.com',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.635992,-8.013364',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '17:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: 'Fermé'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '17:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '17:00–23:00'),
-          PlaceHoursEntry(
-            dayLabel: 'Vendredi',
-            hoursLabel: '12:30–14:30 · 19:00–23:00',
-          ),
-          PlaceHoursEntry(
-            dayLabel: 'Samedi',
-            hoursLabel: '12:30–14:30 · 19:00–23:00',
-          ),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '17:00–23:00'),
-        ],
-      ),
-      practicalTips: [
-        'Réservez la ligne Guéliz (+212 524 43 79 73 / 43 40 60) — '
-            'pas le restaurant Aguedal (Route de l\'Ourika).',
-        'Confirmez la réservation par téléphone une fois à Marrakech.',
-        'Fermé le mardi.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-amal-gueliz',
-      name: 'Restaurant Amal Guéliz',
-      cityName: 'Marrakech',
-      category: PlaceCategory.restaurant,
-      categoryLabel: 'Restaurant',
-      neighborhood: 'Guéliz',
-      priceLevel: '€',
-      isEditorsPick: false,
-      imageColor: Color(0xFFC4784A),
-      // Cover: Supabase Storage (CC BY-SA 2.0 derivative — see PLACE_PHOTOS / ledger).
-      imageUrls: [
-        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-amal-gueliz/cover.webp',
-      ],
-      summary:
-          'Restaurant social de Guéliz — cuisine marocaine du marché '
-          'qui finance la formation culinaire de femmes.',
-      bestTimeToVisit: 'Déjeuner en semaine ; réservez le vendredi couscous',
-      address: 'Rue Allal Ben Ahmed et Rue Ibn Sina, Guéliz, Marrakech',
-      latitude: 31.639072,
-      longitude: -8.013756,
-      phone: '+212524446896',
-      website: 'https://amalnonprofit.org',
-      email: 'contact@amalnonprofit.org',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.639072,-8.013756',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–15:30'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: 'Fermé'),
-        ],
-        note: 'Déjeuner uniquement — pas de service du soir en semaine.',
-      ),
-      practicalTips: [
-        'Déjeuner uniquement (lun–sam) ; fermé le dimanche.',
-        'Réservez pour le couscous du vendredi et le week-end.',
-        'C\'est le centre Guéliz — pas Amal Targa (cours de cuisine).',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-nomad',
-      name: 'Nomad',
-      cityName: 'Marrakech',
-      category: PlaceCategory.restaurant,
-      categoryLabel: 'Restaurant',
-      neighborhood: 'Médina',
-      priceLevel: '€€€',
-      isEditorsPick: false,
-      imageColor: Color(0xFF6B4F3A),
-      summary:
-          'Restaurant « Modern Moroccan » sur les toits près de la '
-          'Place des Épices — cuisine locale revisitée.',
-      bestTimeToVisit: 'Réservez pour le coucher de soleil',
-      address: '1 Derb Aarjane, Médina, Marrakech',
-      latitude: 31.628593,
-      longitude: -7.987530,
-      phone: '+212524381609',
-      website: 'https://nomadmarrakech.com',
-      email: 'info@nomadmarrakech.com',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.628593,-7.987530',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '12:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '12:00–23:00'),
-        ],
-      ),
-      practicalTips: [
-        'Depuis Jemaa el-Fna, direction Place des Épices ; '
-            'demandez au Café des Épices.',
-        'Réservez sur nomadmarrakech.com ou au +212 524 38 16 09.',
-        'Adresse : 1 Derb Aarjane, Médina.',
       ],
     ),
     PlaceGuide(
@@ -980,46 +1104,6 @@ abstract final class PlaceCatalog {
       ],
     ),
     PlaceGuide(
-      id: 'place-bacha-coffee',
-      name: 'Bacha Coffee',
-      cityName: 'Marrakech',
-      category: PlaceCategory.cafe,
-      categoryLabel: 'Café',
-      neighborhood: 'Médina',
-      priceLevel: '€€€',
-      isEditorsPick: true,
-      imageColor: Color(0xFF6B3A2A),
-      summary:
-          'Maison de café dans le palais Dar El Bacha — '
-          'expérience Arabica patrimoniale (pas un coffee shop de rue).',
-      bestTimeToVisit: 'À l\'ouverture (10:00) ; fermé le lundi',
-      address: 'Dar El Bacha, Route Sidi Abelaziz, Médina, Marrakech',
-      latitude: 31.631521,
-      longitude: -7.992561,
-      phone: '+212524381293',
-      website: 'https://bachacoffee.com/',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.631521,-7.992561',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: 'Fermé'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '10:00–18:00'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '10:00–18:00'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '10:00–18:00'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '10:00–18:00'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
-        ],
-      ),
-      practicalTips: [
-        'Fermé le lundi ; arrivez vers l\'ouverture (10:00) — '
-            'files longues, pas de réservation individuelle.',
-        'Pin Dar El Bacha / Route Sidi Abelaziz — pas un autre Bacha Coffee '
-            'à l\'étranger.',
-        'Accès via le complexe muséal Dar El Bacha.',
-      ],
-    ),
-    PlaceGuide(
       id: 'place-simple-specialty-coffee',
       name: 'Simple Specialty Coffee',
       cityName: 'Marrakech',
@@ -1042,51 +1126,6 @@ abstract final class PlaceCatalog {
         'Comptoir takeaway (quelques tabourets) — utile si Bacha est saturé.',
         'Ouvrez le pin « Simple Specialty Coffee », pas le musée Dar El Bacha.',
         'Sur Rue Dar El Bacha, à quelques minutes à pied de Bacha Coffee.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-cafe-des-epices',
-      name: 'Café des Épices',
-      cityName: 'Marrakech',
-      category: PlaceCategory.cafe,
-      categoryLabel: 'Café',
-      neighborhood: 'Médina',
-      priceLevel: '€€',
-      isEditorsPick: false,
-      imageColor: Color(0xFFC45C26),
-      // Cover: Supabase Storage (CC0 derivative — see PLACE_PHOTOS / ledger).
-      imageUrls: [
-        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-cafe-des-epices/cover.webp',
-      ],
-      summary:
-          'Café coffee & cuisine sur la Place des Épices — '
-          'terrasse / rooftop avec vue Atlas, pause médina accessible.',
-      bestTimeToVisit: 'Matin ou fin d\'après-midi sur la terrasse',
-      address: '75 Rahba Lakdima, Médina, Marrakech',
-      latitude: 31.629062,
-      longitude: -7.987323,
-      phone: '+212524391770',
-      website: 'https://cafedesepices.ma/',
-      email: 'contact@cafedesepices.ma',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.629062,-7.987323',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
-        ],
-      ),
-      practicalTips: [
-        '75 Rahba Lakdima ; walk-in le jour, réservez le soir via le site '
-            'ou au +212 524 39 17 70.',
-        'Distinct du hammam Place des Épices et des restaurants Nomad / '
-            'Le Jardin (même groupe).',
-        'Repère : Place des Épices / Rahba Lakdima.',
       ],
     ),
     PlaceGuide(
@@ -1114,45 +1153,6 @@ abstract final class PlaceCatalog {
             'un espace Médina (non listé ici).',
         'Orthographe : Kartell (pas « Kartel »).',
         'Idéal pour un coffee break dans la ville nouvelle.',
-      ],
-    ),
-    PlaceGuide(
-      id: 'place-cafe-clock',
-      name: 'Café Clock',
-      cityName: 'Marrakech',
-      category: PlaceCategory.cafe,
-      categoryLabel: 'Café',
-      neighborhood: 'Kasbah',
-      priceLevel: '€€',
-      isEditorsPick: false,
-      imageColor: Color(0xFF4A6741),
-      summary:
-          'Café culturel coffee & food en Kasbah — terrasses, musique et '
-          'ateliers ; distinct des coffee shops Guéliz.',
-      bestTimeToVisit: 'Déjeuner ou soirée culturelle',
-      address: '224 Derb Chtouka, Kasbah, Marrakech',
-      latitude: 31.613029,
-      longitude: -7.987289,
-      phone: '+212524378367',
-      website: 'https://www.cafeclock.com/',
-      mapsUrl:
-          'https://www.google.com/maps/search/?api=1&query=31.613029,-7.987289',
-      openingHours: PlaceOpeningHours(
-        entries: [
-          PlaceHoursEntry(dayLabel: 'Lundi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mardi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Mercredi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Jeudi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Vendredi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '09:00–23:00'),
-          PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '09:00–23:00'),
-        ],
-      ),
-      practicalTips: [
-        '224 Derb Chtouka (Kasbah) — pas le Café Clock de Fès ou Chefchaouen.',
-        'Proche des Tombeaux saadiens ; ne confondez pas avec '
-            '« Les Jardins de la Medina ».',
-        'Réservez ou renseignez-vous au +212 524 37 83 67.',
       ],
     ),
     PlaceGuide(
@@ -1386,4 +1386,26 @@ abstract final class PlaceCatalog {
       ],
     ),
   ];
+
+  /// Marrakech beta editorial core — Sélection Atlas only; not a popularity rank.
+  static const marrakechBetaCoreIds = <String>{
+    'place-jemaa-el-fna',
+    'place-majorelle',
+    'place-bahia',
+    'place-koutoubia',
+    'place-medersa-ben-youssef',
+    'place-el-badi',
+    'place-tombeaux-saadiens',
+    'place-ysl-museum',
+    'place-musee-dar-el-bacha',
+    'place-maison-de-la-photographie',
+    'place-les-bains-marrakech',
+    'place-al-fassia-gueliz',
+    'place-amal-gueliz',
+    'place-nomad',
+    'place-bacha-coffee',
+    'place-cafe-des-epices',
+    'place-cafe-clock',
+    'place-macaal',
+  };
 }

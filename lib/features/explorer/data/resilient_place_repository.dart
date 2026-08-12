@@ -43,12 +43,16 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
 
   final ResilientEditorialCatalog<PlaceGuide> _catalog;
 
+  /// Slugs retirés du catalogue local — ne doivent pas ressusciter via merge.
+  @visibleForTesting
+  static const retiredRemoteOnlyIds = <String>{'place-hammam-marrakech'};
+
   /// Fusionne [remote] sur [local] par `PlaceGuide.id`.
   ///
   /// - distant vide → liste vide (le catalogue reste en repli local) ;
   /// - même id → version distante ;
   /// - id local seul → conservé ;
-  /// - id distant seul → ajouté ;
+  /// - id distant seul → ajouté (sauf slugs retirés) ;
   /// - aucun doublon.
   @visibleForTesting
   static List<PlaceGuide> mergeRemoteOverLocal({
@@ -58,16 +62,19 @@ class ResilientPlaceRepository with ChangeNotifier implements PlaceRepository {
     if (remote.isEmpty) return remote;
 
     final remoteById = <String, PlaceGuide>{
-      for (final place in remote) place.id: place,
+      for (final place in remote)
+        if (!retiredRemoteOnlyIds.contains(place.id)) place.id: place,
     };
     final seen = <String>{};
     final merged = <PlaceGuide>[];
 
     for (final localPlace in local) {
+      if (retiredRemoteOnlyIds.contains(localPlace.id)) continue;
       merged.add(remoteById[localPlace.id] ?? localPlace);
       seen.add(localPlace.id);
     }
     for (final remotePlace in remote) {
+      if (retiredRemoteOnlyIds.contains(remotePlace.id)) continue;
       if (seen.add(remotePlace.id)) {
         merged.add(remotePlace);
       }

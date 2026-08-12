@@ -22,13 +22,13 @@ void main() {
       lng: -7.990912,
       selection: false,
     ),
-    'place-cafe-des-epices': (lat: 31.629062, lng: -7.987323, selection: false),
+    'place-cafe-des-epices': (lat: 31.629062, lng: -7.987323, selection: true),
     'place-kartell-kollektiv': (
       lat: 31.636385,
       lng: -8.009579,
       selection: false,
     ),
-    'place-cafe-clock': (lat: 31.613029, lng: -7.987289, selection: false),
+    'place-cafe-clock': (lat: 31.613029, lng: -7.987289, selection: true),
   };
 
   const expectedRestaurants = <String>{
@@ -66,7 +66,7 @@ void main() {
     );
   });
 
-  test('exact verified coordinates and Bacha-only Atlas Selection', () {
+  test('exact verified coordinates and beta café Selection', () {
     for (final entry in expectedCafes.entries) {
       final place = PlaceCatalog.guides.firstWhere((p) => p.id == entry.key);
       expect(place.cityName, 'Marrakech');
@@ -100,9 +100,12 @@ void main() {
           p.cityName == 'Marrakech' &&
           p.category == PlaceCategory.cafe,
     );
-    expect(cafeSelections, hasLength(1));
-    expect(cafeSelections.single.id, 'place-bacha-coffee');
-    expect(cafeSelections.single.name, 'Bacha Coffee');
+    expect(cafeSelections, hasLength(3));
+    expect(cafeSelections.map((p) => p.id).toSet(), {
+      'place-bacha-coffee',
+      'place-cafe-des-epices',
+      'place-cafe-clock',
+    });
   });
 
   test('sparse contact fields stay empty when unverified', () {

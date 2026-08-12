@@ -67,7 +67,8 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   @override
   void initState() {
     super.initState();
-    if (_filters.cityName.isEmpty) {
+    if (_filters.cityName.isEmpty ||
+        !_repository.isCityCovered(_filters.cityName)) {
       _filters.setCityName(LocationConstants.fallbackCity, notify: false);
     }
     _searchController.text = _filters.searchText;
@@ -109,11 +110,15 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     if (!identical(profile, _profileRepository)) {
       _profileRepository = profile;
       if (_filters.cityName.isEmpty ||
-          _filters.cityName == LocationConstants.fallbackCity) {
+          _filters.cityName == LocationConstants.fallbackCity ||
+          !_repository.isCityCovered(_filters.cityName)) {
         final preferred =
             MoroccoCities.resolve(profile.profile.preferredCity)?.name ??
             LocationConstants.fallbackCity;
-        _filters.setCityName(preferred);
+        final browseCity = _repository.isCityCovered(preferred)
+            ? preferred
+            : LocationConstants.fallbackCity;
+        _filters.setCityName(browseCity);
       }
     }
     final favorites = FavoritesScope.of(context);
@@ -231,6 +236,11 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
 
   bool get _isCityCovered => _repository.isCityCovered(_filters.cityName);
 
+  List<String> get _coveredCityNames => [
+    for (final name in MoroccoCities.supportedNames)
+      if (_repository.isCityCovered(name)) name,
+  ];
+
   void _consumeFocusPlaceIfNeeded() {
     final placeId = _filters.consumeFocusPlaceId();
     if (placeId == null) return;
@@ -280,10 +290,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -346,9 +353,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
       if (!mounted) return;
       setState(() => _hasLocationPermission = granted);
       if (!granted) {
-        _showLocationSnack(
-          'Localisation refusée — la carte reste utilisable.',
-        );
+        _showLocationSnack('Localisation refusée — la carte reste utilisable.');
         return;
       }
       _showLocationSnack(
@@ -381,7 +386,10 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   void _onMarkerTap(AtlasMapMarker marker) {
     final place = _repository.findById(marker.placeId);
     if (place == null) return;
-    if (!AtlasMapCameraGuard.isFiniteLatLng(marker.latitude, marker.longitude)) {
+    if (!AtlasMapCameraGuard.isFiniteLatLng(
+      marker.latitude,
+      marker.longitude,
+    )) {
       return;
     }
     setState(() => _selectedPlaceId = marker.placeId);
@@ -483,6 +491,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
                         selectedCity: _filters.cityName.isEmpty
                             ? LocationConstants.fallbackCity
                             : _filters.cityName,
+                        cities: _coveredCityNames,
                         onCitySelected: (city) => _filters.setCityName(city),
                       ),
                       const SizedBox(height: AtlasSpacing.sm),

@@ -140,11 +140,6 @@ class PlaceGuideCard extends StatelessWidget {
                           icon: Icons.schedule_outlined,
                           label: duration,
                         ),
-                      if (!compact)
-                        _ChipMeta(
-                          icon: Icons.place_outlined,
-                          label: PlaceDisplayHelpers.neighborhoodLabel(place),
-                        ),
                     ],
                   ),
                 ],

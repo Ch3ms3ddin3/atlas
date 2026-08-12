@@ -91,26 +91,27 @@ void main() {
     }
   });
 
-  test('Atlas Selection: only Ben Youssef among Marrakech monuments', () {
+  test('Atlas Selection: all five Marrakech monuments in beta core', () {
     final monumentSelections = PlaceCatalog.guides.where(
       (p) =>
           p.cityName == 'Marrakech' &&
           p.category == PlaceCategory.monument &&
           p.isEditorsPick,
     );
-    expect(monumentSelections, hasLength(1));
-    expect(monumentSelections.single.id, 'place-medersa-ben-youssef');
+    expect(monumentSelections, hasLength(5));
+    expect(monumentSelections.map((p) => p.id).toSet(), monumentIds);
 
     final ysl = PlaceCatalog.guides.firstWhere(
       (p) => p.id == 'place-ysl-museum',
     );
-    expect(ysl.isEditorsPick, isFalse);
+    expect(ysl.isEditorsPick, isTrue);
 
     final majorelle = PlaceCatalog.guides.firstWhere(
       (p) => p.id == 'place-majorelle',
     );
     expect(majorelle.category, PlaceCategory.jardin);
     expect(majorelle.isEditorsPick, isTrue);
+    expect(majorelle.neighborhood, 'Guéliz');
   });
 
   test(

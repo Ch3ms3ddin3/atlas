@@ -251,6 +251,26 @@ void main() {
       expect(merged, isEmpty);
     });
 
+    test('refuse la résurrection du hammam retiré via merge distant', () {
+      final local = [_guide(id: 'place-majorelle', name: 'Jardin Majorelle')];
+      final remote = [
+        _guide(id: 'place-majorelle', name: 'Majorelle remote'),
+        _guide(id: 'place-hammam-marrakech', name: 'Hammam traditionnel'),
+      ];
+
+      final merged = ResilientPlaceRepository.mergeRemoteOverLocal(
+        local: local,
+        remote: remote,
+      );
+
+      expect(merged.map((place) => place.id), ['place-majorelle']);
+      expect(merged.single.name, 'Majorelle remote');
+      expect(
+        merged.any((place) => place.id == 'place-hammam-marrakech'),
+        isFalse,
+      );
+    });
+
     test('retombe sur le local en error si le distant échoue', () async {
       final repository = ResilientPlaceRepository(
         local: LocalPlaceRepository(),
@@ -492,17 +512,20 @@ void main() {
       'place-plage-rabat',
     };
 
-    test('catalogue local : slugs stables, uniques, monuments + restaurants + cafés', () {
-      final ids = PlaceCatalog.guides.map((place) => place.id).toList();
-      expect(ids.toSet(), expectedSlugs);
-      expect(ids.toSet().length, ids.length);
-      expect(ids, hasLength(41));
-      expect(ids, isNot(contains('place-hammam-marrakech')));
-      expect(ids, isNot(contains('place-bain-de-kasbah')));
-      expect(ids, isNot(contains('place-lmida')));
-      expect(ids, isNot(contains('place-thirty5ive')));
-      expect(ids, isNot(contains('place-dar-el-bacha')));
-    });
+    test(
+      'catalogue local : slugs stables, uniques, monuments + restaurants + cafés',
+      () {
+        final ids = PlaceCatalog.guides.map((place) => place.id).toList();
+        expect(ids.toSet(), expectedSlugs);
+        expect(ids.toSet().length, ids.length);
+        expect(ids, hasLength(41));
+        expect(ids, isNot(contains('place-hammam-marrakech')));
+        expect(ids, isNot(contains('place-bain-de-kasbah')));
+        expect(ids, isNot(contains('place-lmida')));
+        expect(ids, isNot(contains('place-thirty5ive')));
+        expect(ids, isNot(contains('place-dar-el-bacha')));
+      },
+    );
 
     test(
       'chaque lieu local est représentable par le schéma Supabase (mapper)',

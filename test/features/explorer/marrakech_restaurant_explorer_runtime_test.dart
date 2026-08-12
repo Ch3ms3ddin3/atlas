@@ -145,8 +145,8 @@ void main() {
         expect(byCategory.map((p) => p.id).toSet(), _restaurantIds);
         expect(byText.map((p) => p.name), containsAll(_restaurantNames));
         expect(
-          byCategory.where((p) => p.isEditorsPick).map((p) => p.id),
-          ['place-al-fassia-gueliz'],
+          byCategory.where((p) => p.isEditorsPick).map((p) => p.id).toSet(),
+          {'place-al-fassia-gueliz', 'place-amal-gueliz', 'place-nomad'},
         );
       },
     );
@@ -188,24 +188,23 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets(
-      'Marrakech + puce Restaurant affiche les 11 restaurants',
-      (tester) async {
-        await pumpExplorer(tester);
+    testWidgets('Marrakech + puce Restaurant affiche les 11 restaurants', (
+      tester,
+    ) async {
+      await pumpExplorer(tester);
 
-        await tester.tap(find.text('Marrakech'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Marrakech'));
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Restaurant').first);
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Restaurant').first);
+      await tester.pumpAndSettle();
 
-        expect(find.byType(ExplorerEmptyState), findsNothing);
-        expect(find.byType(PlaceGuideCard), findsNWidgets(11));
-        for (final name in _restaurantNames) {
-          expect(find.text(name), findsWidgets, reason: name);
-        }
-      },
-    );
+      expect(find.byType(ExplorerEmptyState), findsNothing);
+      expect(find.byType(PlaceGuideCard), findsNWidgets(11));
+      for (final name in _restaurantNames) {
+        expect(find.text(name), findsWidgets, reason: name);
+      }
+    });
 
     testWidgets(
       'Marrakech + puce Hammam sticky + recherche « restaurant » affiche les 11',

@@ -163,7 +163,7 @@ void main() {
       );
       expect(find.textContaining('meilleurs lieux du Maroc'), findsNothing);
       expect(
-        find.textContaining('Marrakech, Casablanca et Rabat'),
+        find.textContaining('Sélection Atlas pour Marrakech'),
         findsOneWidget,
       );
     });

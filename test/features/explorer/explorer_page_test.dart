@@ -13,7 +13,6 @@ import 'package:atlas/features/explorer/domain/place_repository.dart';
 import 'package:atlas/features/explorer/presentation/pages/explorer_page.dart';
 import 'package:atlas/features/explorer/presentation/pages/place_detail_page.dart';
 import 'package:atlas/features/explorer/presentation/widgets/place_catalog_status_indicator.dart';
-import 'package:atlas/features/explorer/presentation/widgets/place_guide_card.dart';
 import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
 import 'package:atlas/features/favorites/domain/favorite_entity_type.dart';
 import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
@@ -75,30 +74,23 @@ void main() {
 
     expect(find.text('Explorer'), findsOneWidget);
     expect(
-      find.textContaining('Marrakech, Casablanca et Rabat'),
+      find.textContaining('Sélection Atlas pour Marrakech'),
       findsOneWidget,
     );
     expect(find.text('✨ Sélection Atlas'), findsOneWidget);
+    // Featured card is Jemaa (first beta core), Majorelle still in list.
+    expect(find.text('Place Jemaa el-Fna'), findsWidgets);
     expect(find.text('Jardin Majorelle'), findsWidgets);
-    expect(find.text('Tanger'), findsOneWidget);
+    expect(find.text('Marrakech'), findsWidgets);
+    expect(find.text('Casablanca'), findsOneWidget);
+    expect(find.text('Rabat'), findsOneWidget);
+    expect(find.text('Tanger'), findsNothing);
+    expect(find.text('Fès'), findsNothing);
+    expect(find.text('Agadir'), findsNothing);
     expect(
       find.text('Contenu bientôt disponible pour cette ville.'),
       findsNothing,
     );
-  });
-
-  testWidgets('ville sans contenu affiche empty state premium', (tester) async {
-    await pumpExplorer(tester);
-
-    await tester.tap(find.text('Tanger'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.textContaining('Contenu bientôt disponible pour cette ville'),
-      findsWidgets,
-    );
-    expect(find.text('Jardin Majorelle'), findsNothing);
-    expect(find.byType(PlaceGuideCard), findsNothing);
   });
 
   testWidgets('filtre catégorie réduit la liste', (tester) async {
@@ -146,7 +138,7 @@ void main() {
     expect(
       favorites.isFavorite(
         entityType: FavoriteEntityType.place,
-        entitySlug: 'place-majorelle',
+        entitySlug: 'place-jemaa-el-fna',
       ),
       isTrue,
     );
@@ -161,7 +153,7 @@ void main() {
     expect(find.byType(PlaceDetailPage), findsOneWidget);
     expect(find.text('Conseils pratiques'), findsOneWidget);
     expect(find.byTooltip('Retour'), findsOneWidget);
-    expect(find.text('Gueliz · Marrakech'), findsOneWidget);
+    expect(find.text('Guéliz · Marrakech'), findsOneWidget);
   });
 
   testWidgets('indicateur catalogue visible seulement en stale/error', (
@@ -219,7 +211,7 @@ void main() {
     expect(find.text('Catalogue local'), findsOneWidget);
   });
 
-  testWidgets('profil sur ville non couverte démarre sur empty state', (
+  testWidgets('profil sur ville non couverte replie vers Marrakech', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
@@ -232,7 +224,8 @@ void main() {
 
     await pumpExplorer(tester, profile: profile);
 
-    expect(find.text('Jardin Majorelle'), findsNothing);
-    expect(find.textContaining('Contenu bientôt disponible'), findsWidgets);
+    expect(find.text('Tanger'), findsNothing);
+    expect(find.text('Jardin Majorelle'), findsWidgets);
+    expect(find.textContaining('Contenu bientôt disponible'), findsNothing);
   });
 }

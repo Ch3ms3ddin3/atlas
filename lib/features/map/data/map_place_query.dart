@@ -25,18 +25,20 @@ abstract final class MapPlaceQuery {
     );
 
     final needle = MapSearchText.normalize(filters.searchText);
-
-    return results.where((place) {
+    final matched = results.where((place) {
       if (!place.hasCoordinates) return false;
 
-      if (needle.isNotEmpty) {
-        final haystack = MapSearchText.searchableHaystack(
-          name: place.name,
-          summary: place.summary,
-          neighborhood: place.neighborhood,
-          categoryLabel: place.categoryLabel,
-        );
-        if (!haystack.contains(needle)) return false;
+      if (needle.isNotEmpty &&
+          !MapSearchText.placeMatches(
+            query: needle,
+            name: place.name,
+            summary: place.summary,
+            neighborhood: place.neighborhood,
+            categoryLabel: place.categoryLabel,
+            categoryEnumName: place.category.name,
+            placeId: place.id,
+          )) {
+        return false;
       }
 
       if (!filters.favoritesOnly) return true;
@@ -46,6 +48,34 @@ abstract final class MapPlaceQuery {
         entitySlug: place.id,
       );
     }).toList();
+
+    if (needle.isEmpty || matched.length < 2) return matched;
+
+    // Même pertinence nom-first que Explorer (PlaceMapper.filter).
+    final indexed = [
+      for (var i = 0; i < matched.length; i++) (index: i, place: matched[i]),
+    ];
+    indexed.sort((a, b) {
+      final rankA = MapSearchText.relevanceRank(
+        query: needle,
+        name: a.place.name,
+        summary: a.place.summary,
+        neighborhood: a.place.neighborhood,
+        categoryLabel: a.place.categoryLabel,
+        placeId: a.place.id,
+      );
+      final rankB = MapSearchText.relevanceRank(
+        query: needle,
+        name: b.place.name,
+        summary: b.place.summary,
+        neighborhood: b.place.neighborhood,
+        categoryLabel: b.place.categoryLabel,
+        placeId: b.place.id,
+      );
+      if (rankA != rankB) return rankA.compareTo(rankB);
+      return a.index.compareTo(b.index);
+    });
+    return [for (final entry in indexed) entry.place];
   }
 
   static List<AtlasMapMarker> markers({
@@ -60,7 +90,8 @@ abstract final class MapPlaceQuery {
     );
     final markers = <AtlasMapMarker>[];
     for (final place in places) {
-      final isFavorite = favorites?.isFavorite(
+      final isFavorite =
+          favorites?.isFavorite(
             entityType: FavoriteEntityType.place,
             entitySlug: place.id,
           ) ??

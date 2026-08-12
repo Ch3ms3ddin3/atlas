@@ -64,6 +64,9 @@ abstract final class PlaceMapper {
   ///
   /// Recherche accent-insensible (même normalisation que la Carte). Un texte qui
   /// correspond à une catégorie prime sur [PlaceSearchQuery.category] conflictuel.
+  ///
+  /// Avec une requête texte et le tri [PlaceSort.catalog], les matches sur le
+  /// **nom** passent avant les matches résumé-only (pas un score de popularité).
   static List<PlaceGuide> filter(
     PlaceSearchQuery query, {
     List<PlaceGuide>? source,
@@ -73,8 +76,9 @@ abstract final class PlaceMapper {
     final categoryFromText = categoryMatchingSearch(query.text);
     final effectiveCategory = categoryFromText ?? query.category;
     // Catégorie déduite du texte → filtre catégorie seul (pas de AND haystack).
-    final normalizedQuery =
-        categoryFromText != null ? '' : MapSearchText.normalize(query.text);
+    final normalizedQuery = categoryFromText != null
+        ? ''
+        : MapSearchText.normalize(query.text);
 
     final filtered = catalog.where((guide) {
       if (guide.cityName.toLowerCase() != cityName.toLowerCase()) {
@@ -85,55 +89,119 @@ abstract final class PlaceMapper {
       }
       if (normalizedQuery.isEmpty) return true;
 
-      final haystack = MapSearchText.searchableHaystack(
+      return MapSearchText.placeMatches(
+        query: normalizedQuery,
         name: guide.name,
         summary: guide.summary,
         neighborhood: guide.neighborhood,
         categoryLabel: guide.categoryLabel,
+        categoryEnumName: guide.category.name,
+        placeId: guide.id,
       );
-      // Inclut aussi le nom d'enum (ex. « restaurant ») si le libellé distant diffère.
-      final withEnum = '$haystack ${guide.category.name}';
-      return withEnum.contains(normalizedQuery);
     }).toList();
+
+    // Requête active + ordre Atlas → pertinence nom d'abord (stable sinon).
+    if (normalizedQuery.isNotEmpty && query.sort == PlaceSort.catalog) {
+      return _rankBySearchRelevance(filtered, normalizedQuery);
+    }
 
     return sortPlaces(filtered, query.sort);
   }
 
-  /// Trie une liste déjà filtrée sans modifier l'ordre source si [sort] est catalog.
+  /// Classe les résultats : préfixe/nom > quartier/catégorie > résumé.
+  static List<PlaceGuide> _rankBySearchRelevance(
+    List<PlaceGuide> places,
+    String normalizedQuery,
+  ) {
+    if (places.length < 2) return places;
+
+    final indexed = [
+      for (var i = 0; i < places.length; i++) (index: i, place: places[i]),
+    ];
+    indexed.sort((a, b) {
+      final rankA = MapSearchText.relevanceRank(
+        query: normalizedQuery,
+        name: a.place.name,
+        summary: a.place.summary,
+        neighborhood: a.place.neighborhood,
+        categoryLabel: a.place.categoryLabel,
+        placeId: a.place.id,
+      );
+      final rankB = MapSearchText.relevanceRank(
+        query: normalizedQuery,
+        name: b.place.name,
+        summary: b.place.summary,
+        neighborhood: b.place.neighborhood,
+        categoryLabel: b.place.categoryLabel,
+        placeId: b.place.id,
+      );
+      if (rankA != rankB) return rankA.compareTo(rankB);
+      return a.index.compareTo(b.index);
+    });
+    return [for (final entry in indexed) entry.place];
+  }
+
+  /// Trie une liste déjà filtrée.
+  ///
+  /// [PlaceSort.catalog] : ordre source, avec les sélections Atlas en tête
+  /// (partition stable — curation éditoriale, pas un score de popularité).
   static List<PlaceGuide> sortPlaces(List<PlaceGuide> places, PlaceSort sort) {
-    if (sort == PlaceSort.catalog || places.length < 2) {
+    if (places.length < 2) {
       return places;
     }
 
-    final sorted = List<PlaceGuide>.from(places);
     switch (sort) {
       case PlaceSort.catalog:
-        break;
+        return _editorsPickFirstStable(places);
       case PlaceSort.nameAsc:
-        sorted.sort((a, b) => a.name.compareTo(b.name));
+        final sorted = List<PlaceGuide>.from(places)
+          ..sort((a, b) => a.name.compareTo(b.name));
+        return sorted;
       case PlaceSort.neighborhood:
-        sorted.sort((a, b) {
-          final byNeighborhood = a.neighborhood.compareTo(b.neighborhood);
-          if (byNeighborhood != 0) return byNeighborhood;
-          return a.name.compareTo(b.name);
-        });
+        final sorted = List<PlaceGuide>.from(places)
+          ..sort((a, b) {
+            final byNeighborhood = a.neighborhood.compareTo(b.neighborhood);
+            if (byNeighborhood != 0) return byNeighborhood;
+            return a.name.compareTo(b.name);
+          });
+        return sorted;
       case PlaceSort.priceLevel:
-        sorted.sort((a, b) {
-          final byPrice = _priceLevelRank(
-            a.priceLevel,
-          ).compareTo(_priceLevelRank(b.priceLevel));
-          if (byPrice != 0) return byPrice;
-          return a.name.compareTo(b.name);
-        });
+        final sorted = List<PlaceGuide>.from(places)
+          ..sort((a, b) {
+            final byPrice = _priceLevelRank(
+              a.priceLevel,
+            ).compareTo(_priceLevelRank(b.priceLevel));
+            if (byPrice != 0) return byPrice;
+            return a.name.compareTo(b.name);
+          });
+        return sorted;
       case PlaceSort.editorsPick:
-        sorted.sort((a, b) {
-          if (a.isEditorsPick != b.isEditorsPick) {
-            return a.isEditorsPick ? -1 : 1;
-          }
-          return a.name.compareTo(b.name);
-        });
+        final sorted = List<PlaceGuide>.from(places)
+          ..sort((a, b) {
+            if (a.isEditorsPick != b.isEditorsPick) {
+              return a.isEditorsPick ? -1 : 1;
+            }
+            return a.name.compareTo(b.name);
+          });
+        return sorted;
     }
-    return sorted;
+  }
+
+  /// Sélections Atlas d'abord, sans réordonner à l'intérieur de chaque groupe.
+  static List<PlaceGuide> _editorsPickFirstStable(List<PlaceGuide> places) {
+    if (!places.any((place) => place.isEditorsPick)) {
+      return places;
+    }
+    final picks = <PlaceGuide>[];
+    final rest = <PlaceGuide>[];
+    for (final place in places) {
+      if (place.isEditorsPick) {
+        picks.add(place);
+      } else {
+        rest.add(place);
+      }
+    }
+    return [...picks, ...rest];
   }
 
   static PlaceGuide? findById(String id, {List<PlaceGuide>? source}) {

@@ -31,10 +31,7 @@ void main() {
     PlaceRepository.resetForTest();
   });
 
-  Future<void> pumpAt(
-    WidgetTester tester, {
-    required Size size,
-  }) async {
+  Future<void> pumpAt(WidgetTester tester, {required Size size}) async {
     final profile = LocalProfileRepository();
     final favorites = LocalFavoritesRepository();
     await profile.load();
@@ -68,18 +65,16 @@ void main() {
     await pumpAt(tester, size: const Size(390, 844));
 
     expect(find.text('Explorer'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
+    expect(find.text('Place Jemaa el-Fna'), findsWidgets);
     expect(find.text('✨ Sélection Atlas'), findsOneWidget);
     expect(find.text('Sélection Atlas'), findsWidgets);
 
     // Les cartes liste sont sous le hero / featured — scroll pour les matérialiser.
-    await tester.drag(
-      find.byType(CustomScrollView),
-      const Offset(0, -700),
-    );
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
     await tester.pumpAndSettle();
 
     expect(find.byType(PlaceGuideCard), findsWidgets);
+    expect(find.text('Jardin Majorelle'), findsWidgets);
     expect(find.text('Palais de la Bahia'), findsOneWidget);
     expect(find.byTooltip('Ajouter aux favoris'), findsWidgets);
     expect(find.byType(SliverGrid), findsNothing);
@@ -90,7 +85,7 @@ void main() {
     await pumpAt(tester, size: const Size(960, 900));
 
     expect(find.text('Explorer'), findsOneWidget);
-    expect(find.text('Jardin Majorelle'), findsOneWidget);
+    expect(find.text('Place Jemaa el-Fna'), findsWidgets);
     expect(find.byType(PlaceGuideCard), findsWidgets);
     expect(find.byType(SliverGrid), findsOneWidget);
   });

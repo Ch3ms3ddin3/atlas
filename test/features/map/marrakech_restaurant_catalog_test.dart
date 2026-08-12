@@ -21,8 +21,8 @@ void main() {
           lng: -8.013364,
           selection: true,
         ),
-        'place-amal-gueliz': (lat: 31.639072, lng: -8.013756, selection: false),
-        'place-nomad': (lat: 31.628593, lng: -7.987530, selection: false),
+        'place-amal-gueliz': (lat: 31.639072, lng: -8.013756, selection: true),
+        'place-nomad': (lat: 31.628593, lng: -7.987530, selection: true),
         'place-plus61': (lat: 31.635162, lng: -8.015502, selection: false),
         'place-le-jardin': (lat: 31.632074, lng: -7.988806, selection: false),
         'place-sahbi-sahbi': (lat: 31.634075, lng: -8.014582, selection: false),
@@ -71,7 +71,7 @@ void main() {
     );
   });
 
-  test('exact verified coordinates and Al Fassia-only Selection', () {
+  test('exact verified coordinates and Al Fassia / Amal / Nomad Selection', () {
     for (final entry in expectedRestaurants.entries) {
       final place = PlaceCatalog.guides.firstWhere((p) => p.id == entry.key);
       expect(place.cityName, 'Marrakech');
@@ -102,7 +102,7 @@ void main() {
             p.cityName == 'Marrakech' &&
             p.category == PlaceCategory.restaurant,
       ),
-      hasLength(1),
+      hasLength(3),
     );
     expect(
       PlaceCatalog.guides

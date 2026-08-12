@@ -44,8 +44,10 @@ void main() {
   );
 
   test('neighborhoodLabel returns editorial quartier, not a distance', () {
-    final majorelle = PlaceCatalog.guides.first;
-    expect(PlaceDisplayHelpers.neighborhoodLabel(majorelle), 'Gueliz');
+    final majorelle = PlaceCatalog.guides.firstWhere(
+      (p) => p.id == 'place-majorelle',
+    );
+    expect(PlaceDisplayHelpers.neighborhoodLabel(majorelle), 'Guéliz');
     expect(
       PlaceDisplayHelpers.neighborhoodLabel(majorelle),
       isNot(contains('km')),

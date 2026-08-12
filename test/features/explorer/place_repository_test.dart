@@ -13,10 +13,7 @@ void main() {
       );
 
       expect(places, isNotEmpty);
-      expect(
-        places.every((place) => place.cityName == 'Casablanca'),
-        isTrue,
-      );
+      expect(places.every((place) => place.cityName == 'Casablanca'), isTrue);
     });
 
     test('filtre par catégorie', () {
@@ -36,53 +33,68 @@ void main() {
 
     test('recherche par nom ou quartier', () {
       final places = PlaceMapper.filter(
-        const PlaceSearchQuery(
-          cityName: 'Rabat',
-          text: 'oudayas',
-        ),
+        const PlaceSearchQuery(cityName: 'Rabat', text: 'oudayas'),
       );
 
       expect(places.any((place) => place.id == 'place-oudayas'), isTrue);
     });
 
     test('retombe sur Marrakech pour une ville inconnue', () {
-      expect(
-        PlaceMapper.resolveCityName('Tanger'),
-        'Marrakech',
-      );
+      expect(PlaceMapper.resolveCityName('Tanger'), 'Marrakech');
     });
 
     test('strictCity conserve une ville non couverte et renvoie vide', () {
       final places = PlaceMapper.filter(
-        const PlaceSearchQuery(
-          cityName: 'Tanger',
-          strictCity: true,
-        ),
+        const PlaceSearchQuery(cityName: 'Tanger', strictCity: true),
       );
 
       expect(places, isEmpty);
     });
 
-    test('le tri catalog conserve l\'ordre source', () {
-      final base = PlaceMapper.filter(
-        const PlaceSearchQuery(cityName: 'Marrakech'),
-      );
+    test(
+      'le tri catalog place les sélections en tête sans réordonner le groupe',
+      () {
+        final scrambled = [
+          PlaceCatalog.guides.firstWhere((p) => p.id == 'place-plus61'),
+          PlaceCatalog.guides.firstWhere((p) => p.id == 'place-jemaa-el-fna'),
+          PlaceCatalog.guides.firstWhere((p) => p.id == 'place-sahbi-sahbi'),
+          PlaceCatalog.guides.firstWhere((p) => p.id == 'place-majorelle'),
+        ];
+        final sorted = PlaceMapper.sortPlaces(scrambled, PlaceSort.catalog);
+        expect(sorted.map((p) => p.id).toList(), [
+          'place-jemaa-el-fna',
+          'place-majorelle',
+          'place-plus61',
+          'place-sahbi-sahbi',
+        ]);
+        expect(sorted.take(2).every((p) => p.isEditorsPick), isTrue);
+        expect(sorted.skip(2).every((p) => !p.isEditorsPick), isTrue);
+      },
+    );
+
+    test('le tri catalog filtre Marrakech avec le cœur éditorial en tête', () {
       final sorted = PlaceMapper.filter(
-        const PlaceSearchQuery(
-          cityName: 'Marrakech',
-          sort: PlaceSort.catalog,
-        ),
+        const PlaceSearchQuery(cityName: 'Marrakech', sort: PlaceSort.catalog),
       );
 
-      expect(sorted.map((place) => place.id), base.map((place) => place.id));
+      expect(sorted, isNotEmpty);
+      expect(sorted.first.isEditorsPick, isTrue);
+      final firstNonPick = sorted.indexWhere((place) => !place.isEditorsPick);
+      expect(firstNonPick, greaterThan(0));
+      expect(
+        sorted.take(firstNonPick).every((place) => place.isEditorsPick),
+        isTrue,
+      );
+      expect(
+        sorted.skip(firstNonPick).every((place) => !place.isEditorsPick),
+        isTrue,
+      );
+      expect(sorted.where((p) => p.isEditorsPick), hasLength(18));
     });
 
     test('le tri nameAsc ordonne alphabétiquement', () {
       final places = PlaceMapper.filter(
-        const PlaceSearchQuery(
-          cityName: 'Marrakech',
-          sort: PlaceSort.nameAsc,
-        ),
+        const PlaceSearchQuery(cityName: 'Marrakech', sort: PlaceSort.nameAsc),
       );
 
       final names = places.map((place) => place.name).toList();

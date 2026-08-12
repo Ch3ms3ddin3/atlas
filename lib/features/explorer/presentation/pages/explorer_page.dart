@@ -54,6 +54,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   final PlaceBrowseFilters _browseFilters = PlaceBrowseFilters.instance;
 
   String _cityName = LocationConstants.fallbackCity;
@@ -72,9 +73,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
   @override
   void initState() {
     super.initState();
-    _cityName = _browseFilters.cityName.isNotEmpty
-        ? _canonicalSupportedCity(_browseFilters.cityName)
-        : _canonicalSupportedCity(_repository.resolveCityName(null));
+    _cityName = _browseCityFor(
+      _browseFilters.cityName.isNotEmpty
+          ? _canonicalSupportedCity(_browseFilters.cityName)
+          : _canonicalSupportedCity(_repository.resolveCityName(null)),
+    );
     _selectedCategory = _browseFilters.category;
     _searchController.text = _browseFilters.searchText;
     _browseFilters.setCityName(_cityName, notify: false);
@@ -120,6 +123,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _detachCatalogListener();
     _searchController.dispose();
     _searchFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -128,7 +132,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     setState(() {
       _cityName = _browseFilters.cityName.isEmpty
           ? _cityName
-          : _canonicalSupportedCity(_browseFilters.cityName);
+          : _browseCityFor(_canonicalSupportedCity(_browseFilters.cityName));
       _selectedCategory = _browseFilters.category;
       if (_searchController.text != _browseFilters.searchText) {
         _searchController.value = TextEditingValue(
@@ -198,7 +202,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   }
 
   void _applyPreferredCity(String preferredCity) {
-    final preferred = _canonicalSupportedCity(preferredCity);
+    final preferred = _browseCityFor(_canonicalSupportedCity(preferredCity));
     setState(() {
       _cityName = preferred;
       _isCityCovered = _repository.isCityCovered(_cityName);
@@ -213,7 +217,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     _searchDebounceTimer = Timer(_searchDebounce, () {
       if (!mounted) return;
       // Appliquer d'abord (déduit la catégorie depuis le texte), puis synchroniser.
-      _applyFilters();
+      _applyFilters(resetScroll: true);
       _pushSharedFilters();
     });
   }
@@ -230,7 +234,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
     // Relire le profil après l'await — il peut s'attacher pendant le GPS.
     final preferredCity =
         _profileRepository?.profile.preferredCity ?? location.cityName;
-    final preferred = _canonicalSupportedCity(preferredCity);
+    final preferred = _browseCityFor(_canonicalSupportedCity(preferredCity));
 
     setState(() {
       _cityName = preferred;
@@ -245,7 +249,18 @@ class _ExplorerPageState extends State<ExplorerPage> {
     return match?.name ?? LocationConstants.fallbackCity;
   }
 
-  void _applyFilters({bool notify = true}) {
+  /// Beta : puces limitées aux villes couvertes — repli Marrakech si besoin.
+  String _browseCityFor(String cityName) {
+    if (_repository.isCityCovered(cityName)) return cityName;
+    return LocationConstants.fallbackCity;
+  }
+
+  List<String> get _coveredCityNames => [
+    for (final name in MoroccoCities.supportedNames)
+      if (_repository.isCityCovered(name)) name,
+  ];
+
+  void _applyFilters({bool notify = true, bool resetScroll = false}) {
     void update() {
       _isCityCovered = _repository.isCityCovered(_cityName);
       final available = _availableCategoriesForCity(_cityName);
@@ -291,6 +306,16 @@ class _ExplorerPageState extends State<ExplorerPage> {
     } else {
       update();
     }
+    if (resetScroll) {
+      _resetExplorerScroll();
+    }
+  }
+
+  void _resetExplorerScroll() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(0);
+    });
   }
 
   List<PlaceCategory> _availableCategoriesForCity(String cityName) {
@@ -407,7 +432,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
               final useGrid = constraints.maxWidth >= _wideBreakpoint;
 
               return CustomScrollView(
-                key: const PageStorageKey<String>('explorer_scroll'),
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
@@ -444,7 +469,8 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           onChanged: _onSearchTextChanged,
                           onClear: () {
                             _searchController.clear();
-                            _applyFilters();
+                            _applyFilters(resetScroll: true);
+                            _pushSharedFilters();
                           },
                         ),
                         const SizedBox(height: AtlasSpacing.md),
@@ -452,6 +478,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
                           delay: AtlasMotion.staggerDelay,
                           child: PlaceCityFilter(
                             selectedCity: _cityName,
+                            cities: _coveredCityNames,
                             onCitySelected: _onCitySelected,
                           ),
                         ),
