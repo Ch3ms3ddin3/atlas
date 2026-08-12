@@ -166,11 +166,30 @@ class ResilientPriceIntelligenceRepository
   }
 
   @override
-  List<PriceObservation> highlights({String? cityName, int limit = 5}) {
+  List<PriceObservation> highlights({
+    String? cityName,
+    int limit = 5,
+    bool strictCity = false,
+  }) {
     return PriceObservationQuery.highlights(
       source: _items,
       cityName: cityName,
       limit: limit,
+      strictCity: strictCity,
+    );
+  }
+
+  @override
+  List<PriceObservation> homeHighlights({
+    String? cityName,
+    int limit = 2,
+    Set<String> excludeIds = const {},
+  }) {
+    return PriceObservationQuery.homeHighlights(
+      source: _items,
+      cityName: cityName,
+      limit: limit,
+      excludeIds: excludeIds,
     );
   }
 

@@ -77,19 +77,25 @@ abstract final class PriceObservationQuery {
   }
 
   /// Highlights city-aware : priorité ville, diversité de catégories.
+  ///
+  /// Si [strictCity] est vrai (Accueil), ne retombe jamais sur d'autres villes
+  /// quand le pool ville/national est vide.
   static List<PriceObservation> highlights({
     required List<PriceObservation> source,
     String? cityName,
     int limit = 5,
+    bool strictCity = false,
   }) {
-    final capped = limit.clamp(3, 5);
+    final capped = limit.clamp(1, 5);
     final verified = source
         .where((e) => e.verificationStatus == PriceVerificationStatus.verified)
         .toList();
 
     final forCity = verified.where((e) => matchesCity(e, cityName)).toList();
 
-    final pool = forCity.isNotEmpty ? forCity : verified;
+    final pool = strictCity
+        ? forCity
+        : (forCity.isNotEmpty ? forCity : verified);
     if (pool.isEmpty) return const [];
 
     sortInPlace(pool, PriceIntelligenceSort.atlasRecommendation);
@@ -107,6 +113,61 @@ abstract final class PriceObservationQuery {
       if (picked.length >= capped) break;
       if (!picked.any((e) => e.id == item.id)) {
         picked.add(item);
+      }
+    }
+    return picked;
+  }
+
+  /// Accueil « Prix utiles » — max 2, ville stricte, préférence mobile + culture.
+  ///
+  /// [excludeIds] retire les observations déjà montrées ailleurs (ex. Utile
+  /// maintenant) pour éviter la duplication Accueil.
+  static List<PriceObservation> homeHighlights({
+    required List<PriceObservation> source,
+    required String? cityName,
+    int limit = 2,
+    Set<String> excludeIds = const {},
+  }) {
+    final capped = limit.clamp(1, 2);
+    final pool = source
+        .where(
+          (e) =>
+              e.verificationStatus == PriceVerificationStatus.verified &&
+              matchesCity(e, cityName) &&
+              !excludeIds.contains(e.id),
+        )
+        .toList();
+    if (pool.isEmpty) return const [];
+
+    final mobile = pool
+        .where((e) => e.category == PriceIntelligenceCategory.mobilePlans)
+        .toList();
+    final culture = pool
+        .where((e) => e.category == PriceIntelligenceCategory.culture)
+        .toList();
+    sortInPlace(mobile, PriceIntelligenceSort.atlasRecommendation);
+    sortInPlace(culture, PriceIntelligenceSort.atlasRecommendation);
+
+    final picked = <PriceObservation>[];
+    void addFirst(List<PriceObservation> candidates) {
+      if (picked.length >= capped || candidates.isEmpty) return;
+      final next = candidates.first;
+      if (!picked.any((e) => e.id == next.id)) {
+        picked.add(next);
+      }
+    }
+
+    addFirst(mobile);
+    addFirst(culture);
+
+    if (picked.length < capped) {
+      final rest = List<PriceObservation>.from(pool);
+      sortInPlace(rest, PriceIntelligenceSort.atlasRecommendation);
+      for (final item in rest) {
+        if (picked.length >= capped) break;
+        if (!picked.any((e) => e.id == item.id)) {
+          picked.add(item);
+        }
       }
     }
     return picked;

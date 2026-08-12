@@ -37,8 +37,9 @@ class DailyInsightBuilder {
     required WeatherSnapshot weatherSnapshot,
     required String cityName,
     List<AtlasEvent> todayEvents = const [],
+    DateTime? referenceTime,
   }) {
-    final now = PrayerMapper.casablancaNow();
+    final now = referenceTime ?? PrayerMapper.casablancaNow();
     final weather = weatherSnapshot.data;
 
     if (weatherSnapshot.hasWeather && weather != null) {

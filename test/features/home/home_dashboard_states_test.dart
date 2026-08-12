@@ -142,14 +142,12 @@ void main() {
 
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
-    expect(find.text('Actions rapides'), findsOneWidget);
+    expect(find.text('Actions rapides'), findsNothing);
+    expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Pour vous'), findsNothing);
     expect(find.textContaining('Circulation'), findsNothing);
     expect(find.textContaining('férié listé'), findsNothing);
     expect(find.text('il y a 5 min'), findsNothing);
-    expect(find.text('Explorer'), findsWidgets);
-    expect(find.text('Carte'), findsWidgets);
-    expect(find.text('Démarches'), findsWidgets);
     expect(find.text('Briefing du jour'), findsNothing);
     expect(find.text('Mes véhicules au Maroc'), findsNothing);
   });
@@ -228,7 +226,6 @@ void main() {
     expect(find.text('Recommandations'), findsNothing);
     expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
     expect(find.text('Pour vous'), findsNothing);
-    expect(find.textContaining('Majorelle'), findsNothing);
   });
 
   testWidgets('offline APIs: Home still renders without invented weather', (
@@ -248,7 +245,7 @@ void main() {
     expect(find.text('Forte chaleur prévue'), findsNothing);
     expect(find.textContaining('données estimées'), findsNothing);
     expect(find.textContaining('Circulation'), findsNothing);
-    expect(find.text('Actions rapides'), findsOneWidget);
+    expect(find.text('Actions rapides'), findsNothing);
     expect(find.text('Pour vous'), findsNothing);
   });
 
@@ -297,10 +294,10 @@ void main() {
     );
 
     expect(find.text('Pour vous'), findsNothing);
-    expect(find.textContaining('Majorelle'), findsNothing);
-    expect(find.text('Prix à la une'), findsNothing);
+    expect(find.text('Prix utiles'), findsNothing);
     expect(find.text('SP95 Marrakech'), findsNothing);
     expect(find.text('Démarches utiles'), findsNothing);
+    expect(find.textContaining('taxi'), findsNothing);
   });
 }
 
@@ -335,7 +332,6 @@ class _HomeTestAuthRepository extends AuthRepository {
   @override
   Future<AuthActionResult> signInWithGoogle() async =>
       AuthActionResult.success();
-
 
   @override
   bool get isPasswordRecoveryPending => false;

@@ -40,8 +40,19 @@ abstract class PriceIntelligenceRepository {
 
   List<PriceObservation> search(PriceIntelligenceQuery query);
 
-  /// 3–5 highlights city-aware pour l'accueil.
-  List<PriceObservation> highlights({String? cityName, int limit = 5});
+  /// Highlights city-aware (listes / diversités).
+  List<PriceObservation> highlights({
+    String? cityName,
+    int limit = 5,
+    bool strictCity = false,
+  });
+
+  /// Accueil « Prix utiles » — ville stricte, max 2, sans repli inter-villes.
+  List<PriceObservation> homeHighlights({
+    String? cityName,
+    int limit = 2,
+    Set<String> excludeIds = const {},
+  });
 
   List<String> get availableCities;
 

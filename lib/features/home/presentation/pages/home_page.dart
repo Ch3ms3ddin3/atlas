@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/datetime/last_updated_formatter.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../core/location/location_constants.dart';
 import '../../../../core/location/location_repository.dart';
@@ -14,16 +13,16 @@ import '../../../admission_temporaire/presentation/widgets/home_vehicles_card.da
 import '../../../events/domain/event_repository.dart';
 import '../../../events/domain/models/atlas_event.dart';
 import '../../../events/presentation/pages/events_calendar_page.dart';
-import '../../../events/presentation/widgets/home_events_sections.dart';
+import '../../../explorer/domain/place_repository.dart';
+import '../../../explorer/presentation/pages/explorer_page.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
-import '../../data/daily_insight/daily_insight_builder.dart';
 import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
-import '../../data/home_dashboard_catalog.dart';
 import '../../data/morning_brief/morning_brief_builder.dart';
+import '../../data/now_actions/home_now_actions_builder.dart';
 import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
@@ -31,18 +30,14 @@ import '../../domain/models/home_models.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
 import '../../domain/models/weather_snapshot.dart';
 import '../../data/weather/weather_repository.dart';
-import '../widgets/daily_insight_section.dart';
 import '../widgets/greeting_header.dart';
-import '../widgets/home_section_header.dart';
+import '../widgets/home_now_actions_section.dart';
 import '../widgets/morning_brief_section.dart';
 import '../widgets/prayer_notification_settings_sheet.dart';
-import '../widgets/prayer_time_card.dart';
-import '../widgets/quick_actions_grid.dart';
 import '../widgets/weather_card.dart';
 import '../../../../design_system/navigation/atlas_modal.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
-import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
 import '../../../../design_system/widgets/atlas_reveal.dart';
 import '../../../admission_temporaire/domain/models/at_vehicle.dart';
@@ -65,7 +60,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   static const _morningBriefBuilder = MorningBriefBuilder();
-  static const _dailyInsightBuilder = DailyInsightBuilder();
+  static const _nowActionsBuilder = HomeNowActionsBuilder();
   static const _greetingRepository = GreetingRepository();
 
   final LocationRepository _locationRepository = LocationRepository();
@@ -74,8 +69,8 @@ class _HomePageState extends State<HomePage> {
   final ExchangeRateRepository _exchangeRateRepository =
       ExchangeRateRepository();
   final EventRepository _eventRepository = EventRepository();
-  final PriceIntelligenceRepository _prices =
-      PriceIntelligenceRepository();
+  final PriceIntelligenceRepository _prices = PriceIntelligenceRepository();
+  final PlaceRepository _places = PlaceRepository();
 
   UserLocation _location = const UserLocation(
     latitude: LocationConstants.fallbackLatitude,
@@ -91,16 +86,11 @@ class _HomePageState extends State<HomePage> {
     firstName: UserProfile.defaultFirstName,
     city: LocationConstants.fallbackCity,
   );
-  String _lastUpdatedLabel = '';
-  DateTime? _weatherFetchedAt;
-  DateTime? _prayerFetchedAt;
-  DateTime? _exchangeFetchedAt;
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
   ProfileRepository? _profileRepository;
   AtRepository? _atRepository;
   List<AtlasEvent> _todayEvents = const [];
-  List<AtlasEvent> _upcomingEvents = const [];
   VoidCallback? _eventCatalogListener;
   VoidCallback? _pricesListener;
 
@@ -116,6 +106,7 @@ class _HomePageState extends State<HomePage> {
     _loadExchangeRate();
     _resolveLocation();
     unawaited(_prices.warmUp());
+    unawaited(_places.warmUp());
     _scheduleDateRollTimer();
     _prayerCountdownTimer = Timer.periodic(
       const Duration(minutes: 1),
@@ -207,10 +198,6 @@ class _HomePageState extends State<HomePage> {
 
   void _refreshEvents() {
     _todayEvents = _eventRepository.today(cityName: _location.cityName);
-    _upcomingEvents = _eventRepository.upcoming(
-      cityName: _location.cityName,
-      limit: 5,
-    );
   }
 
   AtVehicle? get _urgentVehicle {
@@ -249,11 +236,6 @@ class _HomePageState extends State<HomePage> {
       firstName: profile.firstName,
       city: _location.cityName,
     );
-    _lastUpdatedLabel = LastUpdatedFormatter.format([
-      _weatherFetchedAt,
-      _prayerFetchedAt,
-      _exchangeFetchedAt,
-    ]);
   }
 
   Future<void> _resolveLocation() async {
@@ -301,9 +283,6 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() {
       _weatherSnapshot = snapshot;
-      _weatherFetchedAt = snapshot.hasWeather
-          ? snapshot.data?.fetchedAt ?? DateTime.now()
-          : null;
       _refreshDerivedDashboardData();
     });
   }
@@ -321,7 +300,6 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() {
       _prayerSnapshot = snapshot;
-      _prayerFetchedAt = snapshot.hasSchedule ? DateTime.now() : null;
       _refreshDerivedDashboardData();
     });
     unawaited(prayerNotificationCoordinator.sync(location: _location));
@@ -332,9 +310,6 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() {
       _exchangeRateSnapshot = snapshot;
-      _exchangeFetchedAt = snapshot.hasRate
-          ? snapshot.data?.fetchedAt ?? DateTime.now()
-          : null;
       _refreshDerivedDashboardData();
     });
   }
@@ -347,6 +322,7 @@ class _HomePageState extends State<HomePage> {
       _loadPrayerTimes(),
       _loadExchangeRate(),
       _prices.refresh(),
+      _places.warmUp(),
     ]);
     if (!mounted) return;
     setState(_refreshEvents);
@@ -358,7 +334,7 @@ class _HomePageState extends State<HomePage> {
     setState(() => _prayerSnapshot = _prayerRepository.buildForNow());
   }
 
-  void _onPrayerCardTap() {
+  void _onPrayerBriefTap() {
     showAtlasBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -382,22 +358,41 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _onQuickActionTap(QuickActionData action) {
-    switch (action.id) {
-      case 'explorer':
-        ShellNavigationScope.goToExplorer(context);
-      case 'map':
+  void _onWeatherBriefTap() {
+    showAtlasBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AtlasSpacing.lg,
+            AtlasSpacing.sm,
+            AtlasSpacing.lg,
+            AtlasSpacing.xxl,
+          ),
+          child: WeatherCard(snapshot: _weatherSnapshot),
+        );
+      },
+    );
+  }
+
+  void _onNowActionTap(HomeNowAction action) {
+    switch (action.kind) {
+      case HomeNowActionKind.price:
+        final id = action.priceObservationId;
+        if (id == null) return;
+        openPriceObservationById(context, _prices, id);
+      case HomeNowActionKind.place:
+        final placeId = action.placeId;
+        if (placeId == null) return;
+        openPlaceGuideById(context, _places, placeId);
+      case HomeNowActionKind.map:
         ShellNavigationScope.goToMap(context);
-      case 'procedures':
-        ShellNavigationScope.goToProcedures(context);
-      case 'prices':
-        ShellNavigationScope.goToPrices(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final morningBrief = _morningBriefBuilder.build(
       cityName: _location.cityName,
       weatherSnapshot: _weatherSnapshot,
@@ -405,17 +400,21 @@ class _HomePageState extends State<HomePage> {
       exchangeRateSnapshot: _exchangeRateSnapshot,
       todayEvents: _todayEvents,
     );
-    final insight = _dailyInsightBuilder.build(
-      weatherSnapshot: _weatherSnapshot,
+    final nowActions = _nowActionsBuilder.build(
       cityName: _location.cityName,
-      todayEvents: _todayEvents,
+      weatherSnapshot: _weatherSnapshot,
+      priceSource: _prices.getAll(),
+      placeRepository: _places,
     );
     final urgentVehicle = _urgentVehicle;
-    final hasEventSections =
-        _todayEvents.isNotEmpty || _upcomingEvents.isNotEmpty;
-    final priceHighlights = _prices.highlights(
+    final excludedPriceIds = {
+      for (final action in nowActions)
+        if (action.priceObservationId != null) action.priceObservationId!,
+    };
+    final priceHighlights = _prices.homeHighlights(
       cityName: _location.cityName,
-      limit: 3,
+      limit: 2,
+      excludeIds: excludedPriceIds,
     );
 
     return SafeArea(
@@ -431,36 +430,30 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AtlasSpacing.md),
-                    // 1. Header
                     AtlasReveal(child: GreetingHeader(data: _greeting)),
                     const SizedBox(height: AtlasSpacing.md),
-                    // 2. Aujourd'hui à {ville}
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay,
                       child: MorningBriefSection(
                         data: morningBrief,
+                        onWeatherTap: _onWeatherBriefTap,
+                        onPrayerTap: _onPrayerBriefTap,
                         onEventsTap: () => openEventsCalendar(
                           context,
                           initialCity: _location.cityName,
                         ),
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.md),
-                    // 3. Weather
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 2,
-                      child: WeatherCard(snapshot: _weatherSnapshot),
-                    ),
-                    const SizedBox(height: AtlasSpacing.md),
-                    // 4. Prayer
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 2,
-                      child: PrayerTimeCard(
-                        snapshot: _prayerSnapshot,
-                        onTap: _onPrayerCardTap,
+                    if (nowActions.isNotEmpty) ...[
+                      const SizedBox(height: AtlasSpacing.md),
+                      AtlasReveal(
+                        delay: AtlasMotion.staggerDelay * 2,
+                        child: HomeNowActionsSection(
+                          actions: nowActions,
+                          onActionTap: _onNowActionTap,
+                        ),
                       ),
-                    ),
-                    // 5. AT — only when the user already tracks a vehicle
+                    ],
                     if (urgentVehicle != null) ...[
                       const SizedBox(height: AtlasSpacing.md),
                       AtlasReveal(
@@ -471,25 +464,14 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ],
-                    // 6. Events — hide when empty (no invented filler)
-                    if (hasEventSections)
-                      AtlasReveal(
-                        delay: AtlasMotion.staggerDelay * 3,
-                        child: HomeEventsSections(
-                          todayEvents: _todayEvents,
-                          upcomingEvents: _upcomingEvents,
-                          cityName: _location.cityName,
-                        ),
-                      ),
-                    // 7. Trusted price highlights — city-aware, hide if empty
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay * 3,
                       child: HomeOptionalSection(
-                        title: 'Prix à la une',
+                        title: 'Prix utiles',
                         isEmpty: priceHighlights.isEmpty,
                         topSpacing: AtlasSpacing.md,
                         headerSpacing: AtlasSpacing.sm,
-                        actionLabel: 'Voir tout',
+                        actionLabel: 'Voir Prix',
                         onActionTap: () =>
                             ShellNavigationScope.goToPrices(context),
                         child: HomePriceHighlightsSection(
@@ -500,41 +482,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: AtlasSpacing.md),
-                    // 8. Quick actions
-                    AtlasReveal(
-                      delay: AtlasMotion.staggerDelay * 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const HomeSectionHeader(title: 'Actions rapides'),
-                          const SizedBox(height: AtlasSpacing.sm),
-                          QuickActionsGrid(
-                            actions: HomeDashboardCatalog.quickActions,
-                            onActionTap: _onQuickActionTap,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 9. One contextual tip — only when a real signal exists
-                    if (insight != null) ...[
-                      const SizedBox(height: AtlasSpacing.md),
-                      AtlasReveal(
-                        delay: AtlasMotion.staggerDelay * 4,
-                        child: DailyInsightSection(data: insight),
-                      ),
-                    ],
-                    if (_lastUpdatedLabel.isNotEmpty) ...[
-                      const SizedBox(height: AtlasSpacing.sm),
-                      Center(
-                        child: Text(
-                          _lastUpdatedLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AtlasTextStyles.metadata(theme.colorScheme),
-                          ),
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: AtlasSpacing.xxxl),
                   ],
                 ),

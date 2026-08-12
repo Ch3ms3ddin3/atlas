@@ -41,10 +41,10 @@ void main() {
       expect(data.lines[0].text, 'Météo indisponible');
       expect(data.lines[1].text, 'Horaires indisponibles');
       expect(data.lines[2].text, 'Taux indisponible');
-      expect(data.lines.any((l) => l.emoji == '🚦'), isFalse);
+      expect(data.lines.any((l) => l.icon == Icons.traffic_outlined), isFalse);
       expect(data.lines.any((l) => l.text.contains('Circulation')), isFalse);
       expect(data.lines.any((l) => l.text.contains('férié')), isFalse);
-      expect(data.lines.any((l) => l.emoji == '📅'), isFalse);
+      expect(data.lines.any((l) => l.icon == Icons.event_outlined), isFalse);
     });
 
     test('shows FX loading without blocking the brief', () {
@@ -88,6 +88,8 @@ void main() {
             cityName: 'Rabat',
           ),
         ],
+        // Mercredi matin : pas de tip chaleur / vendredi / soirée.
+        referenceTime: DateTime(2026, 8, 12, 10),
       );
 
       expect(data.lines.first.text, '24°C');

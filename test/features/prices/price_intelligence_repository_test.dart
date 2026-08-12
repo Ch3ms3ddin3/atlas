@@ -90,6 +90,61 @@ void main() {
       final categories = highlights.map((e) => e.category).toSet();
       expect(categories.length, greaterThanOrEqualTo(2));
     });
+
+    test('highlights strictCity ne replie pas sur d\'autres villes', () {
+      final onlyCasa = PriceIntelligenceFixtures.sample
+          .where((e) => e.cityName == 'Casablanca')
+          .toList();
+      expect(onlyCasa, isNotEmpty);
+      final strict = PriceObservationQuery.highlights(
+        source: onlyCasa,
+        cityName: 'Marrakech',
+        limit: 3,
+        strictCity: true,
+      );
+      expect(strict, isEmpty);
+
+      final loose = PriceObservationQuery.highlights(
+        source: onlyCasa,
+        cityName: 'Marrakech',
+        limit: 3,
+        strictCity: false,
+      );
+      expect(loose, isNotEmpty);
+    });
+
+    test('homeHighlights max 2, ville stricte, préfère mobile+culture', () {
+      final home = PriceObservationQuery.homeHighlights(
+        source: PriceObservationCatalog.asObservations,
+        cityName: 'Marrakech',
+        limit: 2,
+      );
+      expect(home.length, lessThanOrEqualTo(2));
+      expect(home, isNotEmpty);
+      expect(
+        home.every(
+          (e) => e.isNational || e.cityName.toLowerCase() == 'marrakech',
+        ),
+        isTrue,
+      );
+    });
+
+    test('homeHighlights excludeIds évite la duplication Accueil', () {
+      final all = PriceObservationQuery.homeHighlights(
+        source: PriceObservationCatalog.asObservations,
+        cityName: 'Marrakech',
+        limit: 2,
+      );
+      expect(all, isNotEmpty);
+      final excluded = {all.first.id};
+      final filtered = PriceObservationQuery.homeHighlights(
+        source: PriceObservationCatalog.asObservations,
+        cityName: 'Marrakech',
+        limit: 2,
+        excludeIds: excluded,
+      );
+      expect(filtered.every((e) => e.id != all.first.id), isTrue);
+    });
   });
 
   group('ResilientPriceIntelligenceRepository', () {

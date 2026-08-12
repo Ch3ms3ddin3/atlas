@@ -8,7 +8,6 @@ import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
 import 'package:atlas/features/explorer/domain/place_browse_filters.dart';
 import 'package:atlas/features/map/presentation/widgets/atlas_flutter_map_view.dart';
 import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
-import 'package:atlas/features/home/presentation/widgets/quick_actions_grid.dart';
 import 'package:atlas/features/shell/presentation/atlas_bottom_nav.dart';
 
 import 'features/onboarding/onboarding_test_helpers.dart';
@@ -66,7 +65,8 @@ void main() {
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
     expect(find.text('Marrakech'), findsWidgets);
     expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
-    expect(find.text('Actions rapides'), findsOneWidget);
+    expect(find.text('Actions rapides'), findsNothing);
+    expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Pour vous'), findsNothing);
     expect(find.textContaining('Circulation'), findsNothing);
     expect(find.text('Météo indisponible'), findsWidgets);
@@ -132,13 +132,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
-    expect(find.text('Actions rapides'), findsOneWidget);
-    expect(find.text('Démarches'), findsWidgets);
-    expect(find.text('Explorer'), findsWidgets);
-    expect(find.text('Carte'), findsWidgets);
+    expect(find.text('Actions rapides'), findsNothing);
+    expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Prix'), findsWidgets);
     expect(find.text('Pour vous'), findsNothing);
-    expect(find.textContaining('Majorelle'), findsNothing);
     expect(find.textContaining('Circulation'), findsNothing);
     expect(find.text('il y a 5 min'), findsNothing);
     expect(find.text('Mes favoris'), findsNothing);
@@ -167,7 +164,7 @@ void main() {
     expect(find.text('Confiance élevée'), findsWidgets);
   });
 
-  testWidgets('Les actions rapides naviguent vers les onglets Atlas', (
+  testWidgets('Utile maintenant ouvre la carte depuis Accueil', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
@@ -176,29 +173,11 @@ void main() {
     await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
-    final explorerAction = find.descendant(
-      of: find.byType(QuickActionsGrid),
-      matching: find.text('Explorer'),
-    );
-    await tester.ensureVisible(explorerAction);
+    expect(find.text('Utile maintenant'), findsOneWidget);
+    final mapAction = find.text('Ouvrir la carte près de moi');
+    await tester.ensureVisible(mapAction);
     await tester.pumpAndSettle();
-    await tester.tap(explorerAction);
-    await tester.pumpAndSettle();
-
-    expect(
-      find.textContaining('Sélection Atlas pour Marrakech'),
-      findsOneWidget,
-    );
-
-    await tapBottomNav(tester, 'Accueil');
-
-    final carteAction = find.descendant(
-      of: find.byType(QuickActionsGrid),
-      matching: find.text('Carte'),
-    );
-    await tester.ensureVisible(carteAction);
-    await tester.pumpAndSettle();
-    await tester.tap(carteAction);
+    await tester.tap(mapAction);
     await tester.pumpAndSettle();
 
     expect(find.text('Favoris'), findsWidgets);

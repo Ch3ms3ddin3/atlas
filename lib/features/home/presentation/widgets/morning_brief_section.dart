@@ -9,11 +9,18 @@ import '../../data/morning_brief/morning_brief_builder.dart';
 
 /// Briefing compact « Aujourd'hui à… » — une composition scannable.
 class MorningBriefSection extends StatelessWidget {
-  const MorningBriefSection({super.key, required this.data, this.onEventsTap});
+  const MorningBriefSection({
+    super.key,
+    required this.data,
+    this.onWeatherTap,
+    this.onPrayerTap,
+    this.onEventsTap,
+  });
 
   final MorningBriefData data;
 
-  /// Ouvre l'agenda lorsque la ligne événements est touchée.
+  final VoidCallback? onWeatherTap;
+  final VoidCallback? onPrayerTap;
   final VoidCallback? onEventsTap;
 
   @override
@@ -60,11 +67,7 @@ class MorningBriefSection extends StatelessWidget {
                             if (i > 0) const SizedBox(height: 10),
                             _BriefLine(
                               line: data.lines[i],
-                              onTap:
-                                  data.lines[i].action ==
-                                      MorningBriefAction.events
-                                  ? onEventsTap
-                                  : null,
+                              onTap: _tapFor(data.lines[i].action),
                             ),
                           ],
                         ],
@@ -75,6 +78,15 @@ class MorningBriefSection extends StatelessWidget {
               ),
       ),
     );
+  }
+
+  VoidCallback? _tapFor(MorningBriefAction? action) {
+    return switch (action) {
+      MorningBriefAction.weather => onWeatherTap,
+      MorningBriefAction.prayer => onPrayerTap,
+      MorningBriefAction.events => onEventsTap,
+      null => null,
+    };
   }
 }
 
@@ -87,19 +99,11 @@ class _BriefLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final iconColor = AtlasColors.midnightBlue.withValues(alpha: 0.72);
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(
-          width: 24,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              line.emoji,
-              style: theme.textTheme.bodyMedium?.copyWith(height: 1),
-            ),
-          ),
-        ),
+        SizedBox(width: 24, child: Icon(line.icon, size: 20, color: iconColor)),
         const SizedBox(width: AtlasSpacing.sm),
         Expanded(
           child: Text(
@@ -109,10 +113,6 @@ class _BriefLine extends StatelessWidget {
               letterSpacing: -0.2,
               height: 1.2,
               color: theme.colorScheme.onSurface,
-              decoration: onTap == null ? null : TextDecoration.underline,
-              decorationColor: AtlasColors.midnightBlueMuted.withValues(
-                alpha: 0.35,
-              ),
             ),
           ),
         ),
@@ -169,7 +169,7 @@ class _LoadingBody extends StatelessWidget {
             padding: const EdgeInsets.all(AtlasSpacing.lg),
             child: Column(
               children: [
-                for (var i = 0; i < 5; i++) ...[
+                for (var i = 0; i < 4; i++) ...[
                   Row(
                     children: [
                       const AtlasSkeleton(height: 14, width: 18),
@@ -182,7 +182,7 @@ class _LoadingBody extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (i < 4) const SizedBox(height: 10),
+                  if (i < 3) const SizedBox(height: 10),
                 ],
               ],
             ),
