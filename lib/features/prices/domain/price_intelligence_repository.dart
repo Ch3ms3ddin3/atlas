@@ -8,7 +8,8 @@ abstract class PriceIntelligenceRepository {
   static PriceIntelligenceRepository Function()? _factory;
 
   static PriceIntelligenceRepository get instance {
-    _instance ??= _factory?.call() ??
+    _instance ??=
+        _factory?.call() ??
         (throw StateError(
           'PriceIntelligenceRepository.registerFactory() must be called before use.',
         ));

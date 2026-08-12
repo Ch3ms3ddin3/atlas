@@ -47,7 +47,7 @@ void main() {
       expect(
         MapSearchText.relevanceRank(
           query: 'plus',
-          name: 'Palais de la Bahia',
+          name: 'Palais Bahia',
           summary: 'la visite la plus claire',
           neighborhood: 'Médina',
           categoryLabel: 'Monument',

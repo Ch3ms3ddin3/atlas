@@ -8,6 +8,7 @@ import 'package:atlas/features/prices/domain/price_intelligence_repository.dart'
 import 'package:atlas/features/prices/presentation/pages/prices_page.dart';
 import 'package:atlas/features/prices/presentation/widgets/home_price_highlights_section.dart';
 import 'package:atlas/features/prices/presentation/widgets/price_confidence_chip.dart';
+import 'package:atlas/features/prices/presentation/widgets/prices_scroll_progress_indicator.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/presentation/profile_scope.dart';
 import 'package:flutter/material.dart';
@@ -57,9 +58,7 @@ void main() {
       final highlights = repo.highlights(cityName: 'Marrakech', limit: 3);
       expect(highlights.length, inInclusiveRange(2, 3));
       expect(
-        highlights.every(
-          (e) => e.isNational || e.cityName == 'Marrakech',
-        ),
+        highlights.every((e) => e.isNational || e.cityName == 'Marrakech'),
         isTrue,
       );
 
@@ -85,38 +84,37 @@ void main() {
     },
   );
 
-  testWidgets(
-    'highlights Accueil masqués si aucune observation applicable',
-    (tester) async {
-      PriceIntelligenceRepository.registerFactory(
-        () => ResilientPriceIntelligenceRepository(
-          fetchRemote: () async => const [],
-        ),
-      );
-      final repo = PriceIntelligenceRepository();
-      await repo.warmUp();
-      final highlights = repo.highlights(cityName: 'Marrakech', limit: 3);
-      expect(highlights, isEmpty);
+  testWidgets('highlights Accueil masqués si aucune observation applicable', (
+    tester,
+  ) async {
+    PriceIntelligenceRepository.registerFactory(
+      () => ResilientPriceIntelligenceRepository(
+        fetchRemote: () async => const [],
+      ),
+    );
+    final repo = PriceIntelligenceRepository();
+    await repo.warmUp();
+    final highlights = repo.highlights(cityName: 'Marrakech', limit: 3);
+    expect(highlights, isEmpty);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AtlasTheme.light,
-          home: Scaffold(
-            body: HomeOptionalSection(
-              title: 'Prix à la une',
-              isEmpty: highlights.isEmpty,
-              child: HomePriceHighlightsSection(
-                observations: highlights,
-                onObservationTap: _noop,
-              ),
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AtlasTheme.light,
+        home: Scaffold(
+          body: HomeOptionalSection(
+            title: 'Prix à la une',
+            isEmpty: highlights.isEmpty,
+            child: HomePriceHighlightsSection(
+              observations: highlights,
+              onObservationTap: _noop,
             ),
           ),
         ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Prix à la une'), findsNothing);
-    },
-  );
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Prix à la une'), findsNothing);
+  });
 
   testWidgets('liste Intelligence affiche les prix vérifiés', (tester) async {
     PriceIntelligenceRepository.registerFactory(
@@ -146,6 +144,7 @@ void main() {
     expect(find.text('Prix'), findsWidgets);
     expect(find.text('SP95 Marrakech'), findsOneWidget);
     expect(find.text('Taxi Airport Marrakech'), findsOneWidget);
+    expect(find.byType(PricesScrollProgressIndicator), findsOneWidget);
   });
 
   testWidgets('état vide sans données vérifiées', (tester) async {

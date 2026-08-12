@@ -83,8 +83,7 @@ void main() {
       expect(
         highlights.every(
           (e) =>
-              e.cityName == 'Marrakech' ||
-              e.cityName == PriceNationalCity.name,
+              e.cityName == 'Marrakech' || e.cityName == PriceNationalCity.name,
         ),
         isTrue,
       );
@@ -138,7 +137,9 @@ void main() {
           isTrue,
         );
         expect(
-          marrakech.any((e) => e.category == PriceIntelligenceCategory.mobilePlans),
+          marrakech.any(
+            (e) => e.category == PriceIntelligenceCategory.mobilePlans,
+          ),
           isTrue,
         );
         // Seed must not be written to disk until a successful remote fetch.
@@ -165,6 +166,7 @@ void main() {
     test('succès vide sans inventer de prix', () async {
       final repo = ResilientPriceIntelligenceRepository(
         fetchRemote: () async => const [],
+        seedItems: PriceObservationCatalog.asObservations,
       );
       await repo.warmUp();
       expect(repo.loadState, EditorialCatalogLoadState.success);
@@ -172,7 +174,101 @@ void main() {
       expect(repo.highlights(cityName: 'Marrakech'), isEmpty);
     });
 
-    test('remote non vide remplace le seed et remplit le cache', () async {
+    test('remote Wave 1 conserve le seed Wave 2 (merge par slug)', () async {
+      final wave1Only = PriceObservationCatalog.asObservations
+          .where((e) => e.category != PriceIntelligenceCategory.culture)
+          .toList();
+      expect(wave1Only, isNotEmpty);
+
+      final repo = ResilientPriceIntelligenceRepository(
+        fetchRemote: () async => wave1Only,
+        seedItems: PriceObservationCatalog.asObservations,
+      );
+      await repo.warmUp();
+
+      expect(repo.loadState, EditorialCatalogLoadState.success);
+      final culture = repo.search(
+        const PriceIntelligenceQuery(
+          cityName: 'Marrakech',
+          category: PriceIntelligenceCategory.culture,
+        ),
+      );
+      expect(culture.length, 17);
+      expect(repo.categories, contains(PriceIntelligenceCategory.culture));
+      expect(
+        repo.search(
+          const PriceIntelligenceQuery(
+            cityName: 'Marrakech',
+            category: PriceIntelligenceCategory.mobilePlans,
+          ),
+        ),
+        isNotEmpty,
+      );
+      expect(
+        repo.findById('culture-palais-bahia-adulte-etranger-marrakech'),
+        isNotNull,
+      );
+
+      final cached = await const PriceIntelligenceCacheStore().load();
+      expect(
+        cached.any((e) => e.category == PriceIntelligenceCategory.culture),
+        isTrue,
+      );
+    });
+
+    test('mergeRemoteOverSeed : distant gagne sur le même slug', () {
+      final seed = PriceObservationCatalog.asObservations;
+      final wave1 = seed
+          .where((e) => e.category != PriceIntelligenceCategory.culture)
+          .toList();
+      final merged = ResilientPriceIntelligenceRepository.mergeRemoteOverSeed(
+        seed: seed,
+        remote: wave1,
+      );
+      expect(
+        merged
+            .where((e) => e.category == PriceIntelligenceCategory.culture)
+            .length,
+        17,
+      );
+      expect(merged.length, seed.length);
+      expect(
+        ResilientPriceIntelligenceRepository.mergeRemoteOverSeed(
+          seed: seed,
+          remote: const [],
+        ),
+        isEmpty,
+      );
+
+      final bahiaSeed = seed.firstWhere(
+        (e) => e.id == 'culture-palais-bahia-adulte-etranger-marrakech',
+      );
+      final bahiaRemote = PriceObservation(
+        id: bahiaSeed.id,
+        itemName: bahiaSeed.itemName,
+        category: bahiaSeed.category,
+        cityName: bahiaSeed.cityName,
+        unitLabel: bahiaSeed.unitLabel,
+        currentAmountMad: 101,
+        lastUpdatedAt: bahiaSeed.lastUpdatedAt,
+        source: bahiaSeed.source,
+        sourceUrl: bahiaSeed.sourceUrl,
+        confidence: bahiaSeed.confidence,
+        verificationStatus: bahiaSeed.verificationStatus,
+        atlasScore: bahiaSeed.atlasScore,
+      );
+      final overridden =
+          ResilientPriceIntelligenceRepository.mergeRemoteOverSeed(
+            seed: seed,
+            remote: [bahiaRemote, ...wave1],
+          );
+      expect(
+        overridden.firstWhere((e) => e.id == bahiaSeed.id).currentAmountMad,
+        101,
+      );
+    });
+
+    test('remote non vide fusionne le seed et remplit le cache', () async {
       final repo = ResilientPriceIntelligenceRepository(
         fetchRemote: () async => PriceIntelligenceFixtures.sample,
         seedItems: PriceObservationCatalog.asObservations,
@@ -181,8 +277,40 @@ void main() {
 
       expect(repo.loadState, EditorialCatalogLoadState.success);
       expect(repo.findById('sp95-marrakech'), isNotNull);
+      expect(repo.findById('culture-macaal-adulte-marrakech'), isNotNull);
       final cached = await const PriceIntelligenceCacheStore().load();
       expect(cached.any((e) => e.id == 'sp95-marrakech'), isTrue);
+      expect(
+        cached.any((e) => e.id == 'culture-macaal-adulte-marrakech'),
+        isTrue,
+      );
+    });
+
+    test('cache Wave 1 offline fusionne le seed culture au warmUp', () async {
+      const cacheStore = PriceIntelligenceCacheStore();
+      final wave1Only = PriceObservationCatalog.asObservations
+          .where((e) => e.category != PriceIntelligenceCategory.culture)
+          .toList();
+      await cacheStore.save(wave1Only);
+
+      final repo = ResilientPriceIntelligenceRepository(
+        cacheStore: cacheStore,
+        fetchRemote: () async => throw Exception('offline'),
+        seedItems: PriceObservationCatalog.asObservations,
+      );
+      await repo.warmUp();
+
+      expect(
+        repo
+            .search(
+              const PriceIntelligenceQuery(
+                cityName: 'Marrakech',
+                category: PriceIntelligenceCategory.culture,
+              ),
+            )
+            .length,
+        17,
+      );
     });
   });
 }

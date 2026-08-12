@@ -36,13 +36,19 @@ WHERE slug IN (
   }
 
   static String upsertOne(PriceObservationCatalogEntry entry) {
-    final min = entry.minAmountMad == null ? 'NULL' : entry.minAmountMad.toString();
-    final avg = entry.avgAmountMad == null ? 'NULL' : entry.avgAmountMad.toString();
-    final max = entry.maxAmountMad == null ? 'NULL' : entry.maxAmountMad.toString();
-    final district =
-        entry.district == null ? 'NULL' : _text(entry.district!);
-    final atlas =
-        entry.atlasScore == null ? 'NULL' : entry.atlasScore.toString();
+    final min = entry.minAmountMad == null
+        ? 'NULL'
+        : entry.minAmountMad.toString();
+    final avg = entry.avgAmountMad == null
+        ? 'NULL'
+        : entry.avgAmountMad.toString();
+    final max = entry.maxAmountMad == null
+        ? 'NULL'
+        : entry.maxAmountMad.toString();
+    final district = entry.district == null ? 'NULL' : _text(entry.district!);
+    final atlas = entry.atlasScore == null
+        ? 'NULL'
+        : entry.atlasScore.toString();
     final updated = entry.retrievedAt.toUtc().toIso8601String();
 
     return '''

@@ -68,13 +68,9 @@ abstract final class PriceObservationQuery {
       case PriceIntelligenceSort.atlasRecommendation:
         items.sort(compareRecommendation);
       case PriceIntelligenceSort.lowestPrice:
-        items.sort(
-          (a, b) => a.currentAmountMad.compareTo(b.currentAmountMad),
-        );
+        items.sort((a, b) => a.currentAmountMad.compareTo(b.currentAmountMad));
       case PriceIntelligenceSort.highestPrice:
-        items.sort(
-          (a, b) => b.currentAmountMad.compareTo(a.currentAmountMad),
-        );
+        items.sort((a, b) => b.currentAmountMad.compareTo(a.currentAmountMad));
       case PriceIntelligenceSort.recentlyUpdated:
         items.sort((a, b) => b.lastUpdatedAt.compareTo(a.lastUpdatedAt));
     }
@@ -91,9 +87,7 @@ abstract final class PriceObservationQuery {
         .where((e) => e.verificationStatus == PriceVerificationStatus.verified)
         .toList();
 
-    final forCity = verified
-        .where((e) => matchesCity(e, cityName))
-        .toList();
+    final forCity = verified.where((e) => matchesCity(e, cityName)).toList();
 
     final pool = forCity.isNotEmpty ? forCity : verified;
     if (pool.isEmpty) return const [];

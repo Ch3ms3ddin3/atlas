@@ -8,6 +8,7 @@ import '../../../../design_system/widgets/atlas_empty_state.dart';
 import '../../../content_reports/domain/content_report_entity_type.dart';
 import '../../../content_reports/presentation/content_reports_scope.dart';
 import '../../../content_reports/presentation/widgets/content_report_sheet.dart';
+import '../../../prices/data/place_verified_price_links.dart';
 import '../../data/resilient_place_repository.dart';
 import '../../domain/models/place_models.dart';
 import '../../domain/place_repository.dart';
@@ -19,6 +20,7 @@ import '../widgets/place_editorial_tips.dart';
 import '../widgets/place_feature_chips_section.dart';
 import '../widgets/place_gallery_section.dart';
 import '../widgets/place_opening_hours_section.dart';
+import '../widgets/place_verified_price_section.dart';
 
 /// Fiche destination premium — sections conditionnelles selon les données réelles.
 class PlaceDetailPage extends StatefulWidget {
@@ -279,6 +281,10 @@ class _PlaceDetailBody extends StatelessWidget {
             label: 'Meilleur moment',
             value: place.bestTimeToVisit!,
           ),
+        ],
+        if (PlaceVerifiedPriceLinks.hasLinks(place.id)) ...[
+          const SizedBox(height: AtlasSpacing.section),
+          PlaceVerifiedPriceSection(placeId: place.id),
         ],
         if (place.hasPracticalTips) ...[
           const SizedBox(height: AtlasSpacing.section),

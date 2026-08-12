@@ -57,7 +57,7 @@ abstract final class PlaceCatalog {
     ),
     PlaceGuide(
       id: 'place-bahia',
-      name: 'Palais de la Bahia',
+      name: 'Palais Bahia',
       cityName: 'Marrakech',
       category: PlaceCategory.monument,
       categoryLabel: 'Monument',
@@ -79,8 +79,7 @@ abstract final class PlaceCatalog {
       openingHours: PlaceOpeningHours(
         note:
             'Horaires variables — vérifier sur place le jour de la visite '
-            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
-            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan).',
       ),
       practicalTips: [
         'Arrivez à l\'ouverture : la lumière rase des patios et la file '
@@ -151,8 +150,7 @@ abstract final class PlaceCatalog {
         note:
             'Tous les jours 09:00–19:00 ; Ramadan 09:00–16:30 '
             '(site officiel). Billets sur place '
-            '(billetterie en ligne en maintenance). '
-            'Adulte étranger : 50 MAD.',
+            '(billetterie en ligne en maintenance).',
         entries: [
           PlaceHoursEntry(
             dayLabel: 'Tous les jours',
@@ -194,8 +192,7 @@ abstract final class PlaceCatalog {
       openingHours: PlaceOpeningHours(
         note:
             'Horaires variables — vérifier sur place le jour de la visite '
-            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
-            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture).',
+            '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan).',
       ),
       practicalTips: [
         'Combinez avec les Tombeaux Saadiens le même demi-journée Kasbah ; '
@@ -231,7 +228,6 @@ abstract final class PlaceCatalog {
         note:
             'Horaires variables — vérifier sur place le jour de la visite '
             '(souvent ~09:00–17:00 ; plus courts pendant le Ramadan). '
-            'Tarif adulte étranger : 100 MAD (e-services Ministère de la Culture). '
             'Possible gêne près de la mosquée de la Kasbah le vendredi midi.',
       ),
       practicalTips: [
@@ -319,8 +315,7 @@ abstract final class PlaceCatalog {
           PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
         ],
         note:
-            'Tarif adulte étranger : 60 MAD ; Marocains / résidents : 25 MAD '
-            '(Fondation Nationale des Musées).',
+            'Ramadan : horaires éventuellement raccourcis — vérifier le jour même.',
       ),
       practicalTips: [
         'Billet musée FNM pour les salles d\'exposition — accès distinct '
@@ -353,9 +348,8 @@ abstract final class PlaceCatalog {
       openingHours: PlaceOpeningHours(
         note:
             'Ouvert tous les jours 09:30–19:00 (site officiel). '
-            'Adulte : 80 MAD ; résidents marocains : 50 MAD ; '
-            'moins de 15 ans : gratuit. Billet aussi valable au '
-            'Musée de la Musique de Marrakech.',
+            'Billet aussi valable au Musée de la Musique de Marrakech. '
+            'Paiement sur place uniquement.',
         entries: [
           PlaceHoursEntry(
             dayLabel: 'Tous les jours',
@@ -681,10 +675,7 @@ abstract final class PlaceCatalog {
           PlaceHoursEntry(dayLabel: 'Samedi', hoursLabel: '10:00–18:00'),
           PlaceHoursEntry(dayLabel: 'Dimanche', hoursLabel: '10:00–18:00'),
         ],
-        note:
-            'Adulte : 120 MAD ; résidents / nationaux africains : 60 MAD ; '
-            'étudiants et moins de 12 ans : gratuit avec pièce d\'identité '
-            '(macaal.org). Ramadan : 10:00–15:30.',
+        note: 'Ramadan : 10:00–15:30 (informations pratiques MACAAL).',
       ),
       practicalTips: [
         'Comptez 10–20 minutes de taxi depuis le centre ; fermé lundi et mardi.',

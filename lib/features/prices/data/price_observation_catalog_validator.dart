@@ -6,9 +6,7 @@ import 'price_observation_query.dart';
 
 /// Validation stricte du catalogue Price Intelligence (Wave 1).
 abstract final class PriceObservationCatalogValidator {
-  static List<String> validate([
-    List<PriceObservationCatalogEntry>? source,
-  ]) {
+  static List<String> validate([List<PriceObservationCatalogEntry>? source]) {
     final entries = source ?? PriceObservationCatalog.entries;
     final errors = <String>[];
     final slugs = <String>{};
@@ -85,9 +83,7 @@ abstract final class PriceObservationCatalogValidator {
         }
         final productKey = '${entry.category.name}|${entry.itemName}';
         if (!nationalProductKeys.add(productKey)) {
-          errors.add(
-            '$prefix: produit national dupliqué ($productKey).',
-          );
+          errors.add('$prefix: produit national dupliqué ($productKey).');
         }
       } else if (!MoroccoCities.supportedNames.contains(entry.cityName)) {
         errors.add(

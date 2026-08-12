@@ -6,10 +6,7 @@ import '../../domain/models/price_observation.dart';
 
 /// Statut de vérification — distinct de la confiance.
 class PriceVerificationChip extends StatelessWidget {
-  const PriceVerificationChip({
-    super.key,
-    required this.status,
-  });
+  const PriceVerificationChip({super.key, required this.status});
 
   final PriceVerificationStatus status;
 

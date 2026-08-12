@@ -8,11 +8,7 @@ import 'price_tourist_trap_banner.dart';
 
 /// Carte résumé d'un prix moyen dans la liste.
 class PriceGuideCard extends StatelessWidget {
-  const PriceGuideCard({
-    super.key,
-    required this.guide,
-    required this.onTap,
-  });
+  const PriceGuideCard({super.key, required this.guide, required this.onTap});
 
   final PriceGuide guide;
   final VoidCallback onTap;
@@ -26,10 +22,7 @@ class PriceGuideCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            guide.icon,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(guide.icon, color: theme.colorScheme.primary),
           const SizedBox(width: AtlasSpacing.lg),
           Expanded(
             child: Column(
@@ -67,16 +60,18 @@ class PriceGuideCard extends StatelessWidget {
                 Text(
                   '${PriceMapper.formatRange(guide)} · ${guide.unitLabel}',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.7),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AtlasSpacing.xs),
                 Text(
                   PriceMapper.formatLastUpdated(guide.lastUpdatedAt),
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.55),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.55,
+                    ),
                   ),
                 ),
               ],
@@ -96,7 +91,9 @@ class PriceGuideCard extends StatelessWidget {
               const SizedBox(height: AtlasSpacing.xs),
               Icon(
                 Icons.chevron_right,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
               ),
             ],
           ),

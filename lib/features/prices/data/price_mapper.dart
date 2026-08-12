@@ -67,10 +67,7 @@ abstract final class PriceMapper {
     }).toList();
   }
 
-  static PriceGuide? findById(
-    String id, {
-    List<PriceGuide>? source,
-  }) {
+  static PriceGuide? findById(String id, {List<PriceGuide>? source}) {
     final catalog = source ?? PriceCatalog.guides;
     for (final guide in catalog) {
       if (guide.id == id) return guide;

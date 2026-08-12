@@ -18,10 +18,10 @@ class ResilientPriceRepository with ChangeNotifier implements PriceRepository {
     Future<List<PriceGuide>> Function()? fetchRemote,
     Duration? fetchTimeout,
   }) : _catalog = ResilientEditorialCatalog<PriceGuide>(
-          localItems: (local ?? LocalPriceRepository()).items,
-          fetchRemote: fetchRemote ?? const SupabasePriceRepository().fetchAll,
-          fetchTimeout: fetchTimeout,
-        ) {
+         localItems: (local ?? LocalPriceRepository()).items,
+         fetchRemote: fetchRemote ?? const SupabasePriceRepository().fetchAll,
+         fetchTimeout: fetchTimeout,
+       ) {
     _catalog.addListener(_onCatalogChanged);
   }
 

@@ -24,11 +24,36 @@ abstract final class HomeMockData {
     nextPrayerCountdown: 'dans 2h 14m',
     calculationMethod: 'AlAdhan · méthode Maroc',
     schedule: [
-      PrayerScheduleItem(name: 'Fajr', time: '05:08', isCurrent: false, isNext: false),
-      PrayerScheduleItem(name: 'Dhuhr', time: '13:22', isCurrent: false, isNext: false),
-      PrayerScheduleItem(name: 'Asr', time: '16:58', isCurrent: false, isNext: true),
-      PrayerScheduleItem(name: 'Maghrib', time: '20:11', isCurrent: false, isNext: false),
-      PrayerScheduleItem(name: 'Isha', time: '21:28', isCurrent: false, isNext: false),
+      PrayerScheduleItem(
+        name: 'Fajr',
+        time: '05:08',
+        isCurrent: false,
+        isNext: false,
+      ),
+      PrayerScheduleItem(
+        name: 'Dhuhr',
+        time: '13:22',
+        isCurrent: false,
+        isNext: false,
+      ),
+      PrayerScheduleItem(
+        name: 'Asr',
+        time: '16:58',
+        isCurrent: false,
+        isNext: true,
+      ),
+      PrayerScheduleItem(
+        name: 'Maghrib',
+        time: '20:11',
+        isCurrent: false,
+        isNext: false,
+      ),
+      PrayerScheduleItem(
+        name: 'Isha',
+        time: '21:28',
+        isCurrent: false,
+        isNext: false,
+      ),
     ],
   );
 
@@ -51,7 +76,8 @@ abstract final class HomeMockData {
     alert: AlertData(
       id: 'alert-heat',
       title: 'Forte chaleur prévue',
-      detail: '38 °C cet après-midi à Marrakech — hydratez-vous et évitez les sorties entre 12h et 16h.',
+      detail:
+          '38 °C cet après-midi à Marrakech — hydratez-vous et évitez les sorties entre 12h et 16h.',
       source: 'Atlas Météo',
       severity: AlertSeverity.caution,
       icon: Icons.wb_sunny_outlined,
@@ -67,10 +93,22 @@ abstract final class HomeMockData {
 
   /// Conservé pour tests / repli — les actions live viennent de [HomeDashboardCatalog].
   static const quickActions = <QuickActionData>[
-    QuickActionData(id: 'explorer', label: 'Lieux', icon: Icons.explore_outlined),
-    QuickActionData(id: 'procedures', label: 'Démarches', icon: Icons.description_outlined),
+    QuickActionData(
+      id: 'explorer',
+      label: 'Lieux',
+      icon: Icons.explore_outlined,
+    ),
+    QuickActionData(
+      id: 'procedures',
+      label: 'Démarches',
+      icon: Icons.description_outlined,
+    ),
     QuickActionData(id: 'prices', label: 'Prix', icon: Icons.payments_outlined),
-    QuickActionData(id: 'profile', label: 'Profil', icon: Icons.person_outline_rounded),
+    QuickActionData(
+      id: 'profile',
+      label: 'Profil',
+      icon: Icons.person_outline_rounded,
+    ),
   ];
 
   static const recommendedPlaces = <RecommendedPlaceData>[
@@ -85,7 +123,7 @@ abstract final class HomeMockData {
     ),
     RecommendedPlaceData(
       id: 'place-bahia',
-      name: 'Palais de la Bahia',
+      name: 'Palais Bahia',
       category: 'Monument',
       distanceLabel: '18 min · Médina',
       priceLevel: '€€',

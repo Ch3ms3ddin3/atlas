@@ -26,14 +26,13 @@ class PriceObservationCard extends StatelessWidget {
 
     return AtlasCard(
       onTap: onTap,
-      emphasis: compact ? AtlasCardEmphasis.compact : AtlasCardEmphasis.standard,
+      emphasis: compact
+          ? AtlasCardEmphasis.compact
+          : AtlasCardEmphasis.standard,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            observation.category.icon,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(observation.category.icon, color: theme.colorScheme.primary),
           const SizedBox(width: AtlasSpacing.lg),
           Expanded(
             child: Column(
@@ -96,8 +95,9 @@ class PriceObservationCard extends StatelessWidget {
                       observation.lastUpdatedAt,
                     ),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                     ),
                   ),
                 ],

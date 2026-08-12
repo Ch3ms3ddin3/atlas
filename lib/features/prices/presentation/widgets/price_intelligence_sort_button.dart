@@ -21,10 +21,7 @@ class PriceIntelligenceSortButton extends StatelessWidget {
       onSelected: onSortSelected,
       itemBuilder: (context) => [
         for (final value in PriceIntelligenceSort.values)
-          PopupMenuItem(
-            value: value,
-            child: Text(value.labelFr),
-          ),
+          PopupMenuItem(value: value, child: Text(value.labelFr)),
       ],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),

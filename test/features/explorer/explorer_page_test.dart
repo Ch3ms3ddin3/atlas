@@ -100,7 +100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Jardin Majorelle'), findsOneWidget);
-    expect(find.text('Palais de la Bahia'), findsNothing);
+    expect(find.text('Palais Bahia'), findsNothing);
   });
 
   testWidgets('recherche par texte après debounce', (tester) async {
@@ -111,7 +111,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Jardin Majorelle'), findsWidgets);
-    expect(find.text('Palais de la Bahia'), findsNothing);
+    expect(find.text('Palais Bahia'), findsNothing);
   });
 
   testWidgets('recherche sans résultat affiche empty state V2', (tester) async {

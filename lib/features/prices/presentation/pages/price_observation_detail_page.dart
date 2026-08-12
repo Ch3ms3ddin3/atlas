@@ -12,10 +12,7 @@ import '../widgets/price_verification_chip.dart';
 
 /// Détail d'une observation vérifiée — prix courant dominant.
 class PriceObservationDetailPage extends StatelessWidget {
-  const PriceObservationDetailPage({
-    super.key,
-    required this.observation,
-  });
+  const PriceObservationDetailPage({super.key, required this.observation});
 
   final PriceObservation observation;
 
@@ -109,9 +106,7 @@ class PriceObservationDetailPage extends StatelessWidget {
                 runSpacing: AtlasSpacing.sm,
                 children: [
                   PriceConfidenceChip(confidence: observation.confidence),
-                  PriceVerificationChip(
-                    status: observation.verificationStatus,
-                  ),
+                  PriceVerificationChip(status: observation.verificationStatus),
                 ],
               ),
               if (observation.userReportsCount > 0) ...[
@@ -193,9 +188,7 @@ class _RangeRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AtlasSpacing.xs),
       child: Row(
         children: [
-          Expanded(
-            child: Text(label, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           Text(
             value,
             style: theme.textTheme.titleSmall?.copyWith(

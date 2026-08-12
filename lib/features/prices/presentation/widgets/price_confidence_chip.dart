@@ -6,10 +6,7 @@ import '../../domain/models/price_observation.dart';
 
 /// Pastille de confiance agrégée.
 class PriceConfidenceChip extends StatelessWidget {
-  const PriceConfidenceChip({
-    super.key,
-    required this.confidence,
-  });
+  const PriceConfidenceChip({super.key, required this.confidence});
 
   final PriceConfidence confidence;
 

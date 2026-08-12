@@ -10,11 +10,13 @@ import 'supabase_price_intelligence_repository.dart';
 /// Price Intelligence : seed bundlé → cache disque → Supabase vérifié.
 ///
 /// Ordre :
-/// 1. Cache local s'il existe (dernière sync distante réussie).
+/// 1. Cache local s'il existe (dernière sync distante réussie), fusionné au seed.
 /// 2. Sinon seed catalogue vérifié (bootstrap / premier lancement offline).
-/// 3. Remote gagne après un fetch réussi (y compris liste vide).
-/// Le seed n'est jamais poussé vers Supabase ni écrit en cache tant que
-/// le distant n'a pas répondu avec des données.
+/// 3. Remote non vide : fusion par slug (distant prioritaire, seed-only conservé).
+/// 4. Remote vide : liste vide (aucune invention côté client).
+///
+/// Le seed n'est jamais poussé vers Supabase. Le cache disque stocke le résultat
+/// fusionné après un fetch distant non vide.
 class ResilientPriceIntelligenceRepository
     with ChangeNotifier
     implements PriceIntelligenceRepository {
@@ -45,6 +47,37 @@ class ResilientPriceIntelligenceRepository
   Object? get lastError => _lastError;
   bool get isUsingCacheOnly => _usingCacheOnly;
 
+  /// Fusionne [remote] sur [seed] par `PriceObservation.id` (slug).
+  ///
+  /// - distant vide → liste vide (pas d'invention) ;
+  /// - même id → version distante ;
+  /// - id seed seul → conservé (ex. Wave 2 avant migration remote) ;
+  /// - id distant seul → ajouté.
+  @visibleForTesting
+  static List<PriceObservation> mergeRemoteOverSeed({
+    required List<PriceObservation> seed,
+    required List<PriceObservation> remote,
+  }) {
+    if (remote.isEmpty) return remote;
+
+    final remoteById = <String, PriceObservation>{
+      for (final item in remote) item.id: item,
+    };
+    final seen = <String>{};
+    final merged = <PriceObservation>[];
+
+    for (final seedItem in seed) {
+      merged.add(remoteById[seedItem.id] ?? seedItem);
+      seen.add(seedItem.id);
+    }
+    for (final remoteItem in remote) {
+      if (seen.add(remoteItem.id)) {
+        merged.add(remoteItem);
+      }
+    }
+    return merged;
+  }
+
   void _setItems(List<PriceObservation> next) {
     _items = List<PriceObservation>.unmodifiable(next);
   }
@@ -62,7 +95,7 @@ class ResilientPriceIntelligenceRepository
 
     final cached = await _cacheStore.load();
     if (cached.isNotEmpty) {
-      _setItems(cached);
+      _setItems(mergeRemoteOverSeed(seed: _seedItems, remote: cached));
       _usingCacheOnly = true;
       _setLoadState(EditorialCatalogLoadState.stale);
       notifyListeners();
@@ -89,11 +122,11 @@ class ResilientPriceIntelligenceRepository
 
     try {
       final remote = await _fetchRemote().timeout(_fetchTimeout);
-      // Remote wins — y compris une liste vide (aucune invention côté client).
-      _setItems(remote);
+      final merged = mergeRemoteOverSeed(seed: _seedItems, remote: remote);
+      _setItems(merged);
       _usingCacheOnly = false;
       if (remote.isNotEmpty) {
-        await _cacheStore.save(remote);
+        await _cacheStore.save(merged);
       }
       _setLoadState(EditorialCatalogLoadState.success);
       notifyListeners();

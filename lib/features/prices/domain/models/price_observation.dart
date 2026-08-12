@@ -17,40 +17,45 @@ enum PriceIntelligenceCategory {
   internet,
   healthcare,
   pharmacy,
+
+  /// Billets culturels / monuments — label FR : Culture & monuments.
+  culture,
 }
 
 extension PriceIntelligenceCategoryLabels on PriceIntelligenceCategory {
   String get labelFr => switch (this) {
-        PriceIntelligenceCategory.fuel => 'Carburant',
-        PriceIntelligenceCategory.supermarkets => 'Supermarchés',
-        PriceIntelligenceCategory.restaurants => 'Restaurants',
-        PriceIntelligenceCategory.coffee => 'Café',
-        PriceIntelligenceCategory.fastFood => 'Fast-food',
-        PriceIntelligenceCategory.taxi => 'Taxi',
-        PriceIntelligenceCategory.publicTransport => 'Transport public',
-        PriceIntelligenceCategory.parking => 'Parking',
-        PriceIntelligenceCategory.realEstate => 'Immobilier',
-        PriceIntelligenceCategory.mobilePlans => 'Forfaits mobile',
-        PriceIntelligenceCategory.internet => 'Internet',
-        PriceIntelligenceCategory.healthcare => 'Santé',
-        PriceIntelligenceCategory.pharmacy => 'Pharmacie',
-      };
+    PriceIntelligenceCategory.fuel => 'Carburant',
+    PriceIntelligenceCategory.supermarkets => 'Supermarchés',
+    PriceIntelligenceCategory.restaurants => 'Restaurants',
+    PriceIntelligenceCategory.coffee => 'Café',
+    PriceIntelligenceCategory.fastFood => 'Fast-food',
+    PriceIntelligenceCategory.taxi => 'Taxi',
+    PriceIntelligenceCategory.publicTransport => 'Transport public',
+    PriceIntelligenceCategory.parking => 'Parking',
+    PriceIntelligenceCategory.realEstate => 'Immobilier',
+    PriceIntelligenceCategory.mobilePlans => 'Forfaits mobile',
+    PriceIntelligenceCategory.internet => 'Internet',
+    PriceIntelligenceCategory.healthcare => 'Santé',
+    PriceIntelligenceCategory.pharmacy => 'Pharmacie',
+    PriceIntelligenceCategory.culture => 'Culture & monuments',
+  };
 
   IconData get icon => switch (this) {
-        PriceIntelligenceCategory.fuel => Icons.local_gas_station_outlined,
-        PriceIntelligenceCategory.supermarkets => Icons.shopping_cart_outlined,
-        PriceIntelligenceCategory.restaurants => Icons.restaurant_outlined,
-        PriceIntelligenceCategory.coffee => Icons.coffee_outlined,
-        PriceIntelligenceCategory.fastFood => Icons.fastfood_outlined,
-        PriceIntelligenceCategory.taxi => Icons.local_taxi_outlined,
-        PriceIntelligenceCategory.publicTransport => Icons.directions_bus_outlined,
-        PriceIntelligenceCategory.parking => Icons.local_parking_outlined,
-        PriceIntelligenceCategory.realEstate => Icons.apartment_outlined,
-        PriceIntelligenceCategory.mobilePlans => Icons.smartphone_outlined,
-        PriceIntelligenceCategory.internet => Icons.wifi_outlined,
-        PriceIntelligenceCategory.healthcare => Icons.medical_services_outlined,
-        PriceIntelligenceCategory.pharmacy => Icons.local_pharmacy_outlined,
-      };
+    PriceIntelligenceCategory.fuel => Icons.local_gas_station_outlined,
+    PriceIntelligenceCategory.supermarkets => Icons.shopping_cart_outlined,
+    PriceIntelligenceCategory.restaurants => Icons.restaurant_outlined,
+    PriceIntelligenceCategory.coffee => Icons.coffee_outlined,
+    PriceIntelligenceCategory.fastFood => Icons.fastfood_outlined,
+    PriceIntelligenceCategory.taxi => Icons.local_taxi_outlined,
+    PriceIntelligenceCategory.publicTransport => Icons.directions_bus_outlined,
+    PriceIntelligenceCategory.parking => Icons.local_parking_outlined,
+    PriceIntelligenceCategory.realEstate => Icons.apartment_outlined,
+    PriceIntelligenceCategory.mobilePlans => Icons.smartphone_outlined,
+    PriceIntelligenceCategory.internet => Icons.wifi_outlined,
+    PriceIntelligenceCategory.healthcare => Icons.medical_services_outlined,
+    PriceIntelligenceCategory.pharmacy => Icons.local_pharmacy_outlined,
+    PriceIntelligenceCategory.culture => Icons.museum_outlined,
+  };
 
   static PriceIntelligenceCategory? tryParse(String? raw) {
     if (raw == null || raw.isEmpty) return null;
@@ -62,18 +67,14 @@ extension PriceIntelligenceCategoryLabels on PriceIntelligenceCategory {
 }
 
 /// Niveau de confiance agrégé — jamais confondre avec la vérification.
-enum PriceConfidence {
-  high,
-  medium,
-  low,
-}
+enum PriceConfidence { high, medium, low }
 
 extension PriceConfidenceLabels on PriceConfidence {
   String get labelFr => switch (this) {
-        PriceConfidence.high => 'Confiance élevée',
-        PriceConfidence.medium => 'Confiance moyenne',
-        PriceConfidence.low => 'Confiance faible',
-      };
+    PriceConfidence.high => 'Confiance élevée',
+    PriceConfidence.medium => 'Confiance moyenne',
+    PriceConfidence.low => 'Confiance faible',
+  };
 
   static PriceConfidence? tryParse(String? raw) {
     if (raw == null || raw.isEmpty) return null;
@@ -85,18 +86,14 @@ extension PriceConfidenceLabels on PriceConfidence {
 }
 
 /// Statut de vérification éditoriale.
-enum PriceVerificationStatus {
-  verified,
-  unverified,
-  pending,
-}
+enum PriceVerificationStatus { verified, unverified, pending }
 
 extension PriceVerificationStatusLabels on PriceVerificationStatus {
   String get labelFr => switch (this) {
-        PriceVerificationStatus.verified => 'Vérifié',
-        PriceVerificationStatus.unverified => 'Non vérifié',
-        PriceVerificationStatus.pending => 'En vérification',
-      };
+    PriceVerificationStatus.verified => 'Vérifié',
+    PriceVerificationStatus.unverified => 'Non vérifié',
+    PriceVerificationStatus.pending => 'En vérification',
+  };
 
   static PriceVerificationStatus? tryParse(String? raw) {
     if (raw == null || raw.isEmpty) return null;
@@ -117,11 +114,11 @@ enum PriceIntelligenceSort {
 
 extension PriceIntelligenceSortLabels on PriceIntelligenceSort {
   String get labelFr => switch (this) {
-        PriceIntelligenceSort.atlasRecommendation => 'Recommandation Atlas',
-        PriceIntelligenceSort.lowestPrice => 'Prix le plus bas',
-        PriceIntelligenceSort.highestPrice => 'Prix le plus haut',
-        PriceIntelligenceSort.recentlyUpdated => 'Mis à jour récemment',
-      };
+    PriceIntelligenceSort.atlasRecommendation => 'Recommandation Atlas',
+    PriceIntelligenceSort.lowestPrice => 'Prix le plus bas',
+    PriceIntelligenceSort.highestPrice => 'Prix le plus haut',
+    PriceIntelligenceSort.recentlyUpdated => 'Mis à jour récemment',
+  };
 }
 
 /// Observation de prix vérifiée — jamais inventée côté client.

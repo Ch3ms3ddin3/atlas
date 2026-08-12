@@ -10,22 +10,19 @@ enum PriceObservationSourceType {
 
 extension PriceObservationSourceTypeLabels on PriceObservationSourceType {
   String get storageLabel => switch (this) {
-        PriceObservationSourceType.officialOperator => 'official_operator',
-        PriceObservationSourceType.officialCommercialOffer =>
-          'official_commercial_offer',
-        PriceObservationSourceType.regulatedPublicTariff =>
-          'regulated_public_tariff',
-      };
+    PriceObservationSourceType.officialOperator => 'official_operator',
+    PriceObservationSourceType.officialCommercialOffer =>
+      'official_commercial_offer',
+    PriceObservationSourceType.regulatedPublicTariff =>
+      'regulated_public_tariff',
+  };
 }
 
 /// Portée géographique éditoriale.
 ///
 /// Les tarifs nationaux sont stockés **une seule fois** avec
 /// [PriceNationalCity.name] ; le filtre Prix les inclut pour chaque ville.
-enum PriceObservationScope {
-  citySpecific,
-  national,
-}
+enum PriceObservationScope { citySpecific, national }
 
 /// Entrée catalogue locale (préparation P1) — jamais d'estimation.
 class PriceObservationCatalogEntry {
@@ -76,8 +73,7 @@ class PriceObservationCatalogEntry {
   final String? notes;
 
   /// Libellé `source` compatible schéma (type + nom).
-  String get sourceLabel =>
-      '${sourceType.storageLabel} · $sourceName';
+  String get sourceLabel => '${sourceType.storageLabel} · $sourceName';
 
   PriceObservation toObservation() {
     return PriceObservation(
@@ -102,19 +98,22 @@ class PriceObservationCatalogEntry {
   }
 }
 
-/// Catalogue Wave 1 — observations vérifiées uniquement (sources opérateurs).
+/// Catalogue Price Intelligence — observations vérifiées uniquement.
 ///
-/// Montants copiés depuis les pages officielles au [retrievedAt] indiqué.
-/// Ne pas importer [PriceCatalog].
+/// Wave 1 : transports Casa/Rabat + Orange national.
+/// Wave 2 : culture Marrakech (billets officiels) + Majorelle/YSL (billetterie
+/// officielle capturée 2026-08-12).
+///
+/// Montants copiés depuis les sources primaires au [retrievedAt] / [wave2RetrievedAt].
+/// Ne pas importer le legacy [PriceCatalog] (estimations — hors Intelligence).
 abstract final class PriceObservationCatalog {
-  /// Date de vérification éditoriale de cette vague (re-vérif. Orange 2026-08-11).
+  /// Date de vérification éditoriale Wave 1 (re-vérif. Orange 2026-08-11).
   static final retrievedAt = DateTime.utc(2026, 8, 11);
 
-  static const wave1Cities = <String>[
-    'Marrakech',
-    'Casablanca',
-    'Rabat',
-  ];
+  /// Date de capture éditoriale Wave 2 (culture Marrakech + Majorelle/YSL).
+  static final wave2RetrievedAt = DateTime.utc(2026, 8, 12);
+
+  static const wave1Cities = <String>['Marrakech', 'Casablanca', 'Rabat'];
 
   static List<PriceObservationCatalogEntry> get entries =>
       List<PriceObservationCatalogEntry>.unmodifiable([
@@ -123,6 +122,7 @@ abstract final class PriceObservationCatalog {
         ..._nationalOrangeMobile,
         ..._nationalOrangeInternet,
         // inwi SIM prépayée retirée : brochure PDF officielle 404 (2026-08-11).
+        ..._marrakechCultureWave2,
       ]);
 
   static List<PriceObservation> get asObservations =>
@@ -173,8 +173,7 @@ abstract final class PriceObservationCatalog {
       unitLabel: 'par voyage (hors support)',
       currentAmountMad: 6,
       sourceName: 'Casa Tramway — CGV (prix des titres)',
-      sourceUrl:
-          'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
+      sourceUrl: 'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
       sourceType: PriceObservationSourceType.officialOperator,
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
@@ -190,8 +189,7 @@ abstract final class PriceObservationCatalog {
       unitLabel: 'par carte (valable 5 ans)',
       currentAmountMad: 15,
       sourceName: 'Casa Tramway — CGV (prix des titres)',
-      sourceUrl:
-          'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
+      sourceUrl: 'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
       sourceType: PriceObservationSourceType.officialOperator,
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
@@ -206,8 +204,7 @@ abstract final class PriceObservationCatalog {
       unitLabel: 'par semaine (hors support)',
       currentAmountMad: 60,
       sourceName: 'Casa Tramway — CGV (prix des titres)',
-      sourceUrl:
-          'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
+      sourceUrl: 'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
       sourceType: PriceObservationSourceType.officialOperator,
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
@@ -222,8 +219,7 @@ abstract final class PriceObservationCatalog {
       unitLabel: 'par mois (hors support)',
       currentAmountMad: 230,
       sourceName: 'Casa Tramway — CGV (prix des titres)',
-      sourceUrl:
-          'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
+      sourceUrl: 'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
       sourceType: PriceObservationSourceType.officialOperator,
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
@@ -238,8 +234,7 @@ abstract final class PriceObservationCatalog {
       unitLabel: 'par mois (hors support, ≤25 ans)',
       currentAmountMad: 150,
       sourceName: 'Casa Tramway — CGV (prix des titres)',
-      sourceUrl:
-          'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
+      sourceUrl: 'https://www.casatramway.ma/conditions-generales-de-vente-cgv',
       sourceType: PriceObservationSourceType.officialOperator,
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
@@ -354,6 +349,311 @@ abstract final class PriceObservationCatalog {
       retrievedAt: retrievedAt,
       confidence: PriceConfidence.high,
       atlasScore: 68,
+    ),
+  ];
+
+  // —— Marrakech · Culture & monuments (Wave 2) ——
+  // Sources primaires capturées 2026-08-12. Pas de taxi / bus / parking.
+
+  static final _marrakechCultureWave2 = <PriceObservationCatalogEntry>[
+    PriceObservationCatalogEntry(
+      slug: 'culture-palais-bahia-adulte-etranger-marrakech',
+      itemName: 'Palais Bahia — entrée adulte étranger',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 100,
+      sourceName: 'Ministère de la Culture — e-services Palais Bahia',
+      sourceUrl: 'https://e-services.minculture.gov.ma/fr/tickets/palais-bahia',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 96,
+      notes:
+          'Autres tarifs publiés sur la même page : adulte Marocain/résident '
+          '30 MAD ; enfant Marocain 7–13 ans 10 MAD ; enfant étranger 7–13 ans '
+          '50 MAD. Gratuités Marocains le vendredi et certains jours de fêtes.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-palais-bahia-adulte-marocain-resident-marrakech',
+      itemName: 'Palais Bahia — entrée adulte Marocain / résident',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 30,
+      sourceName: 'Ministère de la Culture — e-services Palais Bahia',
+      sourceUrl: 'https://e-services.minculture.gov.ma/fr/tickets/palais-bahia',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 94,
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-palais-el-badi-adulte-etranger-marrakech',
+      itemName: 'Palais El Badi — entrée adulte étranger',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 100,
+      sourceName: 'Ministère de la Culture — e-services Palais Badii',
+      sourceUrl: 'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 95,
+      notes:
+          'Autres tarifs publiés sur la même page : adulte Marocain/résident '
+          '30 MAD ; enfant Marocain 7–13 ans 10 MAD ; enfant étranger 7–13 ans '
+          '50 MAD.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-palais-el-badi-adulte-marocain-resident-marrakech',
+      itemName: 'Palais El Badi — entrée adulte Marocain / résident',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 30,
+      sourceName: 'Ministère de la Culture — e-services Palais Badii',
+      sourceUrl: 'https://e-services.minculture.gov.ma/fr/tickets/palais-badii',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 93,
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-tombeaux-saadiens-adulte-etranger-marrakech',
+      itemName: 'Tombeaux Saadiens — entrée adulte étranger',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 100,
+      sourceName: 'Ministère de la Culture — e-services Tombeaux Saadiens',
+      sourceUrl:
+          'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 95,
+      notes:
+          'Autres tarifs publiés sur la même page : adulte Marocain/résident '
+          '30 MAD ; enfant Marocain 7–13 ans 10 MAD ; enfant étranger 7–13 ans '
+          '50 MAD.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-tombeaux-saadiens-adulte-marocain-resident-marrakech',
+      itemName: 'Tombeaux Saadiens — entrée adulte Marocain / résident',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 30,
+      sourceName: 'Ministère de la Culture — e-services Tombeaux Saadiens',
+      sourceUrl:
+          'https://e-services.minculture.gov.ma/fr/tickets/tombeaux-saadiens',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 93,
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-medersa-ben-youssef-adulte-marrakech',
+      itemName: 'Médersa Ben Youssef — entrée adulte',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 50,
+      sourceName: 'Médersa Ben Youssef — site officiel (Tarifs)',
+      sourceUrl: 'https://www.medersabenyoussef.ma/',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 94,
+      notes:
+          'Site officiel : enfant de moins de 12 ans 10 MAD ; groupe de plus '
+          'de 20 personnes 30 MAD. Billetterie en ligne en maintenance — '
+          'achat sur place.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-dar-el-bacha-adulte-etranger-marrakech',
+      itemName: 'Dar El Bacha — entrée étranger',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 60,
+      sourceName: 'Fondation Nationale des Musées — Dar El Bacha',
+      sourceUrl: 'https://fnm.ma/museums/26',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 94,
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-dar-el-bacha-adulte-marocain-resident-marrakech',
+      itemName: 'Dar El Bacha — entrée Marocain / résident',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 25,
+      sourceName: 'Fondation Nationale des Musées — Dar El Bacha',
+      sourceUrl: 'https://fnm.ma/museums/26',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 92,
+      notes:
+          'FNM : moins de 18 ans Marocains/résidents 15 MAD '
+          '(même page Tarifs et billets).',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-maison-photographie-adulte-marrakech',
+      itemName: 'Maison de la Photographie — entrée adulte',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 80,
+      sourceName: 'Maison de la Photographie — Horaires et tarifs',
+      sourceUrl: 'https://maisondelaphotographie.ma/about/',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 93,
+      notes:
+          'Billet aussi valable au Musée de la Musique de Marrakech. '
+          'Moins de 15 ans : gratuit. Paiement sur place uniquement.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-maison-photographie-resident-marrakech',
+      itemName: 'Maison de la Photographie — entrée résident',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 50,
+      sourceName: 'Maison de la Photographie — Horaires et tarifs',
+      sourceUrl: 'https://maisondelaphotographie.ma/about/',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 91,
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-macaal-adulte-marrakech',
+      itemName: 'MACAAL — entrée adulte',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 120,
+      sourceName: 'MACAAL — Informations pratiques',
+      sourceUrl: 'https://macaal.org/informations-pratiques',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 95,
+      notes:
+          'Inclut expositions + Parc de Sculptures d\'Al Maaden. '
+          'Enfants (−12 ans) et étudiants : gratuit avec justificatif. '
+          'Groupes (+10) : 110 MAD / personne.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-macaal-resident-africain-marrakech',
+      itemName: 'MACAAL — entrée résident / nationalité africaine',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 60,
+      sourceName: 'MACAAL — Informations pratiques',
+      sourceUrl: 'https://macaal.org/informations-pratiques',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 93,
+      notes: 'Justificatif exigé (page officielle MACAAL).',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-jardin-majorelle-admission-marrakech',
+      itemName: 'Jardin Majorelle — droit d\'entrée',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 170,
+      sourceName: 'Billetterie officielle Jardin Majorelle',
+      sourceUrl: 'https://tickets.jardinmajorelle.com/visite',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 97,
+      notes:
+          'Tarif « Admission Fee » affiché sur la billetterie officielle '
+          '(capture 2026-08-12). Étudiants internationaux / enfants dès '
+          '10 ans : 95 MAD. Réservation QR uniquement sur ce site.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-jardin-majorelle-marocain-resident-marrakech',
+      itemName: 'Jardin Majorelle — citoyens marocains / résidents étrangers',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 75,
+      sourceName: 'Billetterie officielle Jardin Majorelle',
+      sourceUrl: 'https://tickets.jardinmajorelle.com/visite',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 95,
+      notes:
+          'Libellé billetterie : « Moroccan citizens and foreign residents '
+          'in Morocco » (capture 2026-08-12, nationalité Morocco).',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-musee-ysl-admission-marrakech',
+      itemName: 'Musée Yves Saint Laurent — droit d\'entrée',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 140,
+      sourceName: 'Billetterie officielle Jardin Majorelle (Musée YSL)',
+      sourceUrl: 'https://tickets.jardinmajorelle.com/visite',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 96,
+      notes:
+          'Tarif « Admission Fee » pour l\'option Musée YSL '
+          '(capture 2026-08-12). Étudiants internationaux / enfants dès '
+          '10 ans : 75 MAD. Fermé le mercredi.',
+    ),
+    PriceObservationCatalogEntry(
+      slug: 'culture-musee-ysl-marocain-resident-marrakech',
+      itemName:
+          'Musée Yves Saint Laurent — citoyens marocains / résidents étrangers',
+      category: PriceIntelligenceCategory.culture,
+      cityName: 'Marrakech',
+      scope: PriceObservationScope.citySpecific,
+      unitLabel: 'par personne',
+      currentAmountMad: 55,
+      sourceName: 'Billetterie officielle Jardin Majorelle (Musée YSL)',
+      sourceUrl: 'https://tickets.jardinmajorelle.com/visite',
+      sourceType: PriceObservationSourceType.officialOperator,
+      retrievedAt: wave2RetrievedAt,
+      confidence: PriceConfidence.high,
+      atlasScore: 94,
+      notes:
+          'Libellé billetterie : « Moroccan citizens and foreign residents '
+          'in Morocco » pour l\'option Musée YSL (capture 2026-08-12).',
     ),
   ];
 

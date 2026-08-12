@@ -19,8 +19,7 @@ abstract final class PriceObservationMapper {
     );
     final current = _asDouble(row['current_amount_mad']);
     final updatedRaw = row['last_updated_at'] as String?;
-    final updatedAt =
-        updatedRaw == null ? null : DateTime.tryParse(updatedRaw);
+    final updatedAt = updatedRaw == null ? null : DateTime.tryParse(updatedRaw);
 
     if (slug == null ||
         slug.isEmpty ||

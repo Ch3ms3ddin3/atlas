@@ -21,10 +21,7 @@ void main() {
         ),
         isTrue,
       );
-      expect(
-        guides.any((guide) => guide.id == 'price-ctm-bus'),
-        isTrue,
-      );
+      expect(guides.any((guide) => guide.id == 'price-ctm-bus'), isTrue);
     });
 
     test('filtre par catégorie', () {
@@ -44,10 +41,7 @@ void main() {
 
     test('recherche par mot-clé', () {
       final guides = PriceMapper.filter(
-        const PriceSearchQuery(
-          cityName: 'Rabat',
-          text: 'taxi',
-        ),
+        const PriceSearchQuery(cityName: 'Rabat', text: 'taxi'),
       );
 
       expect(guides.any((guide) => guide.id == 'price-taxi-rabat'), isTrue);
@@ -55,20 +49,14 @@ void main() {
 
     test('recherche dans les signaux d\'alerte', () {
       final guides = PriceMapper.filter(
-        const PriceSearchQuery(
-          cityName: 'Marrakech',
-          text: 'compteur',
-        ),
+        const PriceSearchQuery(cityName: 'Marrakech', text: 'compteur'),
       );
 
       expect(guides, isNotEmpty);
     });
 
     test('retombe sur Marrakech pour une ville inconnue', () {
-      expect(
-        PriceMapper.resolveCityName('Fès'),
-        'Marrakech',
-      );
+      expect(PriceMapper.resolveCityName('Fès'), 'Marrakech');
     });
 
     test('formate les montants en MAD', () {
@@ -123,7 +111,10 @@ void main() {
         ),
       );
 
-      expect(guides.any((guide) => guide.id == 'price-rent-casablanca'), isTrue);
+      expect(
+        guides.any((guide) => guide.id == 'price-rent-casablanca'),
+        isTrue,
+      );
     });
 
     test('détecte une ville non couverte', () {
@@ -132,10 +123,7 @@ void main() {
     });
 
     test('contient au moins un piège touristique', () {
-      expect(
-        PriceCatalog.guides.any((guide) => guide.isTouristTrap),
-        isTrue,
-      );
+      expect(PriceCatalog.guides.any((guide) => guide.isTouristTrap), isTrue);
       expect(
         repository.findById('price-juice-jemaa-marrakech')?.isTouristTrap,
         isTrue,

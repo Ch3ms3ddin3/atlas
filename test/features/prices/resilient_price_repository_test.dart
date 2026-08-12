@@ -189,42 +189,39 @@ void main() {
       );
     });
 
-    test('ignore les lignes distantes malformées sans casser le catalogue',
-        () async {
-      final repository = ResilientPriceRepository(
-        local: LocalPriceRepository(),
-        fetchRemote: () async {
-          final rows = [
-            <String, dynamic>{
-              'slug': 'price-valid-remote',
-              'name': 'Valide',
-              'city_name': 'Marrakech',
-              'category': 'transport',
-              'category_label': 'Transport',
-              'min_amount_mad': 20,
-              'max_amount_mad': 50,
-              'average_amount_mad': 30,
-              'unit_label': 'trajet',
-              'summary': 'OK',
-              'last_updated_at': '2025-07-12T00:00:00.000Z',
-            },
-            <String, dynamic>{
-              'slug': '',
-              'name': 'Invalide',
-            },
-          ];
-          return [
-            for (final row in rows) ?PriceRecordMapper.tryFromRow(row),
-          ];
-        },
-      );
+    test(
+      'ignore les lignes distantes malformées sans casser le catalogue',
+      () async {
+        final repository = ResilientPriceRepository(
+          local: LocalPriceRepository(),
+          fetchRemote: () async {
+            final rows = [
+              <String, dynamic>{
+                'slug': 'price-valid-remote',
+                'name': 'Valide',
+                'city_name': 'Marrakech',
+                'category': 'transport',
+                'category_label': 'Transport',
+                'min_amount_mad': 20,
+                'max_amount_mad': 50,
+                'average_amount_mad': 30,
+                'unit_label': 'trajet',
+                'summary': 'OK',
+                'last_updated_at': '2025-07-12T00:00:00.000Z',
+              },
+              <String, dynamic>{'slug': '', 'name': 'Invalide'},
+            ];
+            return [for (final row in rows) ?PriceRecordMapper.tryFromRow(row)];
+          },
+        );
 
-      await repository.warmUp();
+        await repository.warmUp();
 
-      expect(repository.loadState, EditorialCatalogLoadState.success);
-      expect(repository.findById('price-valid-remote'), isNotNull);
-      expect(repository.getAll().length, 1);
-    });
+        expect(repository.loadState, EditorialCatalogLoadState.success);
+        expect(repository.findById('price-valid-remote'), isNotNull);
+        expect(repository.getAll().length, 1);
+      },
+    );
 
     test('rafraîchit après le démarrage : local puis distant', () async {
       final gate = Completer<void>();
@@ -259,48 +256,50 @@ void main() {
       await pending;
 
       expect(repository.loadState, EditorialCatalogLoadState.success);
-      expect(
-        repository.findById('price-taxi-marrakech')!.name,
-        'Taxi (cloud)',
-      );
+      expect(repository.findById('price-taxi-marrakech')!.name, 'Taxi (cloud)');
       expect(notified, isTrue);
     });
 
-    test('conserve recherche, filtre catégorie, ville et navigation par slug',
-        () async {
-      final repository = ResilientPriceRepository(
-        local: LocalPriceRepository(),
-        fetchRemote: () async => PriceCatalog.guides,
-      );
+    test(
+      'conserve recherche, filtre catégorie, ville et navigation par slug',
+      () async {
+        final repository = ResilientPriceRepository(
+          local: LocalPriceRepository(),
+          fetchRemote: () async => PriceCatalog.guides,
+        );
 
-      await repository.warmUp();
+        await repository.warmUp();
 
-      final filtered = repository.search(
-        const PriceSearchQuery(
-          cityName: 'Marrakech',
-          category: PriceCategory.transport,
-          text: 'taxi',
-        ),
-      );
+        final filtered = repository.search(
+          const PriceSearchQuery(
+            cityName: 'Marrakech',
+            category: PriceCategory.transport,
+            text: 'taxi',
+          ),
+        );
 
-      expect(filtered.any((guide) => guide.id == 'price-taxi-marrakech'), isTrue);
-      expect(
-        filtered.every((guide) => guide.category == PriceCategory.transport),
-        isTrue,
-      );
-      expect(
-        filtered.every(
-          (guide) =>
-              guide.cityName == 'Marrakech' ||
-              guide.cityName == PriceNationalCity.name,
-        ),
-        isTrue,
-      );
+        expect(
+          filtered.any((guide) => guide.id == 'price-taxi-marrakech'),
+          isTrue,
+        );
+        expect(
+          filtered.every((guide) => guide.category == PriceCategory.transport),
+          isTrue,
+        );
+        expect(
+          filtered.every(
+            (guide) =>
+                guide.cityName == 'Marrakech' ||
+                guide.cityName == PriceNationalCity.name,
+          ),
+          isTrue,
+        );
 
-      expect(repository.findById('price-taxi-marrakech'), isNotNull);
-      expect(repository.findById('price-ctm-bus'), isNotNull);
-      expect(repository.categories, PriceCategory.values);
-    });
+        expect(repository.findById('price-taxi-marrakech'), isNotNull);
+        expect(repository.findById('price-ctm-bus'), isNotNull);
+        expect(repository.categories, PriceCategory.values);
+      },
+    );
 
     test('catalogLastReviewedAt prend le max distant après refresh', () async {
       final repository = ResilientPriceRepository(
@@ -330,11 +329,7 @@ void main() {
       final repository = ResilientPriceRepository(
         local: LocalPriceRepository(),
         fetchRemote: () async => [
-          _guide(
-            id: 'price-city',
-            name: 'Prix ville',
-            cityName: 'Casablanca',
-          ),
+          _guide(id: 'price-city', name: 'Prix ville', cityName: 'Casablanca'),
           _guide(
             id: 'price-national',
             name: 'Prix national',
@@ -352,10 +347,10 @@ void main() {
       expect(repository.resolveCityName('Casablanca'), 'Casablanca');
 
       final guides = repository.getAll(cityName: 'Casablanca');
-      expect(guides.map((guide) => guide.id), containsAll([
-        'price-city',
-        'price-national',
-      ]));
+      expect(
+        guides.map((guide) => guide.id),
+        containsAll(['price-city', 'price-national']),
+      );
     });
 
     test('après échec distant, recherche et filtres restent locaux', () async {

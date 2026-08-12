@@ -22,8 +22,7 @@ class PriceCitySelector extends StatelessWidget {
     final cities = <String>{
       ...MoroccoCities.supportedNames,
       ...dataCities,
-    }.toList()
-      ..sort();
+    }.toList()..sort();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

@@ -8,13 +8,25 @@ import 'package:atlas/features/favorites/data/local_favorites_repository.dart';
 import 'package:atlas/features/favorites/domain/favorite_entity_type.dart';
 import 'package:atlas/features/favorites/domain/models/favorite_key.dart';
 import 'package:atlas/features/favorites/presentation/favorites_scope.dart';
+import 'package:atlas/features/prices/data/price_observation_catalog.dart';
+import 'package:atlas/features/prices/data/resilient_price_intelligence_repository.dart';
+import 'package:atlas/features/prices/domain/price_intelligence_repository.dart';
 import 'package:atlas/features/procedures/data/local_procedure_repository.dart';
 import 'package:atlas/features/procedures/presentation/pages/procedure_detail_page.dart';
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    PriceIntelligenceRepository.resetForTest();
+    PriceIntelligenceRepository.registerFactory(
+      () => ResilientPriceIntelligenceRepository(
+        seedItems: PriceObservationCatalog.asObservations,
+        fetchRemote: () async => PriceObservationCatalog.asObservations,
+      ),
+    );
   });
+
+  tearDown(PriceIntelligenceRepository.resetForTest);
 
   group('FavoriteToggleButton on detail pages', () {
     testWidgets('PlaceDetailPage ajoute et retire un favori', (
@@ -83,15 +95,12 @@ void main() {
       await tester.pump();
 
       expect(find.byIcon(Icons.favorite), findsOneWidget);
-      expect(
-        favoritesRepository.activeFavorites,
-        {
-          const FavoriteKey(
-            entityType: FavoriteEntityType.procedure,
-            entitySlug: 'cin-renewal',
-          ),
-        },
-      );
+      expect(favoritesRepository.activeFavorites, {
+        const FavoriteKey(
+          entityType: FavoriteEntityType.procedure,
+          entitySlug: 'cin-renewal',
+        ),
+      });
 
       await tester.tap(find.byTooltip('Retirer des favoris'));
       await tester.pump();

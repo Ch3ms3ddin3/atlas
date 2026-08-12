@@ -75,7 +75,7 @@ void main() {
 
     expect(find.byType(PlaceGuideCard), findsWidgets);
     expect(find.text('Jardin Majorelle'), findsWidgets);
-    expect(find.text('Palais de la Bahia'), findsOneWidget);
+    expect(find.text('Palais Bahia'), findsOneWidget);
     expect(find.byTooltip('Ajouter aux favoris'), findsWidgets);
     expect(find.byType(SliverGrid), findsNothing);
   });

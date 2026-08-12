@@ -29,8 +29,13 @@ void main() {
 
   tearDown(PlaceBrowseFilters.resetForTest);
 
-  Future<({LocalFavoritesRepository favorites, LocalContentReportsRepository reports})>
-      pumpMapPoiHarness(WidgetTester tester) async {
+  Future<
+    ({
+      LocalFavoritesRepository favorites,
+      LocalContentReportsRepository reports,
+    })
+  >
+  pumpMapPoiHarness(WidgetTester tester) async {
     final profile = LocalProfileRepository();
     final favorites = LocalFavoritesRepository();
     final reports = LocalContentReportsRepository();
@@ -63,18 +68,11 @@ void main() {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final id in [
-                        'place-majorelle',
-                        'place-bahia',
-                      ])
+                      for (final id in ['place-majorelle', 'place-bahia'])
                         TextButton(
                           onPressed: () {
-                            final place =
-                                LocalPlaceRepository().findById(id)!;
-                            showPlaceMapPreviewSheet(
-                              pageContext,
-                              place: place,
-                            );
+                            final place = LocalPlaceRepository().findById(id)!;
+                            showPlaceMapPreviewSheet(pageContext, place: place);
                           },
                           child: Text('open-$id'),
                         ),
@@ -126,45 +124,42 @@ void main() {
     );
   });
 
-  testWidgets('tap Palais de la Bahia on map opens preview + detail', (
-    tester,
-  ) async {
+  testWidgets('tap Palais Bahia on map opens preview + detail', (tester) async {
     await pumpMapPoiHarness(tester);
     await openPreviewAndDetail(
       tester,
       placeId: 'place-bahia',
-      placeName: 'Palais de la Bahia',
+      placeName: 'Palais Bahia',
     );
   });
 
-  testWidgets(
-    'map POI detail can toggle favorite and open report sheet',
-    (tester) async {
-      final repos = await pumpMapPoiHarness(tester);
+  testWidgets('map POI detail can toggle favorite and open report sheet', (
+    tester,
+  ) async {
+    final repos = await pumpMapPoiHarness(tester);
 
-      await openPreviewAndDetail(
-        tester,
-        placeId: 'place-bahia',
-        placeName: 'Palais de la Bahia',
-      );
+    await openPreviewAndDetail(
+      tester,
+      placeId: 'place-bahia',
+      placeName: 'Palais Bahia',
+    );
 
-      await tester.tap(find.byTooltip('Ajouter aux favoris').first);
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(
-        repos.favorites.isFavorite(
-          entityType: FavoriteEntityType.place,
-          entitySlug: 'place-bahia',
-        ),
-        isTrue,
-      );
+    await tester.tap(find.byTooltip('Ajouter aux favoris').first);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(
+      repos.favorites.isFavorite(
+        entityType: FavoriteEntityType.place,
+        entitySlug: 'place-bahia',
+      ),
+      isTrue,
+    );
 
-      await tester.tap(find.byTooltip('Signaler un problème'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
-      expect(find.text('Signaler un problème'), findsWidgets);
-      expect(find.text('Envoyer'), findsOneWidget);
-    },
-  );
+    await tester.tap(find.byTooltip('Signaler un problème'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+    expect(find.text('Signaler un problème'), findsWidgets);
+    expect(find.text('Envoyer'), findsOneWidget);
+  });
 }

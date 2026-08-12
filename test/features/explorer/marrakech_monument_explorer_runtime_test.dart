@@ -29,13 +29,10 @@ const _monumentIds = <String>{
   'place-el-badi',
 };
 
-const _packageIds = <String>{
-  ..._monumentIds,
-  'place-ysl-museum',
-};
+const _packageIds = <String>{..._monumentIds, 'place-ysl-museum'};
 
 const _monumentNames = <String>[
-  'Palais de la Bahia',
+  'Palais Bahia',
   'Mosquée de la Koutoubia',
   'Médersa Ben Youssef',
   'Tombeaux Saadiens',
@@ -98,10 +95,7 @@ void main() {
 
     test('PlaceMapper: Marrakech Toutes contient le package de 6', () {
       final places = PlaceMapper.filter(
-        const PlaceSearchQuery(
-          cityName: 'Marrakech',
-          strictCity: true,
-        ),
+        const PlaceSearchQuery(cityName: 'Marrakech', strictCity: true),
       );
       expect(places.map((p) => p.id).toSet(), containsAll(_packageIds));
     });

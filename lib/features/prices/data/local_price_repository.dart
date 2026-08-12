@@ -5,6 +5,9 @@ import 'price_catalog.dart';
 import 'price_mapper.dart';
 
 /// Catalogue statique local — repli permanent et hors-ligne.
+///
+/// Legacy `prices` only (quarantaine Wave 2). Product surfaces use
+/// [PriceIntelligenceRepository].
 class LocalPriceRepository
     implements PriceRepository, EditorialLocalCatalog<PriceGuide> {
   LocalPriceRepository();

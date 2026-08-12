@@ -7,10 +7,10 @@ import 'package:atlas/features/prices/domain/models/price_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('catalogue Wave 1 valide métadonnées sources et contraintes', () {
+  test('catalogue Wave 1+2 valide métadonnées sources et contraintes', () {
     final errors = PriceObservationCatalogValidator.validate();
     expect(errors, isEmpty, reason: errors.join('\n'));
-    expect(PriceObservationCatalog.entries.length, 22);
+    expect(PriceObservationCatalog.entries.length, 39);
   });
 
   test('pas de slugs dupliqués et MAD strict', () {
@@ -55,7 +55,7 @@ void main() {
       }
     }
     expect(national, 8);
-    expect(citySpecific, 14);
+    expect(citySpecific, 31);
     expect(
       PriceObservationCatalog.entries
           .where((e) => e.cityName == 'Casablanca')
@@ -63,18 +63,61 @@ void main() {
       7,
     );
     expect(
-      PriceObservationCatalog.entries.where((e) => e.cityName == 'Rabat').length,
+      PriceObservationCatalog.entries
+          .where((e) => e.cityName == 'Rabat')
+          .length,
       7,
     );
     expect(
       PriceObservationCatalog.entries
           .where((e) => e.cityName == 'Marrakech')
           .length,
-      0,
+      17,
     );
   });
 
-  test('confiance high uniquement dans Wave 1 actuel', () {
+  test('Wave 2 culture Marrakech — 17 lignes sourcées, pas de taxi/bus', () {
+    final marrakechCulture = PriceObservationCatalog.entries
+        .where(
+          (e) =>
+              e.cityName == 'Marrakech' &&
+              e.category == PriceIntelligenceCategory.culture,
+        )
+        .toList();
+    expect(marrakechCulture.length, 17);
+    expect(
+      marrakechCulture.every((e) => e.confidence == PriceConfidence.high),
+      isTrue,
+    );
+    expect(
+      marrakechCulture.every(
+        (e) => e.retrievedAt == PriceObservationCatalog.wave2RetrievedAt,
+      ),
+      isTrue,
+    );
+    final slugs = marrakechCulture.map((e) => e.slug).toSet();
+    expect(slugs.any((s) => s.contains('taxi')), isFalse);
+    expect(slugs.any((s) => s.contains('bus')), isFalse);
+    expect(slugs.any((s) => s.contains('parking')), isFalse);
+    expect(slugs, contains('culture-jardin-majorelle-admission-marrakech'));
+    expect(slugs, contains('culture-musee-ysl-admission-marrakech'));
+    expect(
+      marrakechCulture
+          .firstWhere(
+            (e) => e.slug == 'culture-jardin-majorelle-admission-marrakech',
+          )
+          .currentAmountMad,
+      170,
+    );
+    expect(
+      marrakechCulture
+          .firstWhere((e) => e.slug == 'culture-musee-ysl-admission-marrakech')
+          .currentAmountMad,
+      140,
+    );
+  });
+
+  test('confiance high uniquement dans le catalogue actuel', () {
     for (final entry in PriceObservationCatalog.entries) {
       expect(entry.confidence, PriceConfidence.high);
     }
@@ -93,8 +136,10 @@ void main() {
         source: source,
       );
       expect(items, isNotEmpty, reason: city);
-      final returnedNationals =
-          items.where((e) => e.isNational).map((e) => e.itemName).toSet();
+      final returnedNationals = items
+          .where((e) => e.isNational)
+          .map((e) => e.itemName)
+          .toSet();
       expect(
         returnedNationals,
         nationalNames,
@@ -102,6 +147,42 @@ void main() {
       );
     }
   });
+
+  test(
+    'Marrakech filtre inclut culture + nationaux, exclut tram Casa/Rabat',
+    () {
+      final source = PriceObservationCatalog.asObservations;
+      final marrakech = PriceObservationQuery.filter(
+        const PriceIntelligenceQuery(cityName: 'Marrakech'),
+        source: source,
+      );
+      expect(
+        marrakech.any(
+          (e) => e.cityName == 'Casablanca' || e.cityName == 'Rabat',
+        ),
+        isFalse,
+      );
+      expect(
+        marrakech.any(
+          (e) => e.itemName.contains('tram') || e.itemName.contains('Tram'),
+        ),
+        isFalse,
+      );
+      expect(
+        marrakech.where((e) => e.category == PriceIntelligenceCategory.culture),
+        isNotEmpty,
+      );
+      final cultureOnly = PriceObservationQuery.filter(
+        const PriceIntelligenceQuery(
+          cityName: 'Marrakech',
+          category: PriceIntelligenceCategory.culture,
+        ),
+        source: source,
+      );
+      expect(cultureOnly.length, 17);
+      expect(cultureOnly.every((e) => !e.isNational), isTrue);
+    },
+  );
 
   test('observations city-specific ne fuient pas vers une autre ville', () {
     final source = PriceObservationCatalog.asObservations;
@@ -114,18 +195,15 @@ void main() {
       marrakech.any((e) => e.cityName == 'Casablanca' || e.cityName == 'Rabat'),
       isFalse,
     );
-    expect(
-      marrakech.any((e) => e.itemName.contains('tram') || e.itemName.contains('Tram')),
-      isFalse,
-    );
 
     final casablanca = PriceObservationQuery.filter(
       const PriceIntelligenceQuery(cityName: 'Casablanca'),
       source: source,
     );
     expect(casablanca.any((e) => e.cityName == 'Rabat'), isFalse);
+    expect(casablanca.any((e) => e.itemName.contains('Rabat-Salé')), isFalse);
     expect(
-      casablanca.any((e) => e.itemName.contains('Rabat-Salé')),
+      casablanca.any((e) => e.category == PriceIntelligenceCategory.culture),
       isFalse,
     );
 
@@ -134,10 +212,7 @@ void main() {
       source: source,
     );
     expect(rabat.any((e) => e.cityName == 'Casablanca'), isFalse);
-    expect(
-      rabat.any((e) => e.itemName.contains('tram/busway')),
-      isFalse,
-    );
+    expect(rabat.any((e) => e.itemName.contains('tram/busway')), isFalse);
   });
 
   test('pas de produit logique dupliqué dans un résultat ville', () {
@@ -147,7 +222,9 @@ void main() {
         PriceIntelligenceQuery(cityName: city),
         source: source,
       );
-      final keys = items.map((e) => '${e.category.name}|${e.itemName}').toList();
+      final keys = items
+          .map((e) => '${e.category.name}|${e.itemName}')
+          .toList();
       expect(
         keys.toSet().length,
         keys.length,
@@ -186,13 +263,14 @@ void main() {
 
     final highlights = PriceObservationQuery.highlights(
       source: source,
-      cityName: 'Rabat',
+      cityName: 'Marrakech',
       limit: 5,
     );
     expect(highlights, isNotEmpty);
     expect(
       highlights.every(
-        (e) => e.cityName == 'Rabat' || e.cityName == PriceNationalCity.name,
+        (e) =>
+            e.cityName == 'Marrakech' || e.cityName == PriceNationalCity.name,
       ),
       isTrue,
     );
@@ -211,6 +289,17 @@ void main() {
         ),
       ),
       isNotEmpty,
+    );
+    expect(
+      repo
+          .search(
+            const PriceIntelligenceQuery(
+              category: PriceIntelligenceCategory.culture,
+              cityName: 'Marrakech',
+            ),
+          )
+          .length,
+      17,
     );
   });
 

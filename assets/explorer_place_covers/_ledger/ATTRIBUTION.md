@@ -2,7 +2,7 @@
 
 Local staging only. Not uploaded to Supabase.
 
-## Palais de la Bahia (`place-bahia`)
+## Palais Bahia (`place-bahia`)
 - Status: **PASS**
 - Source: https://commons.wikimedia.org/wiki/File%3ABahia_Palace_large_court.jpg
 - Commons title: File:Bahia Palace large court.jpg

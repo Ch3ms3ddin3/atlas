@@ -61,11 +61,7 @@ class PriceGuide {
 
 /// Filtre de recherche pour la liste des prix.
 class PriceSearchQuery {
-  const PriceSearchQuery({
-    this.text = '',
-    this.category,
-    this.cityName,
-  });
+  const PriceSearchQuery({this.text = '', this.category, this.cityName});
 
   final String text;
   final PriceCategory? category;

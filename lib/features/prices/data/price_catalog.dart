@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../domain/models/price_models.dart';
 
-/// Catalogue statique des prix moyens — estimations indicatives curatées.
+/// Legacy guide d'estimations — **hors Price Intelligence** (quarantaine Wave 2).
+///
+/// Le tab Prix et Accueil utilisent uniquement [PriceObservationCatalog] /
+/// Price Intelligence. Ne pas réintroduire ces guides dans l'UI production.
+/// Conservé pour seed SQL legacy `prices` et tests jusqu'à retrait contrôlé.
 abstract final class PriceCatalog {
   static final lastReviewedAt = DateTime(2025, 7, 12);
 
@@ -85,8 +89,7 @@ abstract final class PriceCatalog {
       unitLabel: 'par boisson',
       icon: Icons.coffee_outlined,
       lastUpdatedAt: _updated,
-      summary:
-          'Café noir ou jus d\'orange pressé dans un café de quartier.',
+      summary: 'Café noir ou jus d\'orange pressé dans un café de quartier.',
       priceFactors: [
         'Emplacement (rue vs terrasse touristique)',
         'Type de boisson (café local vs importé)',
@@ -178,8 +181,7 @@ abstract final class PriceCatalog {
       icon: Icons.account_balance_outlined,
       lastUpdatedAt: _updated,
       sourceNote: 'Tarif Palais Bahia, 2025',
-      summary:
-          'Entrée à un monument majeur de la Médina, ex. Palais de la Bahia.',
+      summary: 'Entrée à un monument majeur de la Médina, ex. Palais Bahia.',
       priceFactors: [
         'Monument et circuit proposé',
         'Tarif résident vs visiteur étranger',
@@ -392,8 +394,7 @@ abstract final class PriceCatalog {
       icon: Icons.shopping_basket_outlined,
       lastUpdatedAt: _updated,
       sourceNote: 'Vérifié en Carrefour Maarif, juin 2025',
-      summary:
-          'Courses de base pour une personne en grande surface ou marché.',
+      summary: 'Courses de base pour une personne en grande surface ou marché.',
       priceFactors: [
         'Enseigne et emplacement',
         'Produits importés',
@@ -481,8 +482,7 @@ abstract final class PriceCatalog {
       unitLabel: 'par mois',
       icon: Icons.apartment_outlined,
       lastUpdatedAt: _updated,
-      summary:
-          'Location mensuelle d\'un studio meublé en centre ou Maarif.',
+      summary: 'Location mensuelle d\'un studio meublé en centre ou Maarif.',
       priceFactors: [
         'Quartier (Maarif, Gauthier, Ain Sebaâ)',
         'Meublé, charges, parking',
@@ -542,8 +542,7 @@ abstract final class PriceCatalog {
       unitLabel: 'par personne',
       icon: Icons.restaurant_outlined,
       lastUpdatedAt: _updated,
-      summary:
-          'Repas dans un restaurant moyen gamme à Rabat ou Agdal.',
+      summary: 'Repas dans un restaurant moyen gamme à Rabat ou Agdal.',
       priceFactors: [
         'Quartier (Agdal, Hassan, centre)',
         'Standing et type de cuisine',
@@ -573,8 +572,7 @@ abstract final class PriceCatalog {
       icon: Icons.shopping_basket_outlined,
       lastUpdatedAt: _updated,
       sourceNote: 'Vérifié en Marjane Agdal, juin 2025',
-      summary:
-          'Courses de base pour une personne en grande surface ou marché.',
+      summary: 'Courses de base pour une personne en grande surface ou marché.',
       priceFactors: [
         'Enseigne et quartier',
         'Produits locaux vs importés',
@@ -603,8 +601,7 @@ abstract final class PriceCatalog {
       unitLabel: 'par consultation',
       icon: Icons.local_hospital_outlined,
       lastUpdatedAt: _updated,
-      summary:
-          'Consultation chez un médecin généraliste en cabinet privé.',
+      summary: 'Consultation chez un médecin généraliste en cabinet privé.',
       priceFactors: [
         'Spécialité et réputation',
         'Cabinet vs clinique privée',
@@ -698,11 +695,7 @@ abstract final class PriceCatalog {
       icon: Icons.local_laundry_service_outlined,
       lastUpdatedAt: _updated,
       summary: 'Nettoyage à sec d\'une chemise en pressing standard.',
-      priceFactors: [
-        'Ville et quartier',
-        'Type de tissu',
-        'Délai express',
-      ],
+      priceFactors: ['Ville et quartier', 'Type de tissu', 'Délai express'],
       warningSigns: [
         'Prix doublé pour « tissu délicat » non justifié',
         'Supplément express non annoncé',
@@ -726,8 +719,7 @@ abstract final class PriceCatalog {
       unitLabel: 'par mois (studio)',
       icon: Icons.bolt_outlined,
       lastUpdatedAt: _updated,
-      summary:
-          'Facture mensuelle combinée eau et électricité pour un studio.',
+      summary: 'Facture mensuelle combinée eau et électricité pour un studio.',
       priceFactors: [
         'Consommation (climatisation en été)',
         'Tarif ONEE et contrat au nom du locataire',
@@ -757,8 +749,7 @@ abstract final class PriceCatalog {
       icon: Icons.bakery_dining_outlined,
       lastUpdatedAt: _updated,
       sourceNote: 'Prix réglementé, 2025',
-      summary:
-          'Pain khobz traditionnel vendu en boulangerie ou four communal.',
+      summary: 'Pain khobz traditionnel vendu en boulangerie ou four communal.',
       priceFactors: [
         'Type de pain (khobz, batbout, msemen)',
         'Four communal vs boulangerie',

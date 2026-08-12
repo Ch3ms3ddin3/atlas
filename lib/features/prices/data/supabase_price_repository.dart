@@ -7,9 +7,8 @@ import 'price_record_mapper.dart';
 
 /// Lecture Supabase des repères de prix publiés.
 class SupabasePriceRepository implements EditorialRemoteCatalog<PriceGuide> {
-  const SupabasePriceRepository({
-    SupabaseClient? Function()? clientProvider,
-  }) : _clientProvider = clientProvider ?? SupabaseBootstrap.clientOrNull;
+  const SupabasePriceRepository({SupabaseClient? Function()? clientProvider})
+    : _clientProvider = clientProvider ?? SupabaseBootstrap.clientOrNull;
 
   final SupabaseClient? Function()? _clientProvider;
 
