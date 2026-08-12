@@ -10,10 +10,15 @@ class BetaFeedbackScope extends InheritedNotifier<BetaFeedbackRepository> {
   }) : super(notifier: repository);
 
   static BetaFeedbackRepository of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<BetaFeedbackScope>();
-    assert(scope != null, 'BetaFeedbackScope introuvable.');
-    return scope!.notifier!;
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<BetaFeedbackScope>();
+    if (scope == null) {
+      throw FlutterError(
+        'BetaFeedbackScope introuvable — utilisez un context sous le scope '
+        'ou passez repository: explicitement à showBetaFeedbackSheet.',
+      );
+    }
+    return scope.notifier!;
   }
 
   static BetaFeedbackRepository? maybeOf(BuildContext context) {

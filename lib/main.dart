@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'app/atlas_app.dart';
+import 'app/atlas_misconfigured_app.dart';
+import 'core/config/atlas_env.dart';
 import 'core/editorial/editorial_repository_bootstrap.dart';
 import 'core/errors/atlas_error_ui.dart';
 import 'core/notifications/prayer_notification_bootstrap.dart';
@@ -21,9 +23,17 @@ Future<void> main() async {
     ErrorWidget.builder = (details) {
       return AtlasErrorFallback(details: details.exceptionAsString());
     };
+
+    final env = AtlasEnv.fromCompileTime();
+    final configIssue = env.hardenedCredentialsIssue;
+    if (configIssue != null) {
+      runApp(AtlasMisconfiguredApp(message: configIssue));
+      return;
+    }
+
     EditorialRepositoryBootstrap.registerDefaults();
 
-    final bootstrapResult = await SupabaseBootstrap.initialize();
+    final bootstrapResult = await SupabaseBootstrap.initialize(env: env);
     if (bootstrapResult.isReady) {
       unawaited(EditorialRepositoryBootstrap.warmUp());
       if (kDebugMode) {

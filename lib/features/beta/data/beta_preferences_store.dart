@@ -6,6 +6,8 @@ class BetaPreferencesStore {
 
   static const lastSeenBuildKey = 'beta_last_seen_build';
   static const pendingFeedbackKey = 'beta_pending_feedback_json';
+  static const privateBetaExpectationsSeenKey =
+      'beta_private_expectations_seen_v1';
 
   Future<int> loadLastSeenBuild() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,6 +17,16 @@ class BetaPreferencesStore {
   Future<void> saveLastSeenBuild(int buildNumber) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(lastSeenBuildKey, buildNumber);
+  }
+
+  Future<bool> loadPrivateBetaExpectationsSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(privateBetaExpectationsSeenKey) ?? false;
+  }
+
+  Future<void> savePrivateBetaExpectationsSeen({required bool seen}) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(privateBetaExpectationsSeenKey, seen);
   }
 
   Future<String?> loadPendingFeedbackJson() async {

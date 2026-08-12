@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/config/atlas_env.dart';
 import '../../../../core/datetime/casablanca_date_formatter.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
@@ -252,14 +253,20 @@ class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
                   const SizedBox(height: AtlasSpacing.lg),
                   _SyncStatusCard(status: syncStatus),
                   const SizedBox(height: AtlasSpacing.lg),
-                  _AssistantEntryCard(
-                    onOpen: () => AssistantPage.open(context),
-                  ),
-                  const SizedBox(height: AtlasSpacing.lg),
+                  if (AtlasEnv.fromCompileTime().showExperimentalSurfaces) ...[
+                    _AssistantEntryCard(
+                      onOpen: () => AssistantPage.open(context),
+                    ),
+                    const SizedBox(height: AtlasSpacing.lg),
+                  ],
                   _FavoritesEntryCard(onOpen: () => openFavoritesHub(context)),
                   const SizedBox(height: AtlasSpacing.lg),
-                  _ItineraryEntryCard(onOpen: () => TripListPage.open(context)),
-                  const SizedBox(height: AtlasSpacing.lg),
+                  if (AtlasEnv.fromCompileTime().showExperimentalSurfaces) ...[
+                    _ItineraryEntryCard(
+                      onOpen: () => TripListPage.open(context),
+                    ),
+                    const SizedBox(height: AtlasSpacing.lg),
+                  ],
                   _AtEntryCard(onOpen: () => openVehiclesTracker(context)),
                   const SizedBox(height: AtlasSpacing.lg),
                   _EventsEntryCard(onOpen: () => openEventsCalendar(context)),

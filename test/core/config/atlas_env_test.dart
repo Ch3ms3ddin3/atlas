@@ -24,6 +24,24 @@ void main() {
       expect(env.showSocialAuth, isFalse);
     });
 
+    test('showExperimentalSurfaces est false par défaut', () {
+      const env = AtlasEnv(
+        environment: AtlasEnvironment.development,
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+      );
+      expect(env.showExperimentalSurfaces, isFalse);
+    });
+
+    test('showBetaFeedback est true par défaut', () {
+      const env = AtlasEnv(
+        environment: AtlasEnvironment.development,
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+      );
+      expect(env.showBetaFeedback, isTrue);
+    });
+
     test('isConfigured exige URL et clé anon', () {
       const partial = AtlasEnv(
         environment: AtlasEnvironment.staging,
@@ -32,13 +50,24 @@ void main() {
       );
       const complete = AtlasEnv(
         environment: AtlasEnvironment.staging,
-        supabaseUrl: 'https://example.supabase.co',
-        supabaseAnonKey: 'anon-key',
+        supabaseUrl: 'https://abcdefgh.supabase.co',
+        supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
       );
 
       expect(partial.isConfigured, isFalse);
       expect(complete.isConfigured, isTrue);
       expect(complete.environment.label, 'staging');
+      expect(complete.looksLikePlaceholderCredentials, isFalse);
+    });
+
+    test('example.supabase.co est traité comme placeholder', () {
+      const env = AtlasEnv(
+        environment: AtlasEnvironment.staging,
+        supabaseUrl: 'https://example.supabase.co',
+        supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
+      );
+      expect(env.looksLikePlaceholderCredentials, isTrue);
+      expect(env.hardenedCredentialsIssue, isNotNull);
     });
   });
 

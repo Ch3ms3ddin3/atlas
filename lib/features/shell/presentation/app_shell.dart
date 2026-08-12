@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../../core/config/atlas_env.dart';
 import '../../../core/errors/atlas_error_ui.dart';
 import '../../../core/network/atlas_connectivity.dart';
 import '../../../core/notifications/prayer_notification_bootstrap.dart';
@@ -29,6 +29,7 @@ import '../../beta/presentation/beta_feedback_scope.dart';
 import '../../beta/presentation/pages/beta_diagnostics_page.dart';
 import '../../beta/presentation/widgets/atlas_beta_banner.dart';
 import '../../beta/presentation/widgets/beta_feedback_sheet.dart';
+import '../../beta/presentation/widgets/private_beta_expectations_dialog.dart';
 import '../../beta/presentation/widgets/whats_new_dialog.dart';
 import '../../content_reports/data/syncing_content_reports_repository.dart';
 import '../../content_reports/domain/content_reports_repository.dart';
@@ -173,12 +174,31 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
     setState(() => _buildInfo = info);
 
-    // Skip What's New during automated tests.
+    // Skip beta UX prompts during automated tests.
     if (const bool.fromEnvironment('FLUTTER_TEST')) return;
 
     final store = const BetaPreferencesStore();
+    final expectationsSeen = await store.loadPrivateBetaExpectationsSeen();
+    if (!expectationsSeen) {
+      SchedulerBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await showPrivateBetaExpectationsDialog(context: context);
+        await store.savePrivateBetaExpectationsSeen(seen: true);
+        if (!mounted) return;
+        await _maybeShowWhatsNew(store: store, buildInfo: info);
+      });
+      return;
+    }
+
+    await _maybeShowWhatsNew(store: store, buildInfo: info);
+  }
+
+  Future<void> _maybeShowWhatsNew({
+    required BetaPreferencesStore store,
+    required AtlasBuildInfo buildInfo,
+  }) async {
     final lastSeen = await store.loadLastSeenBuild();
-    final build = int.tryParse(info.buildNumber) ?? 0;
+    final build = int.tryParse(buildInfo.buildNumber) ?? 0;
     if (build <= lastSeen) return;
 
     final entries = ChangelogCatalog.sinceBuild(lastSeen);
@@ -308,6 +328,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final mapActive = _currentIndex == AtlasShellTab.map;
     // Bandeau réseau réel (Airplane Mode, etc.) — pas CloudSyncPhase.offline
     // qui signifie « sync réservée au compte » depuis P7.
@@ -315,6 +336,7 @@ class _AppShellState extends State<AppShell> {
     // Private-beta disclosure — visible in debug, profile, and release builds
     // (not debug-only; Profile/TestFlight must show Marrakech scope).
     final showBeta = _buildInfo != null;
+    final showFeedbackFab = AtlasEnv.fromCompileTime().showBetaFeedback;
     // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
     // pour ne pas le rejouer dans Home/Explorer (SafeArea des onglets).
     final hasTopChrome = showBeta || showOffline;
@@ -365,14 +387,34 @@ class _AppShellState extends State<AppShell> {
                 child: Scaffold(
                   floatingActionButtonLocation:
                       FloatingActionButtonLocation.endFloat,
-                  floatingActionButton: kDebugMode
-                      ? _DiscreetReportFab(
-                          onPressed: () {
-                            AtlasHaptics.primaryAction();
-                            showBetaFeedbackSheet(
-                              context: context,
-                              screenName: _currentScreenName,
-                              screenshotKey: _screenshotKey,
+                  floatingActionButton: showFeedbackFab
+                      ? Builder(
+                          builder: (fabContext) {
+                            return FloatingActionButton.small(
+                              key: const Key('atlas_beta_feedback_fab'),
+                              heroTag: 'atlas_beta_feedback_fab',
+                              tooltip: 'Signaler (bêta)',
+                              backgroundColor: AtlasColors.surfaceWhite,
+                              foregroundColor: theme
+                                  .colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.85),
+                              elevation: 1.2,
+                              onPressed: () {
+                                AtlasHaptics.primaryAction();
+                                if (!fabContext.mounted) return;
+                                unawaited(
+                                  showBetaFeedbackSheet(
+                                    context: fabContext,
+                                    screenName: _currentScreenName,
+                                    screenshotKey: _screenshotKey,
+                                    repository: _feedbackRepository,
+                                  ),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.flag_outlined,
+                                size: 20,
+                              ),
                             );
                           },
                         )
@@ -398,7 +440,9 @@ class _AppShellState extends State<AppShell> {
                           // Évite que le FAB masque le bas des listes.
                           padding: EdgeInsets.only(
                             // Compact circular FAB — keep content clear of the control.
-                            bottom: kDebugMode ? AtlasSpacing.fabClearance : 0,
+                            bottom: showFeedbackFab
+                                ? AtlasSpacing.fabClearance
+                                : 0,
                           ),
                           child: RepaintBoundary(
                             key: _screenshotKey,
@@ -441,52 +485,6 @@ class _AppShellState extends State<AppShell> {
     return AuthScope(
       repository: _authRepository,
       child: ProfileScope(repository: _profileRepository, child: shell),
-    );
-  }
-}
-
-/// FAB bêta discret — icône seule, cible tactile confortable.
-class _DiscreetReportFab extends StatelessWidget {
-  const _DiscreetReportFab({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Tooltip(
-      message: 'Signaler',
-      child: Semantics(
-        button: true,
-        label: 'Signaler un problème',
-        child: Material(
-          color: AtlasColors.surfaceWhite,
-          elevation: 0.8,
-          shadowColor: Colors.black.withValues(alpha: 0.18),
-          shape: CircleBorder(
-            side: BorderSide(
-              color: AtlasColors.sandMuted.withValues(alpha: 0.95),
-            ),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onPressed,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Icon(
-                Icons.flag_outlined,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: 0.78,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
