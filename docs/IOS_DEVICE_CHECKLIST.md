@@ -1,9 +1,8 @@
 # Atlas — Checklist iPhone (private beta)
 
-Bundle ID: `app.atlas.maroc` · Version: `1.0.0+2` (current in `pubspec.yaml`)  
-**Next TestFlight archive build number:** `1.0.0+3` — bump only  
-`version: 1.0.0+3` in `pubspec.yaml` (and rebuild) when creating the first  
-TestFlight upload. Do not bump during Milestone 2 Phase 1 code work.
+Bundle ID: `app.atlas.maroc` · Version: `1.0.0+3` (current in `pubspec.yaml`)  
+**Next TestFlight archive build number after this one:** `1.0.0+4`  
+Bump `version:` in `pubspec.yaml` only when creating a new uploadable archive.
 
 Redirect OAuth / recovery: `io.supabase.atlas://login-callback`  
 (Must also be allow-listed in Supabase Auth URL Configuration — see `IOS_APPLE_PORTAL_SETUP.md`.)
