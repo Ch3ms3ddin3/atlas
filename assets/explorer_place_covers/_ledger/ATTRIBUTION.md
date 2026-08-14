@@ -317,3 +317,24 @@ Local staging only. Not uploaded to Supabase.
 - SHA-1 of original download: `b07e2646595273ff008e0167bcf03f9499f2c2e1`
 - Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record.
 
+
+## Bacha Coffee (`place-bacha-coffee`)
+- Status: **PASS** (Storage — not Flutter-bundled)
+- Source page: https://commons.wikimedia.org/wiki/File:Entrance_to_the_Bacha_Coffee_boutique_in_Marrakech,_Morocco_In_2025.jpg
+- Commons title: File:Entrance to the Bacha Coffee boutique in Marrakech, Morocco In 2025.jpg
+- Original URL: https://upload.wikimedia.org/wikipedia/commons/6/65/Entrance_to_the_Bacha_Coffee_boutique_in_Marrakech%2C_Morocco_In_2025.jpg
+- Author / photographer: V3MBBa
+- Original license: CC BY-SA 4.0
+- License URL: https://creativecommons.org/licenses/by-sa/4.0
+- Commercial use: permitted (CC BY-SA)
+- Adaptation: permitted (share-alike)
+- Atlas derivative: upper-biased 3:2 crop from portrait original → 1200×800 WebP (q≈85), no generative edits
+- Derivative license: **CC BY-SA 4.0** (share-alike compliance)
+- Raw path: `assets/explorer_place_covers/_raw/place-bacha-coffee-Entrance_2025.jpg`
+- Staging path: `assets/explorer_place_covers/place-photos/place-bacha-coffee/cover.webp`
+- Production Storage path: `place-photos/place-bacha-coffee/cover.webp`
+- Public URL: https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-bacha-coffee/cover.webp
+- Final dimensions: 1200×800
+- Final size: 182.7 KB
+- SHA-1 of original download: `2c6e3da1c226ee1bb9d2cb62596aaf0bfa6c8b22`
+- Notes: Not registered in `PlaceCoverAssets` / pubspec — remote `places.image` is system of record. Source max width 1200 px limits output below 1600×1067 target.

@@ -84,6 +84,12 @@ void main() {
           place.primaryImageUrl,
           contains('place-photos/place-cafe-des-epices/cover.webp'),
         );
+      } else if (entry.key == 'place-bacha-coffee') {
+        expect(place.hasPrimaryImage, isTrue);
+        expect(
+          place.primaryImageUrl,
+          contains('place-photos/place-bacha-coffee/cover.webp'),
+        );
       } else {
         expect(place.imageUrls, isEmpty);
       }

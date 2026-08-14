@@ -145,15 +145,16 @@ Broken-image icons must not appear on Explorer / map cover surfaces.
 
 ---
 
-## Marrakech missing-cover backlog (20)
+## Marrakech missing-cover backlog (19)
 
 Places with **no** remote `image` / `image_urls` in catalog/seed **and** no
 entry in `PlaceCoverAssets`. Checklist for future sourcing/upload — **do not
 fill with random web URLs**.
 
-### Café (4)
+### Café (3)
 
-- [ ] `place-bacha-coffee` — Bacha Coffee
+- [x] `place-bacha-coffee` — Bacha Coffee  
+  (Storage cover; CC BY-SA 4.0 — V3MBBa / Wikimedia Commons — see ledger)
 - [ ] `place-simple-specialty-coffee` — Simple Specialty Coffee
 - [x] `place-cafe-des-epices` — Café des Épices  
   (Storage cover; CC0 — DimiTalen / Wikimedia Commons — see ledger)

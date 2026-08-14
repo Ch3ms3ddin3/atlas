@@ -588,7 +588,7 @@ INSERT INTO places (
   '+212524381293',
   'https://bachacoffee.com/',
   NULL,
-  ARRAY[]::text[],
+  ARRAY['https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-bacha-coffee/cover.webp'],
   ARRAY[]::text[],
   ARRAY[]::text[],
   '{"entries": [{"day": "Lundi", "hours": "Fermé"}, {"day": "Mardi", "hours": "10:00–18:00"}, {"day": "Mercredi", "hours": "10:00–18:00"}, {"day": "Jeudi", "hours": "10:00–18:00"}, {"day": "Vendredi", "hours": "10:00–18:00"}, {"day": "Samedi", "hours": "10:00–18:00"}, {"day": "Dimanche", "hours": "10:00–18:00"}]}'::jsonb

@@ -528,6 +528,10 @@ abstract final class PlaceCatalog {
       priceLevel: '€€€',
       isEditorsPick: true,
       imageColor: Color(0xFF6B3A2A),
+      // Cover: Supabase Storage (CC BY-SA 4.0 derivative — see PLACE_PHOTOS / ledger).
+      imageUrls: [
+        'https://djuomszcdjuwikfdfcju.supabase.co/storage/v1/object/public/place-photos/place-bacha-coffee/cover.webp',
+      ],
       summary:
           'Maison de café dans le palais Dar El Bacha — '
           'expérience Arabica patrimoniale (pas un coffee shop de rue).',
