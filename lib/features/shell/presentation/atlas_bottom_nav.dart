@@ -18,7 +18,7 @@ class AtlasNavDestination {
   final String label;
 }
 
-/// Barre de navigation principale — 5 onglets avec animation premium.
+/// Barre de navigation principale — 6 onglets avec animation premium.
 class AtlasBottomNav extends StatelessWidget {
   const AtlasBottomNav({
     super.key,
@@ -85,7 +85,9 @@ class AtlasBottomNav extends StatelessWidget {
                   AnimatedPositioned(
                     duration: AtlasMotion.navAnimationDuration,
                     curve: AtlasMotion.curveDefault,
-                    left: itemWidth * currentIndex + (itemWidth - indicatorWidth) / 2,
+                    left:
+                        itemWidth * currentIndex +
+                        (itemWidth - indicatorWidth) / 2,
                     top: 6,
                     width: indicatorWidth,
                     height: indicatorHeight,
@@ -147,34 +149,39 @@ class _AtlasNavItem extends StatelessWidget {
           AtlasHaptics.selection();
           onTap();
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AtlasSpacing.sm),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedScale(
-                scale: isSelected ? AtlasMotion.navIconActiveScale : 1,
-                duration: AtlasMotion.navAnimationDuration,
-                curve: AtlasMotion.curveDefault,
-                child: Icon(
-                  isSelected ? destination.selectedIcon : destination.icon,
-                  size: 24,
-                  color: color,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? AtlasMotion.navIconActiveScale : 1,
+              duration: AtlasMotion.navAnimationDuration,
+              curve: AtlasMotion.curveDefault,
+              child: Icon(
+                isSelected ? destination.selectedIcon : destination.icon,
+                size: 24,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: AtlasSpacing.xs),
+            AnimatedDefaultTextStyle(
+              duration: AtlasMotion.navAnimationDuration,
+              curve: AtlasMotion.curveDefault,
+              style: (labelStyle ?? const TextStyle()).copyWith(
+                color: color,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 12,
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  destination.label,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: AtlasSpacing.xs),
-              AnimatedDefaultTextStyle(
-                duration: AtlasMotion.navAnimationDuration,
-                curve: AtlasMotion.curveDefault,
-                style: (labelStyle ?? const TextStyle()).copyWith(
-                  color: color,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  fontSize: 12,
-                ),
-                child: Text(destination.label),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

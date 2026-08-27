@@ -338,7 +338,7 @@ class _AppShellState extends State<AppShell> {
     final showBeta = _buildInfo != null;
     final showFeedbackFab = AtlasEnv.fromCompileTime().showBetaFeedback;
     // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
-    // pour ne pas le rejouer dans Home/Explorer (SafeArea des onglets).
+    // pour ne pas le rejouer dans les SafeArea des onglets.
     final hasTopChrome = showBeta || showOffline;
 
     final tabStack = IndexedStack(
@@ -396,7 +396,8 @@ class _AppShellState extends State<AppShell> {
                               tooltip: 'Signaler (bêta)',
                               backgroundColor: AtlasColors.surfaceWhite,
                               foregroundColor: theme
-                                  .colorScheme.onSurfaceVariant
+                                  .colorScheme
+                                  .onSurfaceVariant
                                   .withValues(alpha: 0.85),
                               elevation: 1.2,
                               onPressed: () {
@@ -411,10 +412,7 @@ class _AppShellState extends State<AppShell> {
                                   ),
                                 );
                               },
-                              child: const Icon(
-                                Icons.flag_outlined,
-                                size: 20,
-                              ),
+                              child: const Icon(Icons.flag_outlined, size: 20),
                             );
                           },
                         )
@@ -446,13 +444,17 @@ class _AppShellState extends State<AppShell> {
                           ),
                           child: RepaintBoundary(
                             key: _screenshotKey,
-                            child: hasTopChrome
-                                ? MediaQuery.removePadding(
-                                    context: context,
-                                    removeTop: true,
-                                    child: tabStack,
-                                  )
-                                : tabStack,
+                            child: MediaQuery.removePadding(
+                              context: context,
+                              // Bandeau beta/offline : le padding top iOS est
+                              // déjà consommé par le chrome, pas par les onglets.
+                              removeTop: hasTopChrome,
+                              // AtlasBottomNav inclut déjà le home indicator.
+                              // Sans ça, chaque SafeArea d'onglet rejoue
+                              // padding.bottom (~34 pt) et masque le contenu.
+                              removeBottom: true,
+                              child: tabStack,
+                            ),
                           ),
                         ),
                       ),
