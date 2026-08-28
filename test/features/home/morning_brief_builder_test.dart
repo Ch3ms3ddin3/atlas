@@ -36,7 +36,9 @@ void main() {
   }) {
     return PrayerTimesSnapshot(
       state: state,
-      data: state == PrayerLoadState.unavailable
+      data:
+          state == PrayerLoadState.unavailable ||
+              state == PrayerLoadState.needsLocation
           ? null
           : const PrayerTimeData(
               nextPrayerName: 'Asr',

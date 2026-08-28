@@ -21,7 +21,11 @@ class PrayerTimingsCacheStore {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
       final entries = decoded['entries'];
       if (entries is! Map) return null;
-      final key = cacheKey(latitude: latitude, longitude: longitude, date: date);
+      final key = cacheKey(
+        latitude: latitude,
+        longitude: longitude,
+        date: date,
+      );
       final entry = entries[key];
       if (entry is! Map) return null;
       final timings = entry['timings'];
@@ -70,10 +74,7 @@ class PrayerTimingsCacheStore {
       }
     }
 
-    await prefs.setString(
-      prefsKey,
-      jsonEncode({'entries': existing}),
-    );
+    await prefs.setString(prefsKey, jsonEncode({'entries': existing}));
   }
 
   static String cacheKey({

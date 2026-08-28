@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/features/profile/data/profile_record_mapper.dart';
 import 'package:atlas/features/profile/domain/models/user_profile.dart';
 
@@ -18,6 +19,7 @@ void main() {
 
       expect(snapshot.profile.firstName, 'Salma');
       expect(snapshot.profile.preferredCity, 'Casablanca');
+      expect(snapshot.profile.citySource, AtlasCitySource.manual);
       expect(snapshot.profile.language, AtlasLanguage.english);
       expect(snapshot.profile.userType, AtlasUserType.tourist);
       expect(snapshot.profile.displayName, 'Salma Benali');

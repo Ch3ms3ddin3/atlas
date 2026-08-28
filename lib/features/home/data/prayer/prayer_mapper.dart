@@ -62,7 +62,7 @@ abstract final class PrayerMapper {
   }
 
   static ({String name, int minutesUntil, bool usesTomorrowFajr})
-      _resolveNextPrayer({
+  _resolveNextPrayer({
     required Map<String, int> todayParsed,
     required Map<String, String>? tomorrowTimings,
     required int nowMinutes,
@@ -80,7 +80,8 @@ abstract final class PrayerMapper {
 
     // Après Isha : Fajr du lendemain (horaires réels requis).
     final tomorrowFajrRaw = tomorrowTimings?['Fajr'];
-    final tomorrowFajrMinutes = tomorrowFajrRaw == null || tomorrowFajrRaw.isEmpty
+    final tomorrowFajrMinutes =
+        tomorrowFajrRaw == null || tomorrowFajrRaw.isEmpty
         ? todayParsed['Fajr']!
         : _parseTime(tomorrowFajrRaw);
 

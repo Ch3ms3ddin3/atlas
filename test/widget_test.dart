@@ -63,14 +63,18 @@ void main() {
 
     expect(find.text('Accueil'), findsWidgets);
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
-    expect(find.text('Marrakech'), findsWidgets);
-    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsNothing);
+    expect(find.text('Aujourd\'hui'), findsWidgets);
     expect(find.text('Actions rapides'), findsNothing);
     expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Pour vous'), findsNothing);
     expect(find.textContaining('Circulation'), findsNothing);
     expect(find.text('Météo indisponible'), findsWidgets);
-    expect(find.text('Horaires indisponibles'), findsWidgets);
+    expect(
+      find.textContaining('Localisation requise'),
+      findsWidgets,
+    );
+    expect(find.text('Horaires indisponibles'), findsNothing);
     expect(find.text('Taux indisponible'), findsWidgets);
     expect(find.text('Briefing du jour'), findsNothing);
     expect(find.text('Mes véhicules au Maroc'), findsNothing);
@@ -131,7 +135,8 @@ void main() {
     await pumpAtlasApp(tester);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui à Marrakech'), findsNothing);
+    expect(find.text('Aujourd\'hui'), findsWidgets);
     expect(find.text('Actions rapides'), findsNothing);
     expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Prix'), findsWidgets);

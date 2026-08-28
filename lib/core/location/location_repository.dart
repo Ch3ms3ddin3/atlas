@@ -1,3 +1,8 @@
+import 'package:geolocator/geolocator.dart';
+
+import '../../features/profile/domain/models/user_profile.dart';
+import 'atlas_city_source.dart';
+import 'atlas_geo_country.dart';
 import 'location_constants.dart';
 import 'geolocator_service.dart';
 import 'morocco_cities.dart';
@@ -6,9 +11,9 @@ import 'user_location.dart';
 
 /// Orchestre la résolution de la position.
 ///
-/// Ordre : **ville préférée explicite** → GPS + reverse geocode → Marrakech.
-/// Une ville de profil ne doit jamais être écrasée silencieusement par le GPS
-/// (ex. Fès → Marrakech après quelques secondes).
+/// **Manuel** : la ville du profil est autoritative (le GPS n'écrase jamais).
+/// **Auto** : GPS + reverse geocode ; hors zone → catalogue Marrakech sans
+/// prétendre que l'utilisateur y est.
 class LocationRepository {
   LocationRepository({
     GeolocatorService? geolocatorService,
@@ -20,56 +25,84 @@ class LocationRepository {
   final GeolocatorService _geolocatorService;
   final ReverseGeocodingClient _reverseGeocodingClient;
 
-  /// Résout la position Atlas.
-  ///
-  /// Quand [preferredCityName] correspond à une ville MoroccoCities connue,
-  /// elle est autoritative (coordonnées catalogue). Le GPS n'est utilisé que
-  /// sans préférence explicite.
-  Future<UserLocation> resolveLocation({String? preferredCityName}) async {
-    final preferred = MoroccoCities.resolve(preferredCityName);
-    if (preferred != null) {
-      return UserLocation(
-        latitude: preferred.latitude,
-        longitude: preferred.longitude,
-        cityName: preferred.name,
-        isFromGps: false,
-      );
-    }
-
-    final position = await _geolocatorService.getCurrentPosition();
-    if (position == null) {
-      return _preferredOrFallbackLocation(preferredCityName);
-    }
-
-    try {
-      final cityName = await _reverseGeocodingClient.resolveCityName(
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
-      return UserLocation(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        cityName: cityName,
-        isFromGps: true,
-      );
-    } catch (_) {
-      return UserLocation(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        cityName: LocationConstants.fallbackCity,
-        isFromGps: true,
-      );
-    }
+  /// Point d'entrée unique Accueil / Explorer / Carte / Prix.
+  Future<UserLocation> resolveForProfile(UserProfile profile) {
+    return resolveLocation(
+      preferredCityName: profile.preferredCity,
+      citySource: profile.citySource,
+    );
   }
 
-  UserLocation _preferredOrFallbackLocation(String? preferredCityName) {
+  /// Résout la position Atlas.
+  Future<UserLocation> resolveLocation({
+    String? preferredCityName,
+    AtlasCitySource citySource = AtlasCitySource.auto,
+  }) async {
+    if (citySource == AtlasCitySource.manual) {
+      return _manualLocation(preferredCityName);
+    }
+    return _autoLocation();
+  }
+
+  UserLocation _manualLocation(String? preferredCityName) {
     final city =
         MoroccoCities.resolve(preferredCityName) ?? MoroccoCities.fallback;
     return UserLocation(
       latitude: city.latitude,
       longitude: city.longitude,
       cityName: city.name,
+      contentCityName: city.name,
+      countryCode: 'MA',
       isFromGps: false,
     );
+  }
+
+  Future<UserLocation> _autoLocation() async {
+    final position = await _readGps();
+    if (position == null) {
+      return UserLocation.catalogFallback;
+    }
+
+    ReverseGeocodePlace? place;
+    try {
+      place = await _reverseGeocodingClient.resolvePlace(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+    } catch (_) {
+      place = null;
+    }
+
+    final detectedName = place?.cityName ?? '';
+    final countryCode =
+        place?.countryCode?.trim().toUpperCase() ??
+        AtlasGeoCountry.guessIsoCode(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        ) ??
+        '';
+
+    return UserLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      cityName: detectedName,
+      contentCityName: contentCityFor(detectedName),
+      countryCode: countryCode,
+      isFromGps: true,
+    );
+  }
+
+  Future<Position?> _readGps() async {
+    try {
+      return await _geolocatorService.getCurrentPosition();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Ville catalogue : ville Maroc connue, sinon repli Marrakech (pas de Paris).
+  static String contentCityFor(String? detectedOrManual) {
+    return MoroccoCities.resolve(detectedOrManual)?.name ??
+        LocationConstants.fallbackCity;
   }
 }

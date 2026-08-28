@@ -2,16 +2,15 @@ import 'package:flutter/foundation.dart';
 
 import '../../domain/models/prayer_times_snapshot.dart';
 import 'aladhan_client.dart';
+import 'prayer_calculation_policy.dart';
 import 'prayer_mapper.dart';
 import 'prayer_timings_cache_store.dart';
 
 /// Orchestre AlAdhan + cache durable — jamais d'horaires inventés.
 class PrayerRepository {
-  PrayerRepository({
-    AladhanClient? client,
-    PrayerTimingsCacheStore? cacheStore,
-  })  : _client = client ?? const AladhanClient(),
-        _cacheStore = cacheStore ?? const PrayerTimingsCacheStore();
+  PrayerRepository({AladhanClient? client, PrayerTimingsCacheStore? cacheStore})
+    : _client = client ?? const AladhanClient(),
+      _cacheStore = cacheStore ?? const PrayerTimingsCacheStore();
 
   static PrayerRepository? _instance;
 
@@ -37,28 +36,39 @@ class PrayerRepository {
   double? _cachedLatitude;
   double? _cachedLongitude;
   DateTime? _cachedDay;
+  String _methodLabel = PrayerCalculationPolicy.moroccoLabel;
   PrayerLoadState _memoryState = PrayerLoadState.unavailable;
 
   /// Charge (réseau puis cache) les horaires pour les coordonnées données.
   Future<PrayerTimesSnapshot> getPrayerTimes({
     required double latitude,
     required double longitude,
+    required int method,
     DateTime? referenceTime,
+    String? timeZoneString,
+    String? calculationMethodLabel,
   }) async {
     final now = referenceTime ?? PrayerMapper.casablancaNow();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
+    final label =
+        calculationMethodLabel ??
+        PrayerCalculationPolicy.labelForMethod(method);
 
     try {
       final todayTimings = await _client.fetchTimingsForDate(
         latitude: latitude,
         longitude: longitude,
         date: today,
+        method: method,
+        timeZoneString: timeZoneString,
       );
       final tomorrowTimings = await _client.fetchTimingsForDate(
         latitude: latitude,
         longitude: longitude,
         date: tomorrow,
+        method: method,
+        timeZoneString: timeZoneString,
       );
 
       await _cacheStore.save(
@@ -81,6 +91,7 @@ class PrayerRepository {
         todayTimings: todayTimings,
         tomorrowTimings: tomorrowTimings,
         state: PrayerLoadState.success,
+        methodLabel: label,
       );
 
       return PrayerTimesSnapshot(
@@ -89,6 +100,7 @@ class PrayerRepository {
           todayTimings: todayTimings,
           tomorrowTimings: tomorrowTimings,
           referenceTime: now,
+          calculationMethod: label,
         ),
       );
     } catch (_) {
@@ -96,6 +108,7 @@ class PrayerRepository {
         latitude: latitude,
         longitude: longitude,
         referenceTime: now,
+        methodLabel: label,
       );
     }
   }
@@ -118,7 +131,7 @@ class PrayerRepository {
         tomorrowTimings: tomorrow,
         referenceTime: now,
         calculationMethod: _memoryState == PrayerLoadState.success
-            ? PrayerMapper.liveCalculationMethod
+            ? _methodLabel
             : 'Horaires enregistrés',
       ),
     );
@@ -129,6 +142,8 @@ class PrayerRepository {
     required double latitude,
     required double longitude,
     required DateTime date,
+    required int method,
+    String? timeZoneString,
   }) async {
     final day = DateTime(date.year, date.month, date.day);
     try {
@@ -136,6 +151,8 @@ class PrayerRepository {
         latitude: latitude,
         longitude: longitude,
         date: day,
+        method: method,
+        timeZoneString: timeZoneString,
       );
       await _cacheStore.save(
         latitude: latitude,
@@ -157,6 +174,7 @@ class PrayerRepository {
     required double latitude,
     required double longitude,
     required DateTime referenceTime,
+    required String methodLabel,
   }) async {
     final today = DateTime(
       referenceTime.year,
@@ -188,6 +206,7 @@ class PrayerRepository {
       todayTimings: todayTimings,
       tomorrowTimings: tomorrowTimings,
       state: PrayerLoadState.stale,
+      methodLabel: methodLabel,
     );
 
     return PrayerTimesSnapshot(
@@ -208,6 +227,7 @@ class PrayerRepository {
     required Map<String, String> todayTimings,
     required Map<String, String> tomorrowTimings,
     required PrayerLoadState state,
+    required String methodLabel,
   }) {
     _cachedLatitude = latitude;
     _cachedLongitude = longitude;
@@ -215,6 +235,7 @@ class PrayerRepository {
     _todayTimings = todayTimings;
     _tomorrowTimings = tomorrowTimings;
     _memoryState = state;
+    _methodLabel = methodLabel;
   }
 
   void _clearMemory() {
@@ -224,6 +245,7 @@ class PrayerRepository {
     _cachedLongitude = null;
     _cachedDay = null;
     _memoryState = PrayerLoadState.unavailable;
+    _methodLabel = PrayerCalculationPolicy.moroccoLabel;
   }
 
   @visibleForTesting

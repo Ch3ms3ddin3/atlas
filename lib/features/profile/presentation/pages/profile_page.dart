@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/config/atlas_env.dart';
 import '../../../../core/datetime/casablanca_date_formatter.dart';
+import '../../../../core/location/atlas_city_source.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../../design_system/navigation/atlas_modal.dart';
@@ -54,6 +55,7 @@ class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
   String _preferredCity = UserProfile.defaultPreferredCity;
   AtlasUserType _userType = UserProfile.defaultUserType;
   AtlasLanguage _language = UserProfile.defaultLanguage;
+  bool _cityTouched = false;
   String? _firstNameError;
   bool _isSaving = false;
   bool _busy = false;
@@ -95,6 +97,7 @@ class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
       _preferredCity = profile.preferredCity;
       _userType = profile.userType;
       _language = profile.language;
+      _cityTouched = false;
       _firstNameError = null;
     });
   }
@@ -116,12 +119,17 @@ class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
 
     setState(() => _isSaving = true);
     final current = ProfileScope.of(context).profile;
+    final citySource =
+        _cityTouched || current.citySource == AtlasCitySource.manual
+        ? AtlasCitySource.manual
+        : current.citySource;
     final success = await ProfileScope.of(context).save(
       current.copyWith(
         firstName: _firstNameController.text,
         preferredCity: _preferredCity,
         language: _language,
         userType: _userType,
+        citySource: citySource,
       ),
     );
     if (!mounted) return;
@@ -310,7 +318,10 @@ class _ProfilePageState extends State<ProfilePage> with ShellTabScrollBinding {
                           ],
                           onChanged: (value) {
                             if (value == null) return;
-                            setState(() => _preferredCity = value);
+                            setState(() {
+                              _preferredCity = value;
+                              _cityTouched = true;
+                            });
                           },
                         ),
                         const SizedBox(height: AtlasSpacing.lg),

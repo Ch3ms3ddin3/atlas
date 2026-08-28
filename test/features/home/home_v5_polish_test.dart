@@ -1,3 +1,4 @@
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
 import 'package:atlas/features/home/data/daily_insight/daily_insight_builder.dart';
 import 'package:atlas/features/home/data/home_dashboard_catalog.dart';
@@ -112,5 +113,29 @@ void main() {
     );
 
     expect(find.text('V'), findsOneWidget);
+  });
+
+  testWidgets('Accueil auto : horloge appareil, pas Casablanca', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AtlasTheme.light,
+        home: Scaffold(
+          body: GreetingHeader(
+            data: const GreetingData(
+              userName: 'Voyageur',
+              city: '',
+              dateLabel: 'vendredi 28 août 2026',
+            ),
+            citySource: AtlasCitySource.auto,
+            clockNow: () => DateTime(2026, 8, 28, 8, 29),
+            onProfileTap: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('08:29'), findsOneWidget);
+    expect(find.textContaining('07:29'), findsNothing);
+    expect(find.text('Marrakech'), findsNothing);
   });
 }

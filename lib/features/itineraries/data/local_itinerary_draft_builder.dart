@@ -1,9 +1,11 @@
+import '../../../core/datetime/atlas_display_clock.dart';
 import '../../../core/location/morocco_cities.dart';
 import '../../../core/uuid/atlas_uuid.dart';
 import '../../explorer/domain/models/place_models.dart';
 import '../../explorer/domain/place_repository.dart';
 import '../../favorites/domain/favorite_entity_type.dart';
 import '../../favorites/domain/favorites_repository.dart';
+import '../../home/data/prayer/prayer_calculation_policy.dart';
 import '../../home/data/prayer/prayer_repository.dart';
 import '../domain/itinerary_repository.dart';
 import '../domain/models/itinerary_day.dart';
@@ -128,8 +130,7 @@ class LocalItineraryDraftBuilder {
     }
 
     final now = DateTime.now().toUtc();
-    final stopCount =
-        days.fold<int>(0, (sum, day) => sum + day.stops.length);
+    final stopCount = days.fold<int>(0, (sum, day) => sum + day.stops.length);
     final trip = Trip(
       id: AtlasUuid.v4(),
       title: request.title?.trim().isNotEmpty == true
@@ -235,6 +236,8 @@ class LocalItineraryDraftBuilder {
             latitude: city.latitude,
             longitude: city.longitude,
             date: date,
+            method: PrayerCalculationPolicy.moroccoMethodId,
+            timeZoneString: AtlasDisplayClock.casablancaTimeZone,
           )
           .timeout(const Duration(seconds: 4));
       if (timings == null) return null;

@@ -70,15 +70,16 @@ class SyncingProfileRepository extends ProfileRepository {
   Future<bool> save(UserProfile candidate) async {
     final sanitized = ProfileValidator.sanitizeForSave(candidate);
     if (sanitized == null) return false;
+    final toSave = sanitized.withManualCityIfChanged(_profile);
 
     final userIdAtStart = _userIdProvider();
     final now = DateTime.now().toUtc();
-    await _store.saveProfile(sanitized, localUpdatedAt: now);
-    _profile = sanitized;
+    await _store.saveProfile(toSave, localUpdatedAt: now);
+    _profile = toSave;
     notifyListeners();
 
     final pushed = await _pushProfile(
-      sanitized,
+      toSave,
       expectedUserId: userIdAtStart,
     );
     if (!AuthSyncIdentity.isStillCurrent(

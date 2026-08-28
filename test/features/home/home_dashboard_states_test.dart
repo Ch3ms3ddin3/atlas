@@ -143,7 +143,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bonjour Voyageur 👋'), findsOneWidget);
-    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui'), findsOneWidget);
     expect(find.text('Actions rapides'), findsNothing);
     expect(find.text('Utile maintenant'), findsWidgets);
     expect(find.text('Pour vous'), findsNothing);
@@ -226,7 +226,7 @@ void main() {
     );
 
     expect(find.text('Recommandations'), findsNothing);
-    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui'), findsOneWidget);
     expect(find.text('Pour vous'), findsNothing);
   });
 
@@ -240,9 +240,13 @@ void main() {
       favorites: LocalFavoritesRepository(),
     );
 
-    expect(find.textContaining('Aujourd\'hui à'), findsOneWidget);
+    expect(find.textContaining('Aujourd\'hui'), findsOneWidget);
     expect(find.text('Météo indisponible'), findsWidgets);
-    expect(find.text('Horaires indisponibles'), findsWidgets);
+    expect(
+      find.textContaining('Localisation requise'),
+      findsWidgets,
+    );
+    expect(find.text('Horaires indisponibles'), findsNothing);
     expect(find.text('Taux indisponible'), findsOneWidget);
     expect(find.text('Forte chaleur prévue'), findsNothing);
     expect(find.textContaining('données estimées'), findsNothing);

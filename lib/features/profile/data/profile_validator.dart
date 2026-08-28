@@ -71,6 +71,7 @@ abstract final class ProfileValidator {
       preferredCity: sanitizePreferredCity(candidate.preferredCity),
       language: candidate.language,
       userType: candidate.userType,
+      citySource: candidate.citySource,
       displayName: sanitizeOptionalIdentityField(candidate.displayName),
       avatarUrl: sanitizeOptionalIdentityField(candidate.avatarUrl),
     );

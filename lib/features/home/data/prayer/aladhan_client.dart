@@ -3,43 +3,56 @@ import 'dart:convert';
 import '../../../../core/network/atlas_http_client.dart';
 import 'prayer_mapper.dart';
 
-/// Client réseau pour l'API AlAdhan (méthode Maroc).
+/// Client réseau pour l'API AlAdhan.
 class AladhanClient {
   const AladhanClient();
 
-  static const _moroccoMethod = 21;
-
-  /// Récupère les horaires du jour pour les coordonnées données (Africa/Casablanca).
+  /// Récupère les horaires du jour pour les coordonnées données.
   Future<Map<String, String>> fetchTodayTimings({
     required double latitude,
     required double longitude,
+    required int method,
+    DateTime? date,
+    String? timeZoneString,
   }) {
     return fetchTimingsForDate(
       latitude: latitude,
       longitude: longitude,
-      date: PrayerMapper.casablancaNow(),
+      date: date ?? PrayerMapper.casablancaNow(),
+      method: method,
+      timeZoneString: timeZoneString,
     );
   }
 
-  /// Récupère les horaires pour une date donnée (Africa/Casablanca).
+  /// Récupère les horaires pour une date donnée.
+  ///
+  /// [timeZoneString] `null` : AlAdhan infère le fuseau des coordonnées.
   Future<Map<String, String>> fetchTimingsForDate({
     required double latitude,
     required double longitude,
     required DateTime date,
+    required int method,
+    String? timeZoneString,
   }) async {
-    final formattedDate = '${date.day.toString().padLeft(2, '0')}-'
+    final formattedDate =
+        '${date.day.toString().padLeft(2, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.year}';
+
+    final query = <String, String>{
+      'latitude': '$latitude',
+      'longitude': '$longitude',
+      'method': '$method',
+    };
+    final zone = timeZoneString?.trim();
+    if (zone != null && zone.isNotEmpty) {
+      query['timezonestring'] = zone;
+    }
 
     final uri = Uri.https(
       'api.aladhan.com',
       '/v1/timings/$formattedDate',
-      {
-        'latitude': '$latitude',
-        'longitude': '$longitude',
-        'method': '$_moroccoMethod',
-        'timezonestring': 'Africa/Casablanca',
-      },
+      query,
     );
 
     final body = await AtlasHttpClient.get(uri.toString());

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/location/atlas_city_source.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../auth/presentation/auth_scope.dart';
@@ -35,6 +36,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   late String _city;
   late AtlasLanguage _language;
   late AtlasUserType _userType;
+  bool _cityChosen = false;
   ProfileRepository? _profileRepository;
 
   @override
@@ -47,6 +49,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       _city = _resolveInitialCity(profile);
       _language = profile.language;
       _userType = profile.userType;
+      _cityChosen = profile.citySource == AtlasCitySource.manual;
       _initialized = true;
     }
   }
@@ -80,6 +83,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         preferredCity: _city,
         language: _language,
         userType: _userType,
+        citySource: _cityChosen || current.citySource == AtlasCitySource.manual
+            ? AtlasCitySource.manual
+            : AtlasCitySource.auto,
       ),
     );
   }
@@ -133,9 +139,13 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     ),
                     OnboardingPreferencesPage(
                       city: _city,
+                      cityChosen: _cityChosen,
                       language: _language,
                       userType: _userType,
-                      onCityChanged: (value) => setState(() => _city = value),
+                      onCityChanged: (value) => setState(() {
+                        _city = value;
+                        _cityChosen = true;
+                      }),
                       onLanguageChanged: (value) =>
                           setState(() => _language = value),
                       onUserTypeChanged: (value) =>

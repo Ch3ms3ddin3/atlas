@@ -13,30 +13,25 @@ void main() {
       MaterialApp(
         theme: AtlasTheme.light,
         home: const Scaffold(
-          body: PrayerTimeCard(
-            snapshot: PrayerTimesSnapshot.loading(),
-          ),
+          body: PrayerTimeCard(snapshot: PrayerTimesSnapshot.loading()),
         ),
       ),
     );
 
-    expect(
-      find.bySemanticsLabel('Chargement des horaires…'),
-      findsOneWidget,
-    );
+    expect(find.bySemanticsLabel('Chargement des horaires…'), findsOneWidget);
     expect(find.byType(AtlasSkeleton), findsWidgets);
     expect(find.text('Asr'), findsNothing);
     expect(find.text('05:08'), findsNothing);
   });
 
-  testWidgets('affiche l\'état indisponible sans faux horaires', (tester) async {
+  testWidgets('affiche l\'état indisponible sans faux horaires', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AtlasTheme.light,
         home: const Scaffold(
-          body: PrayerTimeCard(
-            snapshot: PrayerTimesSnapshot.unavailable(),
-          ),
+          body: PrayerTimeCard(snapshot: PrayerTimesSnapshot.unavailable()),
         ),
       ),
     );
@@ -44,6 +39,23 @@ void main() {
     expect(find.text('Horaires indisponibles'), findsOneWidget);
     expect(find.text('Fajr'), findsNothing);
     expect(find.textContaining('données estimées'), findsNothing);
+  });
+
+  testWidgets('affiche l\'état localisation requise sans faux horaires', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AtlasTheme.light,
+        home: const Scaffold(
+          body: PrayerTimeCard(snapshot: PrayerTimesSnapshot.needsLocation()),
+        ),
+      ),
+    );
+
+    expect(find.text('Localisation requise'), findsOneWidget);
+    expect(find.text('Fajr'), findsNothing);
+    expect(find.text('05:08'), findsNothing);
   });
 
   testWidgets('affiche le résumé live', (tester) async {

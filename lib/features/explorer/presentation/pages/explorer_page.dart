@@ -110,7 +110,6 @@ class _ExplorerPageState extends State<ExplorerPage>
       _profileRepository = repository;
       _profileRepository!.addListener(_onProfileChanged);
       if (repository.isLoaded) {
-        _applyPreferredCity(repository.profile.preferredCity);
         unawaited(_resolveLocation());
       }
     }
@@ -207,12 +206,11 @@ class _ExplorerPageState extends State<ExplorerPage>
 
   void _onProfileChanged() {
     if (!mounted) return;
-    _applyPreferredCity(_profileRepository!.profile.preferredCity);
     unawaited(_resolveLocation());
   }
 
-  void _applyPreferredCity(String preferredCity) {
-    final preferred = _browseCityFor(_canonicalSupportedCity(preferredCity));
+  void _applyContentCity(String cityName) {
+    final preferred = _browseCityFor(_canonicalSupportedCity(cityName));
     setState(() {
       _cityName = preferred;
       _isCityCovered = _repository.isCityCovered(_cityName);
@@ -234,24 +232,11 @@ class _ExplorerPageState extends State<ExplorerPage>
 
   Future<void> _resolveLocation() async {
     final requestId = ++_locationRequestId;
-    final location = await _locationRepository.resolveLocation(
-      preferredCityName:
-          _profileRepository?.profile.preferredCity ??
-          UserProfile.defaultPreferredCity,
-    );
+    final profile = _profileRepository?.profile ?? UserProfile.defaults;
+    final location = await _locationRepository.resolveForProfile(profile);
     if (!mounted || requestId != _locationRequestId) return;
 
-    // Relire le profil après l'await — il peut s'attacher pendant le GPS.
-    final preferredCity =
-        _profileRepository?.profile.preferredCity ?? location.cityName;
-    final preferred = _browseCityFor(_canonicalSupportedCity(preferredCity));
-
-    setState(() {
-      _cityName = preferred;
-      _isCityCovered = _repository.isCityCovered(_cityName);
-      _pushSharedFilters();
-      _applyFilters(notify: false);
-    });
+    _applyContentCity(location.catalogCity);
   }
 
   String _canonicalSupportedCity(String cityName) {

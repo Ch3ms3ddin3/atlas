@@ -83,7 +83,31 @@ void main() {
     expect(find.text('Continuer avec Google'), findsOneWidget);
   });
 
-  testWidgets('beta banner states Marrakech-first private beta', (
+  testWidgets('beta banner states Marrakech only when location is provided', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AtlasBetaBanner(
+            buildInfo: const AtlasBuildInfo(
+              appName: 'Atlas',
+              packageName: 'app.atlas.maroc',
+              version: '1.0.0',
+              buildNumber: '42',
+              platformLabel: 'ios',
+              deviceLabel: 'iPhone',
+            ),
+            locationLabel: 'Marrakech',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Atlas Private Beta · Marrakech'), findsOneWidget);
+  });
+
+  testWidgets('beta banner omits Marrakech without a real location', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -103,7 +127,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Atlas Private Beta · Marrakech'), findsOneWidget);
+    expect(find.text('Atlas Private Beta'), findsOneWidget);
+    expect(find.text('Atlas Private Beta · Marrakech'), findsNothing);
   });
 }
 

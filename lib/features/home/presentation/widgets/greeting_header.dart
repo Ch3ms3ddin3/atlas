@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/datetime/atlas_display_clock.dart';
+import '../../../../core/location/atlas_city_source.dart';
 import '../../../../design_system/theme/atlas_colors.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/theme/atlas_text_styles.dart';
 import '../../../../design_system/widgets/atlas_pressable.dart';
 import '../../../shell/presentation/shell_navigation_scope.dart';
-import '../../data/prayer/prayer_mapper.dart';
 import '../../domain/models/home_models.dart';
 
 /// En-tête d'accueil — salutation, ville, date et heure en un regard.
@@ -16,10 +17,14 @@ class GreetingHeader extends StatefulWidget {
   const GreetingHeader({
     super.key,
     required this.data,
+    this.citySource = AtlasCitySource.auto,
+    this.clockNow,
     this.onProfileTap,
   });
 
   final GreetingData data;
+  final AtlasCitySource citySource;
+  final DateTime Function()? clockNow;
   final VoidCallback? onProfileTap;
 
   @override
@@ -41,16 +46,25 @@ class _GreetingHeaderState extends State<GreetingHeader> {
   }
 
   @override
+  void didUpdateWidget(GreetingHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.citySource != widget.citySource ||
+        oldWidget.data.dateLabel != widget.data.dateLabel) {
+      _timeLabel = _formatTime();
+    }
+  }
+
+  @override
   void dispose() {
     _clockTimer?.cancel();
     super.dispose();
   }
 
   String _formatTime() {
-    final now = PrayerMapper.casablancaNow();
-    final hour = now.hour.toString().padLeft(2, '0');
-    final minute = now.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final now =
+        widget.clockNow?.call() ??
+        AtlasDisplayClock.nowFor(citySource: widget.citySource);
+    return AtlasDisplayClock.formatHm(now);
   }
 
   @override
@@ -83,16 +97,18 @@ class _GreetingHeaderState extends State<GreetingHeader> {
                 ),
               ),
               const SizedBox(height: AtlasSpacing.xs),
-              Text(
-                widget.data.city,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.25,
-                  height: 1.2,
-                  color: onSurface,
+              if (widget.data.city.trim().isNotEmpty) ...[
+                Text(
+                  widget.data.city,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.25,
+                    height: 1.2,
+                    color: onSurface,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
+                const SizedBox(height: 2),
+              ],
               Text(
                 '${widget.data.dateLabel} · $_timeLabel',
                 style: theme.textTheme.bodyMedium?.copyWith(

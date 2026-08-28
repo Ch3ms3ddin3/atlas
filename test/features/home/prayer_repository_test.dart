@@ -2,27 +2,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/features/home/data/prayer/aladhan_client.dart';
+import 'package:atlas/features/home/data/prayer/prayer_calculation_policy.dart';
 import 'package:atlas/features/home/data/prayer/prayer_mapper.dart';
 import 'package:atlas/features/home/data/prayer/prayer_repository.dart';
 import 'package:atlas/features/home/data/prayer/prayer_timings_cache_store.dart';
 import 'package:atlas/features/home/domain/models/prayer_times_snapshot.dart';
 
 class _FakeAladhanClient extends AladhanClient {
-  _FakeAladhanClient({
-    this.fail = false,
-    this.byDate = const {},
-  });
+  _FakeAladhanClient({this.fail = false, this.byDate = const {}});
 
   bool fail;
   final Map<String, Map<String, String>> byDate;
   final calls = <String>[];
+  final methods = <int>[];
+  final timeZones = <String?>[];
 
   @override
   Future<Map<String, String>> fetchTimingsForDate({
     required double latitude,
     required double longitude,
     required DateTime date,
+    required int method,
+    String? timeZoneString,
   }) async {
+    methods.add(method);
+    timeZones.add(timeZoneString);
     final key =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}_'
@@ -84,39 +88,38 @@ void main() {
       );
     });
 
-    test('après Isha utilise le Fajr de demain pour l\'horaire et le compte à rebours',
-        () {
-      final data = PrayerMapper.fromTimings(
-        todayTimings: todayTimings,
-        tomorrowTimings: tomorrowTimings,
-        referenceTime: DateTime(2026, 7, 12, 22, 0),
-      );
+    test(
+      'après Isha utilise le Fajr de demain pour l\'horaire et le compte à rebours',
+      () {
+        final data = PrayerMapper.fromTimings(
+          todayTimings: todayTimings,
+          tomorrowTimings: tomorrowTimings,
+          referenceTime: DateTime(2026, 7, 12, 22, 0),
+        );
 
-      expect(data.nextPrayerName, 'Fajr');
-      // 22:00 → 05:15 = 7h 15m
-      expect(data.nextPrayerCountdown, 'dans 7h 15m');
-      expect(
-        data.schedule.singleWhere((item) => item.name == 'Fajr').time,
-        '05:15',
-      );
-      expect(
-        data.schedule.singleWhere((item) => item.name == 'Fajr').isNext,
-        isTrue,
-      );
-      expect(
-        data.schedule.singleWhere((item) => item.name == 'Isha').isCurrent,
-        isTrue,
-      );
-    });
+        expect(data.nextPrayerName, 'Fajr');
+        // 22:00 → 05:15 = 7h 15m
+        expect(data.nextPrayerCountdown, 'dans 7h 15m');
+        expect(
+          data.schedule.singleWhere((item) => item.name == 'Fajr').time,
+          '05:15',
+        );
+        expect(
+          data.schedule.singleWhere((item) => item.name == 'Fajr').isNext,
+          isTrue,
+        );
+        expect(
+          data.schedule.singleWhere((item) => item.name == 'Isha').isCurrent,
+          isTrue,
+        );
+      },
+    );
   });
 
   group('PrayerRepository', () {
     test('succès réseau : snapshot live et cache durable', () async {
       final client = _FakeAladhanClient(
-        byDate: {
-          '2026-07-12': todayTimings,
-          '2026-07-13': tomorrowTimings,
-        },
+        byDate: {'2026-07-12': todayTimings, '2026-07-13': tomorrowTimings},
       );
       final repository = PrayerRepository(client: client);
       final now = DateTime(2026, 7, 12, 10, 0);
@@ -125,11 +128,15 @@ void main() {
         latitude: 31.6295,
         longitude: -7.9811,
         referenceTime: now,
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
 
       expect(snapshot.state, PrayerLoadState.success);
       expect(snapshot.data!.nextPrayerName, 'Dhuhr');
-      expect(snapshot.data!.calculationMethod, PrayerMapper.liveCalculationMethod);
+      expect(
+        snapshot.data!.calculationMethod,
+        PrayerMapper.liveCalculationMethod,
+      );
 
       final cached = await const PrayerTimingsCacheStore().load(
         latitude: 31.6295,
@@ -148,6 +155,7 @@ void main() {
         latitude: 33.5731,
         longitude: -7.5898,
         referenceTime: DateTime(2026, 7, 12, 10, 0),
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
 
       expect(snapshot.state, PrayerLoadState.unavailable);
@@ -179,6 +187,7 @@ void main() {
         latitude: 34.0209,
         longitude: -6.8416,
         referenceTime: DateTime(2026, 7, 12, 22, 30),
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
 
       expect(snapshot.state, PrayerLoadState.stale);
@@ -189,10 +198,7 @@ void main() {
 
     test('changement de ville refetch des horaires distincts', () async {
       final client = _FakeAladhanClient(
-        byDate: {
-          '2026-07-12': todayTimings,
-          '2026-07-13': tomorrowTimings,
-        },
+        byDate: {'2026-07-12': todayTimings, '2026-07-13': tomorrowTimings},
       );
       final repository = PrayerRepository(client: client);
       final now = DateTime(2026, 7, 12, 10, 0);
@@ -201,6 +207,7 @@ void main() {
         latitude: 31.6295,
         longitude: -7.9811,
         referenceTime: now,
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
       final firstCalls = client.calls.length;
 
@@ -208,39 +215,37 @@ void main() {
         latitude: 33.5731,
         longitude: -7.5898,
         referenceTime: now,
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
 
       expect(client.calls.length, greaterThan(firstCalls));
-      expect(
-        client.calls.any((call) => call.contains('33.5731')),
-        isTrue,
-      );
+      expect(client.calls.any((call) => call.contains('33.5731')), isTrue);
     });
 
-    test('buildForNow rafraîchit le compte à rebours depuis le cache mémoire',
-        () async {
-      final repository = PrayerRepository(
-        client: _FakeAladhanClient(
-          byDate: {
-            '2026-07-12': todayTimings,
-            '2026-07-13': tomorrowTimings,
-          },
-        ),
-      );
+    test(
+      'buildForNow rafraîchit le compte à rebours depuis le cache mémoire',
+      () async {
+        final repository = PrayerRepository(
+          client: _FakeAladhanClient(
+            byDate: {'2026-07-12': todayTimings, '2026-07-13': tomorrowTimings},
+          ),
+        );
 
-      await repository.getPrayerTimes(
-        latitude: 31.6295,
-        longitude: -7.9811,
-        referenceTime: DateTime(2026, 7, 12, 10, 0),
-      );
+        await repository.getPrayerTimes(
+          latitude: 31.6295,
+          longitude: -7.9811,
+          referenceTime: DateTime(2026, 7, 12, 10, 0),
+          method: PrayerCalculationPolicy.moroccoMethodId,
+        );
 
-      final later = repository.buildForNow(
-        referenceTime: DateTime(2026, 7, 12, 16, 0),
-      );
-      expect(later.state, PrayerLoadState.success);
-      expect(later.data!.nextPrayerName, 'Asr');
-      expect(later.data!.nextPrayerCountdown, 'dans 58m');
-    });
+        final later = repository.buildForNow(
+          referenceTime: DateTime(2026, 7, 12, 16, 0),
+        );
+        expect(later.state, PrayerLoadState.success);
+        expect(later.data!.nextPrayerName, 'Asr');
+        expect(later.data!.nextPrayerCountdown, 'dans 58m');
+      },
+    );
 
     test('getTimingsForDate retourne null sans API ni cache', () async {
       final repository = PrayerRepository(
@@ -250,8 +255,35 @@ void main() {
         latitude: 31.6295,
         longitude: -7.9811,
         date: DateTime(2026, 7, 12),
+        method: PrayerCalculationPolicy.moroccoMethodId,
       );
       expect(timings, isNull);
+    });
+
+    test('France : méthode UOIF et fuseau Paris transmis à AlAdhan', () async {
+      final client = _FakeAladhanClient(
+        byDate: {'2026-07-12': todayTimings, '2026-07-13': tomorrowTimings},
+      );
+      final repository = PrayerRepository(client: client);
+      final snapshot = await repository.getPrayerTimes(
+        latitude: 48.8566,
+        longitude: 2.3522,
+        referenceTime: DateTime(2026, 7, 12, 10, 0),
+        method: PrayerCalculationPolicy.franceUoifMethodId,
+        timeZoneString: 'Europe/Paris',
+        calculationMethodLabel: PrayerCalculationPolicy.franceUoifLabel,
+      );
+
+      expect(snapshot.state, PrayerLoadState.success);
+      expect(
+        snapshot.data!.calculationMethod,
+        PrayerCalculationPolicy.franceUoifLabel,
+      );
+      expect(
+        client.methods,
+        everyElement(PrayerCalculationPolicy.franceUoifMethodId),
+      );
+      expect(client.timeZones, everyElement('Europe/Paris'));
     });
   });
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../../core/location/location_constants.dart';
+import '../../../../core/location/atlas_city_source.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
 import '../../../../core/notifications/local_notification_service.dart';
@@ -9,6 +9,7 @@ import '../../../../core/notifications/prayer_notification_lead_time.dart';
 import '../../../explorer/domain/place_browse_filters.dart';
 import '../../../profile/data/profile_preferences_store.dart';
 import '../../../sync/data/user_preferences_store.dart';
+import 'prayer_calculation_policy.dart';
 import 'prayer_mapper.dart';
 import 'prayer_notification_scheduler.dart';
 import 'prayer_repository.dart';
@@ -126,27 +127,60 @@ class PrayerNotificationCoordinator {
 
     if (kIsWeb) return;
 
-    final resolvedLocation = location ?? await _resolveLocationForSync();
-    final now = PrayerMapper.casablancaNow();
+    AtlasCitySource citySource;
+    UserLocation resolvedLocation;
+    try {
+      final profileSnapshot = await _profilePreferencesStore.loadSnapshot();
+      citySource = profileSnapshot.profile.citySource;
+      resolvedLocation =
+          location ??
+          await _locationRepository.resolveForProfile(profileSnapshot.profile);
+    } catch (_) {
+      if (location == null) {
+        await _notificationService.cancelPrayerNotifications();
+        _lastSyncKey = null;
+        return;
+      }
+      citySource = AtlasCitySource.auto;
+      resolvedLocation = location;
+    }
+    final plan = PrayerCalculationPolicy.resolve(
+      citySource: citySource,
+      location: resolvedLocation,
+    );
+    if (!plan.canFetch) {
+      await _notificationService.cancelPrayerNotifications();
+      _lastSyncKey = null;
+      return;
+    }
+
+    final now = citySource == AtlasCitySource.manual
+        ? PrayerMapper.casablancaNow()
+        : DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
     final syncKey =
         '${today.toIso8601String()}_'
-        '${resolvedLocation.latitude}_'
-        '${resolvedLocation.longitude}_'
+        '${plan.latitude}_'
+        '${plan.longitude}_'
+        '${plan.methodId}_'
         '${leadTime.name}';
     if (!force && syncKey == _lastSyncKey) return;
 
     final todayTimings = await _prayerRepository.getTimingsForDate(
-      latitude: resolvedLocation.latitude,
-      longitude: resolvedLocation.longitude,
+      latitude: plan.latitude!,
+      longitude: plan.longitude!,
       date: today,
+      method: plan.methodId,
+      timeZoneString: plan.timeZoneString,
     );
     final tomorrowTimings = await _prayerRepository.getTimingsForDate(
-      latitude: resolvedLocation.latitude,
-      longitude: resolvedLocation.longitude,
+      latitude: plan.latitude!,
+      longitude: plan.longitude!,
       date: tomorrow,
+      method: plan.methodId,
+      timeZoneString: plan.timeZoneString,
     );
 
     // Pas d'horaires inventés : sans données réelles, on annule les rappels.
@@ -169,21 +203,5 @@ class PrayerNotificationCoordinator {
     }
 
     _lastSyncKey = syncKey;
-  }
-
-  Future<UserLocation> _resolveLocationForSync() async {
-    try {
-      final snapshot = await _profilePreferencesStore.loadSnapshot();
-      return await _locationRepository.resolveLocation(
-        preferredCityName: snapshot.profile.preferredCity,
-      );
-    } catch (_) {
-      return const UserLocation(
-        latitude: LocationConstants.fallbackLatitude,
-        longitude: LocationConstants.fallbackLongitude,
-        cityName: LocationConstants.fallbackCity,
-        isFromGps: false,
-      );
-    }
   }
 }

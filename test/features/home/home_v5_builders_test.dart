@@ -13,7 +13,7 @@ void main() {
   group('MorningBriefBuilder', () {
     const builder = MorningBriefBuilder();
 
-    test('loading when weather or prayer is still loading', () {
+    test('loading when weather is still loading', () {
       final data = builder.build(
         cityName: 'Marrakech',
         weatherSnapshot: const WeatherSnapshot.loading(),
@@ -27,6 +27,17 @@ void main() {
       expect(data.lines, isEmpty);
     });
 
+    test('ville vide → titre Aujourd\'hui sans catalogue Marrakech', () {
+      final data = builder.build(
+        cityName: '',
+        weatherSnapshot: const WeatherSnapshot.unavailable(),
+        prayerSnapshot: const PrayerTimesSnapshot.unavailable(),
+        exchangeRateSnapshot: const ExchangeRateSnapshot.unavailable(),
+        todayEvents: const [],
+      );
+      expect(data.title, 'Aujourd\'hui');
+    });
+
     test('does not invent traffic and omits empty agenda line', () {
       final data = builder.build(
         cityName: 'Casablanca',
@@ -34,6 +45,7 @@ void main() {
         prayerSnapshot: const PrayerTimesSnapshot.unavailable(),
         exchangeRateSnapshot: const ExchangeRateSnapshot.unavailable(),
         todayEvents: const [],
+        referenceTime: DateTime(2026, 8, 12, 12),
       );
 
       expect(data.isLoading, isFalse);

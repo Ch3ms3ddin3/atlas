@@ -1,3 +1,5 @@
+import '../../../../core/location/atlas_city_source.dart';
+
 /// Type d'utilisateur Atlas — influence les conseils affichés.
 enum AtlasUserType {
   resident,
@@ -22,6 +24,7 @@ class UserProfile {
     required this.preferredCity,
     required this.language,
     required this.userType,
+    this.citySource = AtlasCitySource.auto,
     this.displayName,
     this.avatarUrl,
   });
@@ -36,6 +39,9 @@ class UserProfile {
   final String preferredCity;
   final AtlasLanguage language;
   final AtlasUserType userType;
+
+  /// `auto` tant que l'utilisateur n'a pas choisi une ville volontairement.
+  final AtlasCitySource citySource;
 
   /// Nom affiché optionnel (OAuth / sync) — sinon [firstName].
   final String? displayName;
@@ -61,6 +67,7 @@ class UserProfile {
     String? preferredCity,
     AtlasLanguage? language,
     AtlasUserType? userType,
+    AtlasCitySource? citySource,
     String? displayName,
     String? avatarUrl,
     bool clearDisplayName = false,
@@ -71,9 +78,20 @@ class UserProfile {
       preferredCity: preferredCity ?? this.preferredCity,
       language: language ?? this.language,
       userType: userType ?? this.userType,
+      citySource: citySource ?? this.citySource,
       displayName: clearDisplayName ? null : (displayName ?? this.displayName),
       avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
     );
+  }
+
+  /// Un changement de ville persisté est un choix manuel (sauf si déjà `manual`).
+  UserProfile withManualCityIfChanged(UserProfile previous) {
+    if (citySource == AtlasCitySource.manual) return this;
+    if (preferredCity.trim().toLowerCase() ==
+        previous.preferredCity.trim().toLowerCase()) {
+      return this;
+    }
+    return copyWith(citySource: AtlasCitySource.manual);
   }
 }
 

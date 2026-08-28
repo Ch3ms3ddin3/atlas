@@ -35,10 +35,17 @@ class MorningBriefData {
 
   static MorningBriefData loading({required String cityName}) {
     return MorningBriefData(
-      title: 'Aujourd\'hui à $cityName',
+      title: titleFor(cityName),
       lines: const [],
       isLoading: true,
     );
+  }
+
+  /// Ville détectée / choisie ; jamais le fallback catalogue seul.
+  static String titleFor(String cityName) {
+    final city = cityName.trim();
+    if (city.isEmpty) return 'Aujourd\'hui';
+    return 'Aujourd\'hui à $city';
   }
 }
 
@@ -60,9 +67,7 @@ class MorningBriefBuilder {
     required List<AtlasEvent> todayEvents,
     DateTime? referenceTime,
   }) {
-    final coreLoading =
-        weatherSnapshot.state == WeatherLoadState.loading ||
-        prayerSnapshot.state == PrayerLoadState.loading;
+    final coreLoading = weatherSnapshot.state == WeatherLoadState.loading;
 
     if (coreLoading) {
       return MorningBriefData.loading(cityName: cityName);
@@ -95,7 +100,10 @@ class MorningBriefBuilder {
       );
     }
 
-    return MorningBriefData(title: 'Aujourd\'hui à $cityName', lines: lines);
+    return MorningBriefData(
+      title: MorningBriefData.titleFor(cityName),
+      lines: lines,
+    );
   }
 
   MorningBriefLine _weatherLine(WeatherSnapshot snapshot) {
@@ -131,6 +139,14 @@ class MorningBriefBuilder {
         text:
             '${snapshot.data!.nextPrayerName} ${snapshot.data!.nextPrayerCountdown}',
         action: MorningBriefAction.prayer,
+      ),
+      PrayerLoadState.loading => const MorningBriefLine(
+        icon: Icons.mosque_outlined,
+        text: 'Horaires en cours…',
+      ),
+      PrayerLoadState.needsLocation => const MorningBriefLine(
+        icon: Icons.mosque_outlined,
+        text: 'Localisation requise pour les horaires locaux',
       ),
       _ => const MorningBriefLine(
         icon: Icons.mosque_outlined,

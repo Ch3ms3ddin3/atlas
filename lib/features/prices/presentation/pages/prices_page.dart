@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/editorial/editorial_catalog_load_state.dart';
 import '../../../../core/location/location_constants.dart';
-import '../../../../core/location/morocco_cities.dart';
+import '../../../../core/location/location_repository.dart';
 import '../../../../design_system/navigation/atlas_page_route.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
 import '../../../../design_system/widgets/atlas_content_container.dart';
@@ -39,6 +39,7 @@ class _PricesPageState extends State<PricesPage> with ShellTabScrollBinding {
   static const _wideBreakpoint = 840.0;
 
   final PriceIntelligenceRepository _repository = PriceIntelligenceRepository();
+  final LocationRepository _locationRepository = LocationRepository();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -78,8 +79,7 @@ class _PricesPageState extends State<PricesPage> with ShellTabScrollBinding {
       _profileRepository?.removeListener(_onProfileChanged);
       _profileRepository = repository;
       _profileRepository!.addListener(_onProfileChanged);
-      // Profile may attach after initState; sync preferred city immediately.
-      _syncCityFromProfile();
+      unawaited(_resolveLocation());
     }
   }
 
@@ -115,7 +115,7 @@ class _PricesPageState extends State<PricesPage> with ShellTabScrollBinding {
 
   void _onProfileChanged() {
     if (!mounted) return;
-    _syncCityFromProfile();
+    unawaited(_resolveLocation());
   }
 
   void _onSearchChanged() {
@@ -126,24 +126,14 @@ class _PricesPageState extends State<PricesPage> with ShellTabScrollBinding {
     });
   }
 
-  /// Prix filter city follows profile preferred city — never GPS rewrite.
-  void _syncCityFromProfile() {
-    final preferredCity =
-        _profileRepository?.profile.preferredCity ??
-        UserProfile.defaultPreferredCity;
-    final resolved =
-        MoroccoCities.resolve(preferredCity)?.name ??
-        UserProfile.defaultPreferredCity;
+  Future<void> _resolveLocation() async {
+    final profile = _profileRepository?.profile ?? UserProfile.defaults;
+    final location = await _locationRepository.resolveForProfile(profile);
     if (!mounted) return;
     setState(() {
-      _cityName = resolved;
+      _cityName = location.catalogCity;
       _applyFilters(notify: false);
     });
-  }
-
-  Future<void> _resolveLocation() async {
-    // Keep async entry for init/warm paths; city comes from profile only.
-    _syncCityFromProfile();
   }
 
   void _applyFilters({bool notify = true}) {

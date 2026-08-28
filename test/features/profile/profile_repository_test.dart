@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/core/location/morocco_cities.dart';
 import 'package:atlas/features/profile/data/local_profile_repository.dart';
 import 'package:atlas/features/profile/data/profile_preferences_store.dart';
@@ -52,6 +53,20 @@ void main() {
       expect(sanitized.avatarUrl, 'https://cdn.example/a.png');
     });
 
+    test('sanitizeForSave conserve citySource', () {
+      const candidate = UserProfile(
+        firstName: 'Salma',
+        preferredCity: 'Fès',
+        language: AtlasLanguage.french,
+        userType: AtlasUserType.resident,
+        citySource: AtlasCitySource.manual,
+      );
+
+      final sanitized = ProfileValidator.sanitizeForSave(candidate);
+      expect(sanitized, isNotNull);
+      expect(sanitized!.citySource, AtlasCitySource.manual);
+    });
+
     test(
       'sanitizeForSave normalise les identité optionnelles vides en null',
       () {
@@ -98,6 +113,7 @@ void main() {
 
       expect(snapshot.profile.firstName, UserProfile.defaultFirstName);
       expect(snapshot.profile.preferredCity, UserProfile.defaultPreferredCity);
+      expect(snapshot.profile.citySource, AtlasCitySource.auto);
       expect(snapshot.profile.language, AtlasLanguage.french);
       expect(snapshot.profile.userType, AtlasUserType.resident);
       expect(snapshot.localUpdatedAt, isNull);
@@ -121,10 +137,46 @@ void main() {
 
       expect(snapshot.profile.firstName, 'Salma');
       expect(snapshot.profile.preferredCity, 'Casablanca');
+      expect(snapshot.profile.citySource, AtlasCitySource.auto);
       expect(snapshot.profile.language, AtlasLanguage.english);
       expect(snapshot.profile.userType, AtlasUserType.tourist);
       expect(snapshot.localUpdatedAt, updatedAt);
       expect(snapshot.syncPending, isTrue);
+    });
+
+    test('Marrakech persisté sans clé city_source → auto', () async {
+      SharedPreferences.setMockInitialValues({
+        ProfilePreferencesStore.preferredCityKey: 'Marrakech',
+      });
+      const store = ProfilePreferencesStore();
+      final snapshot = await store.loadSnapshot();
+      expect(snapshot.profile.citySource, AtlasCitySource.auto);
+    });
+
+    test('Fès persisté sans clé city_source → manual', () async {
+      SharedPreferences.setMockInitialValues({
+        ProfilePreferencesStore.preferredCityKey: 'Fès',
+      });
+      const store = ProfilePreferencesStore();
+      final snapshot = await store.loadSnapshot();
+      expect(snapshot.profile.preferredCity, 'Fès');
+      expect(snapshot.profile.citySource, AtlasCitySource.manual);
+    });
+
+    test('citySource manual survit à un cold restart', () async {
+      SharedPreferences.setMockInitialValues({});
+      const store = ProfilePreferencesStore();
+      await store.saveProfile(
+        UserProfile.defaults.copyWith(
+          preferredCity: 'Fès',
+          citySource: AtlasCitySource.manual,
+        ),
+        localUpdatedAt: DateTime.utc(2026, 8, 27),
+      );
+
+      final reloaded = await store.loadSnapshot();
+      expect(reloaded.profile.preferredCity, 'Fès');
+      expect(reloaded.profile.citySource, AtlasCitySource.manual);
     });
   });
 
@@ -238,6 +290,31 @@ void main() {
       expect(sanitized.avatarUrl, 'https://cdn.example/n.png');
       expect(sanitized.language, AtlasLanguage.french);
       expect(sanitized.userType, AtlasUserType.tourist);
+    });
+
+    test('save Fès passe en manual ; prénom seul reste auto', () async {
+      SharedPreferences.setMockInitialValues({});
+      final repository = LocalProfileRepository();
+      await repository.load();
+      expect(repository.profile.citySource, AtlasCitySource.auto);
+
+      final firstNameOnly = await repository.save(
+        repository.profile.copyWith(firstName: 'Salma'),
+      );
+      expect(firstNameOnly, isTrue);
+      expect(repository.profile.citySource, AtlasCitySource.auto);
+
+      final citySaved = await repository.save(
+        repository.profile.copyWith(preferredCity: 'Fès'),
+      );
+      expect(citySaved, isTrue);
+      expect(repository.profile.preferredCity, 'Fès');
+      expect(repository.profile.citySource, AtlasCitySource.manual);
+
+      final reloaded = LocalProfileRepository();
+      await reloaded.load();
+      expect(reloaded.profile.preferredCity, 'Fès');
+      expect(reloaded.profile.citySource, AtlasCitySource.manual);
     });
   });
 }

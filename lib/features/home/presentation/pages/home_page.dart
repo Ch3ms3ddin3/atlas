@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/notifications/prayer_notification_bootstrap.dart';
-import '../../../../core/location/location_constants.dart';
+import '../../../../core/datetime/atlas_display_clock.dart';
+import '../../../../core/location/atlas_city_source.dart';
 import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/user_location.dart';
+import '../../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../admission_temporaire/data/at_calculator.dart';
 import '../../../admission_temporaire/presentation/at_scope.dart';
 import '../../../admission_temporaire/presentation/pages/at_tracker_page.dart';
@@ -24,8 +25,8 @@ import '../../data/exchange_rate/exchange_rate_repository.dart';
 import '../../data/greeting/greeting_repository.dart';
 import '../../data/morning_brief/morning_brief_builder.dart';
 import '../../data/now_actions/home_now_actions_builder.dart';
-import '../../data/prayer/prayer_mapper.dart';
 import '../../data/prayer/prayer_repository.dart';
+import '../../data/prayer/prayer_calculation_policy.dart';
 import '../../domain/models/exchange_rate_snapshot.dart';
 import '../../domain/models/home_models.dart';
 import '../../domain/models/prayer_times_snapshot.dart';
@@ -80,19 +81,15 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   @override
   ScrollController get tabScrollController => _scrollController;
 
-  UserLocation _location = const UserLocation(
-    latitude: LocationConstants.fallbackLatitude,
-    longitude: LocationConstants.fallbackLongitude,
-    cityName: LocationConstants.fallbackCity,
-    isFromGps: false,
-  );
+  UserLocation _location = UserLocation.catalogFallback;
   WeatherSnapshot _weatherSnapshot = const WeatherSnapshot.loading();
   PrayerTimesSnapshot _prayerSnapshot = const PrayerTimesSnapshot.loading();
   ExchangeRateSnapshot _exchangeRateSnapshot =
       const ExchangeRateSnapshot.loading();
   late GreetingData _greeting = _greetingRepository.build(
     firstName: UserProfile.defaultFirstName,
-    city: LocationConstants.fallbackCity,
+    city: '',
+    citySource: AtlasCitySource.auto,
   );
   Timer? _prayerCountdownTimer;
   Timer? _dateRollTimer;
@@ -110,9 +107,11 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
     _refreshDerivedDashboardData();
     _refreshEvents();
     _loadWeather();
-    _loadPrayerTimes();
     _loadExchangeRate();
-    _resolveLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_loadPrayerTimes());
+    });
+    unawaited(_resolveLocation());
     unawaited(_prices.warmUp());
     unawaited(_places.warmUp());
     _scheduleDateRollTimer();
@@ -208,7 +207,7 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   }
 
   void _refreshEvents() {
-    _todayEvents = _eventRepository.today(cityName: _location.cityName);
+    _todayEvents = _eventRepository.today(cityName: _location.catalogCity);
   }
 
   AtVehicle? get _urgentVehicle {
@@ -216,8 +215,13 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
     return AtCalculator.mostUrgent(vehicles);
   }
 
+  AtlasCitySource get _citySource =>
+      _profileRepository?.profile.citySource ?? AtlasCitySource.auto;
+
+  DateTime get _displayNow => AtlasDisplayClock.nowFor(citySource: _citySource);
+
   void _scheduleDateRollTimer() {
-    final now = PrayerMapper.casablancaNow();
+    final now = _displayNow;
     final midnight = DateTime(
       now.year,
       now.month,
@@ -245,17 +249,14 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
     final profile = _profileRepository?.profile ?? UserProfile.defaults;
     _greeting = _greetingRepository.build(
       firstName: profile.firstName,
-      city: _location.cityName,
+      city: _location.displayCityName,
+      citySource: profile.citySource,
     );
   }
 
   Future<void> _resolveLocation() async {
-    final preferredCity =
-        _profileRepository?.profile.preferredCity ??
-        UserProfile.defaultPreferredCity;
-    final location = await _locationRepository.resolveLocation(
-      preferredCityName: preferredCity,
-    );
+    final profile = _profileRepository?.profile ?? UserProfile.defaults;
+    final location = await _locationRepository.resolveForProfile(profile);
     if (!mounted) return;
 
     final locationChanged =
@@ -272,13 +273,13 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
     if (locationChanged) {
       setState(() {
         _weatherSnapshot = const WeatherSnapshot.loading();
-        _prayerSnapshot = const PrayerTimesSnapshot.loading();
       });
-      await Future.wait([_loadWeather(), _loadPrayerTimes()]);
-      unawaited(
-        prayerNotificationCoordinator.sync(location: location, force: true),
-      );
+      unawaited(_loadWeather());
     }
+    await _loadPrayerTimes();
+    unawaited(
+      prayerNotificationCoordinator.sync(location: location, force: true),
+    );
   }
 
   Future<void> _loadWeather() async {
@@ -299,11 +300,33 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   }
 
   Future<void> _loadPrayerTimes() async {
-    final latitude = _location.latitude;
-    final longitude = _location.longitude;
+    final plan = PrayerCalculationPolicy.resolve(
+      citySource: _citySource,
+      location: _location,
+    );
+    if (!plan.canFetch) {
+      if (!mounted) return;
+      setState(() {
+        _prayerSnapshot = const PrayerTimesSnapshot.needsLocation();
+        _refreshDerivedDashboardData();
+      });
+      unawaited(prayerNotificationCoordinator.sync(location: _location));
+      return;
+    }
+
+    setState(() {
+      _prayerSnapshot = const PrayerTimesSnapshot.loading();
+    });
+
+    final latitude = plan.latitude!;
+    final longitude = plan.longitude!;
     final snapshot = await _prayerRepository.getPrayerTimes(
       latitude: latitude,
       longitude: longitude,
+      referenceTime: _displayNow,
+      timeZoneString: plan.timeZoneString,
+      method: plan.methodId,
+      calculationMethodLabel: plan.methodLabel,
     );
     if (!mounted) return;
     if (latitude != _location.latitude || longitude != _location.longitude) {
@@ -342,7 +365,11 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   void _refreshPrayerCountdown() {
     if (!mounted) return;
     if (!_prayerSnapshot.hasSchedule) return;
-    setState(() => _prayerSnapshot = _prayerRepository.buildForNow());
+    setState(
+      () => _prayerSnapshot = _prayerRepository.buildForNow(
+        referenceTime: _displayNow,
+      ),
+    );
   }
 
   void _onPrayerBriefTap() {
@@ -405,14 +432,15 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
   @override
   Widget build(BuildContext context) {
     final morningBrief = _morningBriefBuilder.build(
-      cityName: _location.cityName,
+      cityName: _location.displayCityName,
       weatherSnapshot: _weatherSnapshot,
       prayerSnapshot: _prayerSnapshot,
       exchangeRateSnapshot: _exchangeRateSnapshot,
       todayEvents: _todayEvents,
+      referenceTime: _displayNow,
     );
     final nowActions = _nowActionsBuilder.build(
-      cityName: _location.cityName,
+      cityName: _location.catalogCity,
       weatherSnapshot: _weatherSnapshot,
       priceSource: _prices.getAll(),
       placeRepository: _places,
@@ -423,7 +451,7 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
         if (action.priceObservationId != null) action.priceObservationId!,
     };
     final priceHighlights = _prices.homeHighlights(
-      cityName: _location.cityName,
+      cityName: _location.catalogCity,
       limit: 2,
       excludeIds: excludedPriceIds,
     );
@@ -442,7 +470,12 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AtlasSpacing.md),
-                    AtlasReveal(child: GreetingHeader(data: _greeting)),
+                    AtlasReveal(
+                      child: GreetingHeader(
+                        data: _greeting,
+                        citySource: _citySource,
+                      ),
+                    ),
                     const SizedBox(height: AtlasSpacing.md),
                     AtlasReveal(
                       delay: AtlasMotion.staggerDelay,
@@ -452,7 +485,7 @@ class _HomePageState extends State<HomePage> with ShellTabScrollBinding {
                         onPrayerTap: _onPrayerBriefTap,
                         onEventsTap: () => openEventsCalendar(
                           context,
-                          initialCity: _location.cityName,
+                          initialCity: _location.catalogCity,
                         ),
                       ),
                     ),

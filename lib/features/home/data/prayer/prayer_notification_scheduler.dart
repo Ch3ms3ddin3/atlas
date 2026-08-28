@@ -94,7 +94,9 @@ class PrayerNotificationScheduler {
     }
 
     final prayerAt = _prayerDateTime(day, time);
-    final notifyAt = prayerAt.subtract(Duration(minutes: leadTime.offsetMinutes));
+    final notifyAt = prayerAt.subtract(
+      Duration(minutes: leadTime.offsetMinutes),
+    );
     if (!notifyAt.isAfter(now)) return;
 
     results.add(

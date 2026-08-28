@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
@@ -157,6 +158,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(profile.profile.preferredCity, 'Rabat');
+      expect(profile.profile.citySource, AtlasCitySource.manual);
       expect(profile.profile.language, AtlasLanguage.french);
       expect(profile.profile.userType, AtlasUserType.student);
       expect(find.text('Continuer sans compte'), findsOneWidget);

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/core/notifications/prayer_notification_bootstrap.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
 import 'package:atlas/features/admission_temporaire/data/at_bootstrap.dart';
@@ -202,7 +203,37 @@ void main() {
     expect(find.byType(AppShell), findsOneWidget);
     expect(await const OnboardingPreferencesStore().isCompleted(), isTrue);
     expect(profile.profile.preferredCity, 'Casablanca');
+    expect(profile.profile.citySource, AtlasCitySource.manual);
     expect(profile.profile.userType, AtlasUserType.tourist);
+  });
+
+  testWidgets('Continuer sans choisir de ville reste en auto', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final profile = LocalProfileRepository();
+    await profile.load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AtlasTheme.light,
+        home: StartupGate(
+          authRepository: _FakeAuthRepository(),
+          profileRepository: profile,
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.text('Commencer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continuer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continuer sans compte'));
+    await tester.pumpAndSettle();
+
+    expect(profile.profile.preferredCity, UserProfile.defaultPreferredCity);
+    expect(profile.profile.citySource, AtlasCitySource.auto);
   });
 
   testWidgets('utilisateur déjà onboardé arrive sur Accueil', (tester) async {

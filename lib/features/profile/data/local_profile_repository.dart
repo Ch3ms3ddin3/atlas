@@ -32,10 +32,11 @@ class LocalProfileRepository extends ProfileRepository {
   Future<bool> save(UserProfile candidate) async {
     final sanitized = ProfileValidator.sanitizeForSave(candidate);
     if (sanitized == null) return false;
+    final toSave = sanitized.withManualCityIfChanged(_profile);
 
-    await _store.saveProfile(sanitized, localUpdatedAt: DateTime.now().toUtc());
+    await _store.saveProfile(toSave, localUpdatedAt: DateTime.now().toUtc());
     await _store.setSyncPending(false);
-    _profile = sanitized;
+    _profile = toSave;
     notifyListeners();
     return true;
   }

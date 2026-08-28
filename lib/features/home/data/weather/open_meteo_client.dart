@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../../core/datetime/atlas_display_clock.dart';
 import '../../../../core/network/atlas_http_client.dart';
 import '../../domain/models/home_models.dart';
 import 'weather_mapper.dart';
@@ -8,7 +9,9 @@ import 'weather_mapper.dart';
 class OpenMeteoClient {
   const OpenMeteoClient();
 
-  /// Récupère la météo actuelle pour les coordonnées données (Africa/Casablanca).
+  /// Récupère la météo actuelle pour les coordonnées données.
+  ///
+  /// `timezone=auto` : Open-Meteo suit le fuseau des coordonnées (GPS ou ville).
   Future<WeatherData> fetchCurrentWeather({
     required double latitude,
     required double longitude,
@@ -23,7 +26,7 @@ class OpenMeteoClient {
             'temperature_2m,apparent_temperature,weather_code,wind_speed_10m',
         'hourly': 'precipitation_probability,uv_index',
         'forecast_days': '1',
-        'timezone': 'Africa/Casablanca',
+        'timezone': AtlasDisplayClock.openMeteoTimeZone,
       },
     );
 

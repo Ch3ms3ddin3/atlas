@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/location/atlas_city_source.dart';
 import '../domain/models/user_profile.dart';
 import 'profile_local_snapshot.dart';
 
@@ -9,6 +10,7 @@ class ProfilePreferencesStore {
 
   static const firstNameKey = 'profile_first_name';
   static const preferredCityKey = 'profile_preferred_city';
+  static const citySourceKey = 'profile_city_source';
   static const languageKey = 'profile_language';
   static const userTypeKey = 'profile_user_type';
   static const displayNameKey = 'profile_display_name';
@@ -18,10 +20,16 @@ class ProfilePreferencesStore {
 
   Future<ProfileLocalSnapshot> loadSnapshot() async {
     final prefs = await SharedPreferences.getInstance();
+    final preferredCity =
+        prefs.getString(preferredCityKey) ?? UserProfile.defaultPreferredCity;
     final profile = UserProfile(
       firstName: prefs.getString(firstNameKey) ?? UserProfile.defaultFirstName,
-      preferredCity:
-          prefs.getString(preferredCityKey) ?? UserProfile.defaultPreferredCity,
+      preferredCity: preferredCity,
+      citySource: AtlasCitySource.inferLegacy(
+        preferredCity: preferredCity,
+        defaultPreferredCity: UserProfile.defaultPreferredCity,
+        stored: prefs.getString(citySourceKey),
+      ),
       language: AtlasLanguageLabels.fromStorage(prefs.getString(languageKey)),
       userType: AtlasUserTypeLabels.fromStorage(prefs.getString(userTypeKey)),
       displayName: prefs.getString(displayNameKey),
@@ -45,6 +53,7 @@ class ProfilePreferencesStore {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(firstNameKey, profile.firstName);
     await prefs.setString(preferredCityKey, profile.preferredCity);
+    await prefs.setString(citySourceKey, profile.citySource.name);
     await prefs.setString(languageKey, profile.language.name);
     await prefs.setString(userTypeKey, profile.userType.name);
     if (profile.displayName == null || profile.displayName!.trim().isEmpty) {
@@ -77,6 +86,7 @@ class ProfilePreferencesStore {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(firstNameKey);
     await prefs.remove(preferredCityKey);
+    await prefs.remove(citySourceKey);
     await prefs.remove(languageKey);
     await prefs.remove(userTypeKey);
     await prefs.remove(displayNameKey);

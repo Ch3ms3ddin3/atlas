@@ -38,9 +38,10 @@ abstract final class ProfileSyncCoordinator {
           shouldPushLocal: false,
         );
       }
+      final adopted = _adoptRemote(local.profile, remote.profile);
       return ProfileMergeResult(
-        profile: remote.profile,
-        changed: !_profilesEqual(local.profile, remote.profile),
+        profile: adopted,
+        changed: !_profilesEqual(local.profile, adopted),
         shouldPushLocal: false,
       );
     }
@@ -74,9 +75,10 @@ abstract final class ProfileSyncCoordinator {
           shouldPushLocal: true,
         );
       }
+      final adopted = _adoptRemote(local.profile, remote.profile);
       return ProfileMergeResult(
-        profile: remote.profile,
-        changed: !_profilesEqual(local.profile, remote.profile),
+        profile: adopted,
+        changed: !_profilesEqual(local.profile, adopted),
         shouldPushLocal: false,
       );
     }
@@ -99,9 +101,19 @@ abstract final class ProfileSyncCoordinator {
   static bool _profilesEqual(UserProfile a, UserProfile b) {
     return a.firstName == b.firstName &&
         a.preferredCity == b.preferredCity &&
+        a.citySource == b.citySource &&
         a.language == b.language &&
         a.userType == b.userType &&
         a.displayName == b.displayName &&
         a.avatarUrl == b.avatarUrl;
+  }
+
+  /// `citySource` est local : on le conserve si la ville distante est identique.
+  static UserProfile _adoptRemote(UserProfile local, UserProfile remote) {
+    if (local.preferredCity == remote.preferredCity &&
+        local.citySource != remote.citySource) {
+      return remote.copyWith(citySource: local.citySource);
+    }
+    return remote;
   }
 }

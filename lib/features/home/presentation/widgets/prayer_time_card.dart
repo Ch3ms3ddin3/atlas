@@ -38,13 +38,22 @@ class PrayerTimeCard extends StatelessWidget {
           key: ValueKey(snapshot.state),
           child: switch (snapshot.state) {
             PrayerLoadState.loading => const _LoadingBody(),
-            PrayerLoadState.unavailable => _UnavailableBody(theme: theme),
-            PrayerLoadState.success ||
-            PrayerLoadState.stale =>
-              _ReadyBody(
-                data: snapshot.data!,
-                statusLabel: snapshot.statusLabel,
-              ),
+            PrayerLoadState.unavailable => _UnavailableBody(
+              theme: theme,
+              title: 'Horaires indisponibles',
+              detail: 'Tirez pour actualiser lorsque vous êtes en ligne.',
+            ),
+            PrayerLoadState.needsLocation => _UnavailableBody(
+              theme: theme,
+              title: 'Localisation requise',
+              detail:
+                  'Autorisez la localisation pour afficher les horaires '
+                  'de votre position.',
+            ),
+            PrayerLoadState.success || PrayerLoadState.stale => _ReadyBody(
+              data: snapshot.data!,
+              statusLabel: snapshot.statusLabel,
+            ),
           },
         ),
       ),
@@ -74,9 +83,15 @@ class _LoadingBody extends StatelessWidget {
 }
 
 class _UnavailableBody extends StatelessWidget {
-  const _UnavailableBody({required this.theme});
+  const _UnavailableBody({
+    required this.theme,
+    required this.title,
+    required this.detail,
+  });
 
   final ThemeData theme;
+  final String title;
+  final String detail;
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +113,14 @@ class _UnavailableBody extends StatelessWidget {
         ),
         const SizedBox(height: AtlasSpacing.md),
         Text(
-          'Horaires indisponibles',
+          title,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: AtlasSpacing.sm),
         Text(
-          'Tirez pour actualiser lorsque vous êtes en ligne.',
+          detail,
           style: theme.textTheme.bodySmall?.copyWith(
             color: AtlasTextStyles.helper(theme.colorScheme),
             height: 1.4,
@@ -117,10 +132,7 @@ class _UnavailableBody extends StatelessWidget {
 }
 
 class _ReadyBody extends StatelessWidget {
-  const _ReadyBody({
-    required this.data,
-    required this.statusLabel,
-  });
+  const _ReadyBody({required this.data, required this.statusLabel});
 
   final PrayerTimeData data;
   final String statusLabel;
@@ -154,10 +166,8 @@ class _ReadyBody extends StatelessWidget {
           duration: AtlasMotion.contentSwapDuration,
           switchInCurve: AtlasMotion.curveDefault,
           switchOutCurve: AtlasMotion.curveExit,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          transitionBuilder: (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
           child: Text(
             data.nextPrayerCountdown,
             key: ValueKey<String>(data.nextPrayerCountdown),
@@ -204,10 +214,7 @@ class _PrayerScheduleRow extends StatelessWidget {
         for (var i = 0; i < schedule.length; i++) ...[
           if (i > 0) const SizedBox(width: AtlasSpacing.xs),
           Expanded(
-            child: _PrayerScheduleCell(
-              item: schedule[i],
-              theme: theme,
-            ),
+            child: _PrayerScheduleCell(item: schedule[i], theme: theme),
           ),
         ],
       ],
@@ -216,10 +223,7 @@ class _PrayerScheduleRow extends StatelessWidget {
 }
 
 class _PrayerScheduleCell extends StatelessWidget {
-  const _PrayerScheduleCell({
-    required this.item,
-    required this.theme,
-  });
+  const _PrayerScheduleCell({required this.item, required this.theme});
 
   final PrayerScheduleItem item;
   final ThemeData theme;

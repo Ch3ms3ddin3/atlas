@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/editorial/editorial_catalog_load_state.dart';
 import '../../../../core/location/geolocator_service.dart';
 import '../../../../core/location/location_constants.dart';
+import '../../../../core/location/location_repository.dart';
 import '../../../../core/location/morocco_cities.dart';
 import '../../../../design_system/theme/atlas_motion.dart';
 import '../../../../design_system/theme/atlas_spacing.dart';
@@ -22,6 +23,7 @@ import '../../../explorer/presentation/widgets/place_category_filter.dart';
 import '../../../explorer/presentation/widgets/place_city_filter.dart';
 import '../../../favorites/domain/favorites_repository.dart';
 import '../../../favorites/presentation/favorites_scope.dart';
+import '../../../profile/domain/models/user_profile.dart';
 import '../../../profile/domain/profile_repository.dart';
 import '../../../profile/presentation/profile_scope.dart';
 import '../../data/map_place_query.dart';
@@ -44,6 +46,7 @@ class AtlasMapPage extends StatefulWidget {
 class _AtlasMapPageState extends State<AtlasMapPage> {
   final PlaceRepository _repository = PlaceRepository();
   final GeolocatorService _geolocator = const GeolocatorService();
+  final LocationRepository _locationRepository = LocationRepository();
   final PlaceBrowseFilters _filters = PlaceBrowseFilters.instance;
   final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
@@ -99,6 +102,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
         _centerOnSelectedCity();
       }
       unawaited(_checkPermission());
+      unawaited(_resolveLocation());
       unawaited(_repository.warmUp());
     });
   }
@@ -108,17 +112,11 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     super.didChangeDependencies();
     final profile = ProfileScope.of(context);
     if (!identical(profile, _profileRepository)) {
+      _profileRepository?.removeListener(_onProfileChanged);
       _profileRepository = profile;
-      if (_filters.cityName.isEmpty ||
-          _filters.cityName == LocationConstants.fallbackCity ||
-          !_repository.isCityCovered(_filters.cityName)) {
-        final preferred =
-            MoroccoCities.resolve(profile.profile.preferredCity)?.name ??
-            LocationConstants.fallbackCity;
-        final browseCity = _repository.isCityCovered(preferred)
-            ? preferred
-            : LocationConstants.fallbackCity;
-        _filters.setCityName(browseCity);
+      _profileRepository!.addListener(_onProfileChanged);
+      if (widget.isActive || _mapEngineReady) {
+        unawaited(_resolveLocation());
       }
     }
     final favorites = FavoritesScope.of(context);
@@ -137,6 +135,7 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _filters.removeListener(_onFiltersChanged);
+    _profileRepository?.removeListener(_onProfileChanged);
     _favoritesRepository?.removeListener(_onFavoritesChanged);
     if (_mapEngineReady) {
       _detachCatalogListener();
@@ -279,6 +278,39 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
     });
   }
 
+  void _onProfileChanged() {
+    if (!mounted || !_mapEngineReady) return;
+    unawaited(_resolveLocation());
+  }
+
+  String _browseCityFor(String cityName) {
+    if (_repository.isCityCovered(cityName)) return cityName;
+    return LocationConstants.fallbackCity;
+  }
+
+  Future<void> _resolveLocation() async {
+    final profile = _profileRepository?.profile ?? UserProfile.defaults;
+    final location = await _locationRepository.resolveForProfile(profile);
+    if (!mounted) return;
+
+    final browseCity = _browseCityFor(location.catalogCity);
+    final shouldApplyCity =
+        _filters.cityName.isEmpty ||
+        _filters.cityName == LocationConstants.fallbackCity ||
+        !_repository.isCityCovered(_filters.cityName);
+
+    setState(() {
+      if (location.isFromGps) {
+        _userLat = location.latitude;
+        _userLng = location.longitude;
+        _hasLocationPermission = true;
+      }
+    });
+    if (shouldApplyCity && _filters.cityName != browseCity) {
+      _filters.setCityName(browseCity);
+    }
+  }
+
   Future<void> _checkPermission() async {
     final permission = await _geolocator.hasGrantedPermission();
     if (!mounted) return;
@@ -337,7 +369,9 @@ class _AtlasMapPageState extends State<AtlasMapPage> {
   /// Demande la permission seulement au tap — jamais au lancement seul.
   Future<void> _onNearMe() async {
     try {
-      final position = await _geolocator.getCurrentPosition();
+      final position = await _geolocator.getCurrentPosition(
+        userInitiated: true,
+      );
       if (!mounted) return;
       if (position != null) {
         setState(() {

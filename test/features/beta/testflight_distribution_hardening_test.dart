@@ -155,7 +155,9 @@ void main() {
     expect(find.text('Favoris'), findsWidgets);
   });
 
-  testWidgets('beta banner remains Marrakech-first', (tester) async {
+  testWidgets('beta banner shows Marrakech only for an explicit location', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -168,6 +170,7 @@ void main() {
               platformLabel: 'ios',
               deviceLabel: 'iPhone',
             ),
+            locationLabel: 'Marrakech',
           ),
         ),
       ),

@@ -12,6 +12,7 @@ class OnboardingPreferencesPage extends StatelessWidget {
   const OnboardingPreferencesPage({
     super.key,
     required this.city,
+    required this.cityChosen,
     required this.language,
     required this.userType,
     required this.onCityChanged,
@@ -21,6 +22,7 @@ class OnboardingPreferencesPage extends StatelessWidget {
   });
 
   final String city;
+  final bool cityChosen;
   final AtlasLanguage language;
   final AtlasUserType userType;
   final ValueChanged<String> onCityChanged;
@@ -72,7 +74,7 @@ class OnboardingPreferencesPage extends StatelessWidget {
                           for (final name in MoroccoCities.supportedNames)
                             AtlasFilterChip(
                               label: name,
-                              isSelected: city == name,
+                              isSelected: cityChosen && city == name,
                               onTap: () => onCityChanged(name),
                             ),
                         ],

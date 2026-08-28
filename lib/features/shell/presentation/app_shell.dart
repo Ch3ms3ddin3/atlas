@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../../core/config/atlas_env.dart';
 import '../../../core/errors/atlas_error_ui.dart';
+import '../../../core/location/atlas_city_source.dart';
 import '../../../core/network/atlas_connectivity.dart';
 import '../../../core/notifications/prayer_notification_bootstrap.dart';
 import '../../../core/performance/atlas_performance.dart';
@@ -333,8 +334,7 @@ class _AppShellState extends State<AppShell> {
     // Bandeau réseau réel (Airplane Mode, etc.) — pas CloudSyncPhase.offline
     // qui signifie « sync réservée au compte » depuis P7.
     final showOffline = _connectivity.isOffline;
-    // Private-beta disclosure — visible in debug, profile, and release builds
-    // (not debug-only; Profile/TestFlight must show Marrakech scope).
+    // Bandeau beta — ville seulement si choix manuel (pas le catalogue Marrakech).
     final showBeta = _buildInfo != null;
     final showFeedbackFab = AtlasEnv.fromCompileTime().showBetaFeedback;
     // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
@@ -420,9 +420,20 @@ class _AppShellState extends State<AppShell> {
                   body: Column(
                     children: [
                       if (showBeta)
-                        AtlasBetaBanner(
-                          buildInfo: _buildInfo!,
-                          onSecretTap: _onBannerTap,
+                        ListenableBuilder(
+                          listenable: _profileRepository,
+                          builder: (context, _) {
+                            final profile = _profileRepository.profile;
+                            final locationLabel =
+                                profile.citySource == AtlasCitySource.manual
+                                ? profile.preferredCity
+                                : null;
+                            return AtlasBetaBanner(
+                              buildInfo: _buildInfo!,
+                              locationLabel: locationLabel,
+                              onSecretTap: _onBannerTap,
+                            );
+                          },
                         ),
                       if (showOffline)
                         SafeArea(

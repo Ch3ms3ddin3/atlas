@@ -1,12 +1,18 @@
+import '../../../core/location/atlas_city_source.dart';
 import '../domain/models/user_profile.dart';
 import 'profile_remote_snapshot.dart';
 
 /// Convertit les lignes Supabase vers les modèles profil.
 abstract final class ProfileRecordMapper {
   static ProfileRemoteSnapshot fromRow(Map<String, dynamic> row) {
+    final preferredCity = row['preferred_city'] as String;
     final profile = UserProfile(
       firstName: row['first_name'] as String,
-      preferredCity: row['preferred_city'] as String,
+      preferredCity: preferredCity,
+      citySource: AtlasCitySource.inferLegacy(
+        preferredCity: preferredCity,
+        defaultPreferredCity: UserProfile.defaultPreferredCity,
+      ),
       language: AtlasLanguageLabels.fromStorage(row['language'] as String?),
       userType: AtlasUserTypeLabels.fromStorage(row['user_type'] as String?),
       displayName: row['display_name'] as String?,

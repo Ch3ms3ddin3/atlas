@@ -1,4 +1,5 @@
 import 'package:atlas/core/editorial/editorial_repository_bootstrap.dart';
+import 'package:atlas/core/location/atlas_city_source.dart';
 import 'package:atlas/core/location/location_repository.dart';
 import 'package:atlas/core/location/morocco_cities.dart';
 import 'package:atlas/design_system/theme/atlas_theme.dart';
@@ -47,6 +48,7 @@ void main() {
       () async {
         final location = await LocationRepository().resolveLocation(
           preferredCityName: 'Fès',
+          citySource: AtlasCitySource.manual,
         );
         expect(location.cityName, 'Fès');
         expect(location.latitude, MoroccoCities.fes.latitude);
