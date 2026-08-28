@@ -28,6 +28,9 @@ class FavoritesMergeResult {
 /// - `syncPending` → le local l'emporte (évite qu'une tombstone distante
 ///   plus récente n'efface un favori non encore poussé) ;
 /// - sinon le `updated_at` le plus récent gagne ; à égalité → local.
+///
+/// [remote] `null` = lecture distante **échouée ou ignorée** — ne pas fusionner
+/// comme une liste vide. `[]` = lecture **réussie** sans lignes.
 abstract final class FavoritesSyncCoordinator {
   static FavoritesMergeResult merge({
     required FavoritesLocalSnapshot local,

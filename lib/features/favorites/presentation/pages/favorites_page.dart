@@ -65,6 +65,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
       _favorites!.addListener(_onFavoritesChanged);
       if (!_favorites!.isLoaded) {
         unawaited(_favorites!.load());
+      } else {
+        unawaited(_favorites!.retryFailedRemoteSync());
       }
     }
   }

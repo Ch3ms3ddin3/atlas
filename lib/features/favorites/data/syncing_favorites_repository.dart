@@ -36,6 +36,8 @@ class SyncingFavoritesRepository extends FavoritesRepository {
         _env = env ?? AtlasEnv.fromCompileTime(),
         _userIdProvider = userIdProvider ?? _defaultUserId,
         _isSignedInProvider = isSignedInProvider ?? _defaultIsSignedIn,
+        // 5s keeps startup off the UI. Reliability comes from a single
+        // retry on « Mes favoris », not from a longer timeout alone.
         _syncTimeout = syncTimeout ?? const Duration(seconds: 5),
         super.base();
 
@@ -52,6 +54,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
   bool _isLoaded = false;
   bool _syncInProgress = false;
   bool _syncQueued = false;
+  bool _remoteSyncFailed = false;
 
   @override
   Set<FavoriteKey> get activeFavorites => _activeFavorites;
@@ -84,6 +87,13 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     _isLoaded = true;
     notifyListeners();
     unawaited(_syncAfterLoad());
+  }
+
+  @override
+  Future<void> retryFailedRemoteSync() async {
+    if (!_remoteSyncFailed) return;
+    if (_syncInProgress) return;
+    await _syncAfterLoad();
   }
 
   @override
@@ -205,13 +215,20 @@ class SyncingFavoritesRepository extends FavoritesRepository {
       final userId = _userIdProvider();
       if (userId == null) return;
 
-      final remote = await _fetchRemote(userId);
+      final remoteRead = await _fetchRemote(userId);
       if (!AuthSyncIdentity.isStillCurrent(
         capturedUserId: userId,
         userIdProvider: _userIdProvider,
       )) {
         return;
       }
+      if (remoteRead.failed || remoteRead.records == null) {
+        _remoteSyncFailed = true;
+        return;
+      }
+      _remoteSyncFailed = false;
+      final remote = remoteRead.records!;
+
       // Relecture après le fetch : un add/remove peut avoir eu lieu pendant l'attente.
       var localSnapshot = await _store.loadSnapshot();
       if (!AuthSyncIdentity.isStillCurrent(
@@ -271,12 +288,16 @@ class SyncingFavoritesRepository extends FavoritesRepository {
           return;
         }
         await _store.setSyncPending(!pushed);
+        if (!pushed) {
+          _remoteSyncFailed = true;
+        }
         if (pushed) {
           final pruned = _pruneInactive(snapshot.records);
           await _store.saveRecords(pruned);
         }
       }
     } catch (error) {
+      _remoteSyncFailed = true;
       _logSyncFailure('synchronisation', error);
     } finally {
       _syncInProgress = false;
@@ -287,12 +308,13 @@ class SyncingFavoritesRepository extends FavoritesRepository {
     }
   }
 
-  Future<List<FavoriteRecord>?> _fetchRemote(String userId) async {
+  Future<_RemoteRead> _fetchRemote(String userId) async {
     try {
-      return await _remote.fetch(userId).timeout(_syncTimeout);
+      final records = await _remote.fetch(userId).timeout(_syncTimeout);
+      return _RemoteRead.ok(records);
     } catch (error) {
       _logSyncFailure('lecture distante', error);
-      return null;
+      return const _RemoteRead.failed();
     }
   }
 
@@ -323,6 +345,7 @@ class SyncingFavoritesRepository extends FavoritesRepository {
         userIdProvider: _userIdProvider,
       );
     } catch (error) {
+      _remoteSyncFailed = true;
       _logSyncFailure('écriture distante', error);
       return false;
     }
@@ -360,4 +383,14 @@ class SyncingFavoritesRepository extends FavoritesRepository {
         if (record.isActive) record,
     ];
   }
+}
+
+/// Lecture distante : l'échec n'expose jamais une liste (vide ou non).
+class _RemoteRead {
+  const _RemoteRead.ok(List<FavoriteRecord> this.records) : failed = false;
+
+  const _RemoteRead.failed() : records = null, failed = true;
+
+  final List<FavoriteRecord>? records;
+  final bool failed;
 }

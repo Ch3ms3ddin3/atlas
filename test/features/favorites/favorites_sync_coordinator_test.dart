@@ -138,6 +138,45 @@ void main() {
       expect(result.shouldPushLocal, isTrue);
     });
 
+    test('une lecture échouée (remote null) ne vide pas le local', () {
+      final result = FavoritesSyncCoordinator.merge(
+        local: FavoritesLocalSnapshot(
+          records: [
+            localRecord.copyWith(updatedAt: localTime),
+          ],
+        ),
+      );
+
+      expect(result.activeKeys, {
+        const FavoriteKey(
+          entityType: FavoriteEntityType.place,
+          entitySlug: 'place-jardin-majorelle',
+        ),
+      });
+      expect(result.changed, isFalse);
+      expect(result.shouldPushLocal, isFalse);
+    });
+
+    test('une liste distante vide n\'efface pas les favoris locaux', () {
+      final result = FavoritesSyncCoordinator.merge(
+        local: FavoritesLocalSnapshot(
+          records: [
+            localRecord.copyWith(updatedAt: localTime),
+          ],
+        ),
+        remote: const [],
+      );
+
+      expect(result.activeKeys, {
+        const FavoriteKey(
+          entityType: FavoriteEntityType.place,
+          entitySlug: 'place-jardin-majorelle',
+        ),
+      });
+      expect(result.changed, isFalse);
+      expect(result.shouldPushLocal, isTrue);
+    });
+
     test('le local l emporte à timestamps égaux', () {
       final result = FavoritesSyncCoordinator.merge(
         local: FavoritesLocalSnapshot(

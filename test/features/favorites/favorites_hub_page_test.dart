@@ -201,6 +201,18 @@ void main() {
       );
     });
 
+    testWidgets('retries failed remote sync when opening the hub', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final favorites = _RecordingRetryFavorites();
+      await favorites.load();
+      await tester.pumpWidget(_hubApp(favorites));
+      await tester.pump();
+
+      expect(favorites.retryCalls, 1);
+    });
+
     testWidgets('shows populated place, procedure and price favorites', (
       tester,
     ) async {
@@ -438,4 +450,13 @@ void main() {
       expect(favorites.activeFavorites, isEmpty);
     });
   });
+}
+
+class _RecordingRetryFavorites extends LocalFavoritesRepository {
+  int retryCalls = 0;
+
+  @override
+  Future<void> retryFailedRemoteSync() async {
+    retryCalls += 1;
+  }
 }

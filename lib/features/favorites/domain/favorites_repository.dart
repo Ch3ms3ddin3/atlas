@@ -22,6 +22,12 @@ abstract class FavoritesRepository extends ChangeNotifier {
   /// Charge l'état local (et déclenche une sync si l'implémentation le prévoit).
   Future<void> load();
 
+  /// Relance la sync distante seulement si la précédente a échoué.
+  ///
+  /// No-op si aucune erreur, si une sync est déjà en cours, ou hors compte.
+  /// Une ouverture d'écran = une tentative, jamais une boucle.
+  Future<void> retryFailedRemoteSync() async {}
+
   /// Ajoute un favori. Retourne `false` si la validation échoue.
   Future<bool> addFavorite({
     required FavoriteEntityType entityType,
