@@ -42,6 +42,16 @@ void main() {
       expect(env.showBetaFeedback, isTrue);
     });
 
+    test('showBetaFeedback peut être désactivé pour un build public', () {
+      const env = AtlasEnv(
+        environment: AtlasEnvironment.production,
+        supabaseUrl: 'https://abcdefgh.supabase.co',
+        supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test',
+        showBetaFeedback: false,
+      );
+      expect(env.showBetaFeedback, isFalse);
+    });
+
     test('isConfigured exige URL et clé anon', () {
       const partial = AtlasEnv(
         environment: AtlasEnvironment.staging,

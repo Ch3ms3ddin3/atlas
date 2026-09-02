@@ -17,6 +17,24 @@ void main() {
       expect(entry, isNotNull);
       expect(entry!.title, contains('Private Beta'));
     });
+
+    test('forDisplay masque le changelog bêta quand le flag est false', () {
+      final hidden = ChangelogCatalog.forDisplay(
+        lastSeenBuild: 0,
+        showBetaFeedback: false,
+      );
+      expect(hidden, isEmpty);
+
+      final shown = ChangelogCatalog.forDisplay(
+        lastSeenBuild: 0,
+        showBetaFeedback: true,
+      );
+      expect(shown, isNotEmpty);
+      expect(
+        shown.any((e) => e.title.contains('Private Beta')),
+        isTrue,
+      );
+    });
   });
 
   group('BetaFeedback', () {

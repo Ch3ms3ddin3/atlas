@@ -80,8 +80,10 @@ class AtlasEnv {
   /// Implementation remains in the tree; UI entry points are gated.
   final bool showExperimentalSurfaces;
 
-  /// In-app « Signaler » FAB — on by default for private beta (including
-  /// profile / release / TestFlight builds).
+  /// Private-beta chrome — on by default for TestFlight / local.
+  ///
+  /// Gates the « Atlas Private Beta » banner, Signaler FAB, welcome dialog,
+  /// diagnostics entry, and What's New copy reserved for testers.
   final bool showBetaFeedback;
 
   /// `true` lorsque l'URL et la clé anon publique sont fournies.

@@ -66,6 +66,8 @@ class AppShell extends StatefulWidget {
     this.profileRepository,
     this.favoritesRepository,
     this.contentReportsRepository,
+    this.env,
+    this.skipBetaPrompts,
   });
 
   /// Shared with [StartupGate] so recovery deep links use one auth listener.
@@ -76,6 +78,12 @@ class AppShell extends StatefulWidget {
   /// Otherwise creates a local instance (e.g. StartupGate in isolation).
   final FavoritesRepository? favoritesRepository;
   final ContentReportsRepository? contentReportsRepository;
+
+  /// Defaults to [AtlasEnv.fromCompileTime]. Injected in tests.
+  final AtlasEnv? env;
+
+  /// When null, skips tester dialogs under `FLUTTER_TEST`.
+  final bool? skipBetaPrompts;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -113,6 +121,13 @@ class _AppShellState extends State<AppShell> {
     AtlasShellTab.prices: 'prices',
     AtlasShellTab.profile: 'profile',
   };
+
+  AtlasEnv get _atlasEnv => widget.env ?? AtlasEnv.fromCompileTime();
+
+  bool get _showBetaChrome => _atlasEnv.showBetaFeedback;
+
+  bool get _skipBetaPrompts =>
+      widget.skipBetaPrompts ?? const bool.fromEnvironment('FLUTTER_TEST');
 
   @override
   void initState() {
@@ -175,8 +190,9 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
     setState(() => _buildInfo = info);
 
-    // Skip beta UX prompts during automated tests.
-    if (const bool.fromEnvironment('FLUTTER_TEST')) return;
+    if (!_showBetaChrome) return;
+    // Skip beta UX prompts during automated tests unless a test opts in.
+    if (_skipBetaPrompts) return;
 
     final store = const BetaPreferencesStore();
     final expectationsSeen = await store.loadPrivateBetaExpectationsSeen();
@@ -202,7 +218,10 @@ class _AppShellState extends State<AppShell> {
     final build = int.tryParse(buildInfo.buildNumber) ?? 0;
     if (build <= lastSeen) return;
 
-    final entries = ChangelogCatalog.sinceBuild(lastSeen);
+    final entries = ChangelogCatalog.forDisplay(
+      lastSeenBuild: lastSeen,
+      showBetaFeedback: _showBetaChrome,
+    );
     if (entries.isEmpty) {
       await store.saveLastSeenBuild(build);
       return;
@@ -297,6 +316,7 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onBannerTap() {
+    if (!_showBetaChrome) return;
     final now = DateTime.now();
     if (_bannerTapWindowStart == null ||
         now.difference(_bannerTapWindowStart!) > const Duration(seconds: 3)) {
@@ -335,8 +355,8 @@ class _AppShellState extends State<AppShell> {
     // qui signifie « sync réservée au compte » depuis P7.
     final showOffline = _connectivity.isOffline;
     // Bandeau beta — ville seulement si choix manuel (pas le catalogue Marrakech).
-    final showBeta = _buildInfo != null;
-    final showFeedbackFab = AtlasEnv.fromCompileTime().showBetaFeedback;
+    final showBeta = _showBetaChrome && _buildInfo != null;
+    final showFeedbackFab = _showBetaChrome;
     // Bandeau(x) au-dessus du contenu : le padding top iOS est consommé ici
     // pour ne pas le rejouer dans les SafeArea des onglets.
     final hasTopChrome = showBeta || showOffline;

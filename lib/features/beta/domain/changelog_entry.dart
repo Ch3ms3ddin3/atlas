@@ -52,4 +52,14 @@ abstract final class ChangelogCatalog {
         if (entry.buildNumber > lastSeenBuild) entry,
     ];
   }
+
+  /// Empty when private-beta chrome is off so store users never see
+  /// « Private Beta » / build-privée notes.
+  static List<ChangelogEntry> forDisplay({
+    required int lastSeenBuild,
+    required bool showBetaFeedback,
+  }) {
+    if (!showBetaFeedback) return const [];
+    return sinceBuild(lastSeenBuild);
+  }
 }

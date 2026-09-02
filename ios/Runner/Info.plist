@@ -22,8 +22,6 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -37,10 +35,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>
@@ -48,12 +46,16 @@
 		<string>tel</string>
 		<string>mailto</string>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Atlas utilise votre position pour centrer la carte sur vous, et pour afficher la météo et les horaires de prière de votre ville.</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Atlas peut ajouter un événement (jour férié ou rappel) à votre calendrier, uniquement si vous le demandez.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>Atlas peut ajouter un événement à votre calendrier, uniquement si vous le demandez.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Mon Atlas utilise votre position pour afficher les lieux utiles et les informations pertinentes à proximité.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Atlas utilise votre position pour centrer la carte sur vous, et pour afficher la météo et les horaires de prière de votre ville.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
